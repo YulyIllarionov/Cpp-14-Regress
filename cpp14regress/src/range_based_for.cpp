@@ -57,6 +57,7 @@ namespace cpp14regress {
                       itStr + " != " + rangeStr + ".end(); " + "++" + itStr + ")";
         }
         f_rewriter->ReplaceText(SourceRange(for_loop->getLocStart(), for_loop->getRParenLoc()), forDecl);
+
         RecursiveVariableReplacer *replacer = new RecursiveVariableReplacer(itVar, sg, f_rewriter);
         replacer->TraverseStmt(for_loop->getBody());
         f_rewriter->overwriteChangedFiles(); //TODO после обработки всех циклов

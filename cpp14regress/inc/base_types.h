@@ -17,17 +17,19 @@
 #include "clang/AST/ParentMap.h"
 
 #include "range_based_for.h"
+#include "lambda_function.h"
+
 #include <string>
 
 namespace cpp14regress {
 
     class RangeBasedForASTConsumer : public clang::ASTConsumer {
     private:
-        RangeBasedForReplacer *visitor;
+        LambdaFunctionReplacer *visitor;
 
     public:
         explicit RangeBasedForASTConsumer(clang::ASTContext *context)
-                : visitor(new RangeBasedForReplacer(context)){}
+                : visitor(new LambdaFunctionReplacer(context)){}
 
         virtual void HandleTranslationUnit(clang::ASTContext &context);
     };

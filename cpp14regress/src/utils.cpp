@@ -29,15 +29,24 @@ namespace cpp14regress{
         return true;
     }
 
-    template<class CoreClass>
-    string stringFromSource(CoreClass *cc, ASTContext* context)
+    std::string stringFromStmt(clang::Stmt *stmt, clang::ASTContext* context)
     {
         const SourceManager &sm = context->getSourceManager();
         const LangOptions &lo = context->getLangOpts();
-        SourceLocation b(cc->getLocStart()), _e(cc->getLocEnd());
+        SourceLocation b(stmt->getLocStart()), _e(stmt->getLocEnd());
         SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, sm, lo));
         return string(sm.getCharacterData(b),
                       sm.getCharacterData(e)-sm.getCharacterData(b));
+    }
+
+    std::string stringFromDecl(clang::Decl *decl, clang::ASTContext* context)
+    {
+    const SourceManager &sm = context->getSourceManager();
+    const LangOptions &lo = context->getLangOpts();
+    SourceLocation b(decl->getLocStart()), _e(decl->getLocEnd());
+    SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, sm, lo));
+    return string(sm.getCharacterData(b),
+            sm.getCharacterData(e)-sm.getCharacterData(b));
     }
 
 }
