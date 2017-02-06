@@ -39,6 +39,9 @@ namespace cpp14regress{
         virtual bool  VisitDeclRefExpr(clang::DeclRefExpr *dre);
     };
 
+    template<class CoreClass>
+    std::string stringFromSource(CoreClass *cc, clang::ASTContext* context);
+
 }
 
 #endif /*CPP14REGRESS_UTILS_H*/
