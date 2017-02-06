@@ -1,0 +1,7 @@
+*~
+.nfs*
+
+.idea/
+cmake-build-debug/
+
+
