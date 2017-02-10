@@ -15,38 +15,51 @@
 
 #include "utils.h"
 
-namespace cpp14regress{
+namespace cpp14regress {
 
     using namespace std;
     using namespace clang;
 
-    bool  RecursiveVariableReplacer::VisitDeclRefExpr(DeclRefExpr *dre)
-    {
+    bool RecursiveVariableReplacer::VisitDeclRefExpr(DeclRefExpr *dre) {
         if (dre->getDecl()->getNameAsString() == f_variable->getNameAsString()) {
             f_rewriter->ReplaceText(SourceRange(dre->getLocStart(),
-                                              dre->getLocEnd()), f_generator->toString());
+                                                dre->getLocEnd()), f_generator->toString());
         }
         return true;
     }
 
-    std::string stringFromStmt(clang::Stmt *stmt, clang::ASTContext* context)
-    {
+    std::string stringFromStmt(clang::Stmt *stmt, clang::ASTContext *context) {
         const SourceManager &sm = context->getSourceManager();
         const LangOptions &lo = context->getLangOpts();
         SourceLocation b(stmt->getLocStart()), _e(stmt->getLocEnd());
         SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, sm, lo));
         return string(sm.getCharacterData(b),
-                      sm.getCharacterData(e)-sm.getCharacterData(b));
+                      sm.getCharacterData(e) - sm.getCharacterData(b));
     }
 
-    std::string stringFromDecl(clang::Decl *decl, clang::ASTContext* context)
-    {
-    const SourceManager &sm = context->getSourceManager();
-    const LangOptions &lo = context->getLangOpts();
-    SourceLocation b(decl->getLocStart()), _e(decl->getLocEnd());
-    SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, sm, lo));
-    return string(sm.getCharacterData(b),
-            sm.getCharacterData(e)-sm.getCharacterData(b));
+    std::string stringFromDecl(clang::Decl *decl, clang::ASTContext *context) {
+        const SourceManager &sm = context->getSourceManager();
+        const LangOptions &lo = context->getLangOpts();
+        SourceLocation b(decl->getLocStart()), _e(decl->getLocEnd());
+        SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, sm, lo));
+        return string(sm.getCharacterData(b),
+                      sm.getCharacterData(e) - sm.getCharacterData(b));
     }
 
+    Indent& Indent::operator++() {
+        f_level++;
+        return *this;
+    }
+
+    Indent& Indent::operator--() {
+        if(f_level)
+            f_level--;
+        return *this;
+    }
+
+    ostream& operator<<(ostream& stream, const Indent& indent) { //TODO to utils.cpp
+        if (indent.f_level)
+            stream << string(Indent::f_size * indent.f_level, '!');
+        return stream;
+    }
 }

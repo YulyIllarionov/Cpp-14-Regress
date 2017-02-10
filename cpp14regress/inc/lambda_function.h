@@ -17,9 +17,29 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
+#include "utils.h"
+
 #include <string>
 
 namespace cpp14regress {
+
+    class LambaClassNameGenerator{
+    private:
+        static const std::string f_name;
+        static int f_count;
+    public:
+        LambaClassNameGenerator() {}
+        static std::string toString();
+        static std::string generate();
+    };
+
+    class LambaClassFieldNameGenerator : public StringGenerator{
+    private:
+        clang::ValueDecl* f_variable;
+    public:
+        LambaClassFieldNameGenerator(clang::ValueDecl* variable_) : f_variable(variable_) {}
+        virtual std::string toString();
+    };
 
     class LambdaFunctionReplacer: public clang::RecursiveASTVisitor<LambdaFunctionReplacer> {
     private:

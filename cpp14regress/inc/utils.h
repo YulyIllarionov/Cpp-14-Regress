@@ -17,6 +17,7 @@
 #include "clang/AST/ParentMap.h"
 
 #include <string>
+#include <iostream>
 
 namespace cpp14regress{
 
@@ -41,6 +42,31 @@ namespace cpp14regress{
 
     std::string stringFromStmt(clang::Stmt *stmt, clang::ASTContext* context);
     std::string stringFromDecl(clang::Decl *decl, clang::ASTContext* context);
+
+    //class FileGenerator{
+    //private:
+    //    const std::string f_path;
+//
+    //public:
+    //    FileGenerator(std::string path_);
+    //    FileGenerator(std::string directory, std::string filename);
+    //    bool open();
+    //    bool close();
+    //
+    //};
+
+    class Indent
+    {
+    private:
+        unsigned int f_level;
+        const static unsigned f_size = 4;
+    public:
+        Indent(){}
+        Indent& operator++();
+        Indent& operator--();
+        friend std::ostream& operator<<(std::ostream& stream, const Indent& indent);
+    };
+
 }
 
 #endif /*CPP14REGRESS_UTILS_H*/

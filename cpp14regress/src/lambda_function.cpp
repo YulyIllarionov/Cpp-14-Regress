@@ -25,29 +25,86 @@ namespace cpp14regress {
     using namespace std;
     using namespace clang;
 
-    LambdaFunctionReplacer::LambdaFunctionReplacer(ASTContext *context)
-    {
+    const string LambaClassNameGenerator::f_name = "__cpp14regress_lambda_";
+    int LambaClassNameGenerator::f_count = -1;
+
+    string LambaClassNameGenerator::toString() {
+        return string(f_name + to_string(f_count));
+    }
+
+    string LambaClassNameGenerator::generate() {
+        f_count++;
+        return toString();
+    }
+
+    string LambaClassFieldNameGenerator::toString() {
+        return string("f_" + f_variable->getNameAsString());
+    }
+
+    LambdaFunctionReplacer::LambdaFunctionReplacer(ASTContext *context) {
         f_context = context;
         f_rewriter = new Rewriter(context->getSourceManager(),
                                   context->getLangOpts());
     }
 
+    //TODO generic?
+    //TODO incapture initialization
     bool LambdaFunctionReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
-
         static int count = 0;
         cout << "Lambda " << count << ": " << endl << "----------------" << endl;
-        //cout << stringFromStmt(lambda, f_context) << endl << endl;
 
-        for (LambdaCapture capture : lambda->captures())
-        {
-            VarDecl* captured_var = capture.getCapturedVar();
-            cout << captured_var->getType().getAsString() << " "
-                 << captured_var->getQualifiedNameAsString() << endl;
+        Indent indent;
+
+        CXXRecordDecl* lambdaClass = lambda->getLambdaClass();
+
+        for (auto it = lambdaClass->ctor_begin(); it != lambdaClass->ctor_end(); it++) {
+            for (size_t i = 0; i != it->param_size(); i++) {
+                ParmVarDecl* parameter = it->getParamDecl(i);
+                cout << parameter->getType().getAsString() << " "
+                     << parameter->getQualifiedNameAsString() << endl;
+            }
+            cout << "---" << endl;
         }
+        cout << "class " << LambaClassNameGenerator::generate() << " {" << endl;
+        cout << "private:" << endl;
+        //Lambda class fields
+        for (auto it = lambda->captures().begin(); it != lambda->captures().end(); it++) {
+            VarDecl *captured_var = it->getCapturedVar();
+            cout << captured_var->getType().getAsString() << " "
+                 << captured_var->getNameAsString() << endl; //TODO add f_
 
-        //cout << stringFromStmt(lambda->getBody(), f_context) << endl << endl;
+        }
+        cout << "public:" << endl;
+        //Lambda class constructor
+        cout << LambaClassNameGenerator::toString() << "(";
+        for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
+            VarDecl *captured_var = it->getCapturedVar();
+            cout << captured_var->getType().getAsString() << " "
+                 << captured_var->getNameAsString() << "_"
+                 << ((++it != lambda->capture_end()) ? ", " : ") ");
+        }
+        cout << "{" << endl;
+        //Lambda class constructor body
+        for (auto it = lambda->capture_begin(); it != lambda->capture_end(); it++) {
+            VarDecl *captured_var = it->getCapturedVar();
+            cout << captured_var->getNameAsString() //TODO add f_
+                 << " = " << captured_var->getNameAsString() << "_" << ";" << endl;
 
-        cout  << "----------------" << endl;
+        }
+        cout << "}" << endl;
+        //Lambda class operator()
+        FunctionDecl* lambdaFunction = lambda->getCallOperator();
+        cout << QualType::getAsString(lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
+             << " operator ()(";
+        for (size_t i = 0; i != lambdaFunction->param_size();) {
+            ParmVarDecl* parameter = lambdaFunction->getParamDecl(i);
+            cout << parameter->getType().getAsString() << " "
+                 << parameter->getQualifiedNameAsString()
+                 << ((++i != lambdaFunction->param_size()) ? ", " : ") ");
+        }
+        cout << stringFromStmt(lambda->getBody(), f_context) << endl;
+        cout << "};" << endl;
+        cout << "----------------" << endl;
         count++;
         return true;
     }
