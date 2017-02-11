@@ -26,48 +26,25 @@ namespace cpp14regress {
 
     using namespace std;
     using namespace clang;
-
-    ast_graph_node::ast_graph_node(Stmt *stmt, ASTContext* context) {
-        name = stmt->getStmtClassName();
-        description = stringFromStmt(stmt, context);
-    }
-
-    ast_graph_node::ast_graph_node(Decl *decl, ASTContext* context) {
-        name = decl->getDeclKindName();
-        description = stringFromDecl(decl, context);
-    }
-
-    ast_graph_node::ast_graph_node(Type *type, ASTContext* context) {
-        name = type->getTypeClassName();
-        description = "";
-    }
-
-    void ast_graph::recursive_visit(Stmt *stmt, ast_graph_node *agn_f, ASTContext* context) {
-        for (Stmt *subStmt : stmt->children()) {
-            if (subStmt != nullptr) {
-                ast_graph_node *agn_c = new ast_graph_node(subStmt, context);
+    void ast_graph::recursive_visit(ast_graph_node *agn_f) {
+        for (ast_graph_node *agn_c : agn_f->children()) {
+            if (agn_c != nullptr) {
                 ast_graph_edge *age = new ast_graph_edge(agn_f, agn_c);
-                f_nodes.push_back(agn_c);
+                if(find(f_nodes.begin(), f_nodes.end(), agn_c) == f_nodes.end())
+                    f_nodes.push_back(agn_c);
                 f_edges.push_back(age);
-                recursive_visit(subStmt, agn_c, context);
+                recursive_visit(agn_c);
             }
         }
     }
 
-    ast_graph::ast_graph(Stmt *stmt, ASTContext* context)
+    ast_graph::ast_graph(Stmt *stmt_, ASTContext* context_)
     {
-        if (stmt == nullptr)
+        if (stmt_ == nullptr)
             return;
-
-        ast_graph_node* agn = new ast_graph_node(stmt, context);
-        f_nodes.push_back(agn);
-        recursive_visit(stmt, agn, context);
-    }
-
-    ast_graph::~ast_graph()
-    {
-        for (ast_graph_node *n : f_nodes)
-            delete n;
+        f_context = context_;
+        f_nodes.push_back(stmt_);
+        recursive_visit(stmt_);
     }
 
     bool ast_graph::to_dot_file(std::string file_name) {
@@ -80,26 +57,23 @@ namespace cpp14regress {
         dot << endl;
         for (size_t i = 0; i < f_nodes.size(); i++)
         {
-            const ast_graph_node *n = f_nodes[i];
+            ast_graph_node *node = f_nodes[i];
+            string name(node->getStmtClassName());
+            string description(stringFromStmt(node, f_context));
             string::size_type index = 0;
-            string tmp(n->description);
-            while (true) {
-                index = tmp.find("\"", index);
-                if (index == string::npos)
-                    break;
-                tmp.insert(index, "\\");
+            while (( index = description.find("\"", index)) != string::npos )
+            {
+                description.replace(index, 1, "\\\"");
                 index += 2;
             }
             index = 0;
-            while (true) {
-                index = tmp.find("\n", index);
-                if (index == string::npos)
-                    break;
-                tmp.replace(index, 1, "\\l");
-                index += 1;
+            while (( index = description.find("\n", index)) != string::npos )
+            {
+                description.replace(index, 1, "\\l");
+                index += 2;
             }
             dot << "n" << std::to_string(i) << " [label = \""
-                << n->name << "\\n" << "\\n" << tmp << "\\l" << "\" "
+                << name << "\\n" << "\\n" << description << "\\l" << "\" "
                 << "shape=\"box\""
                 << " ]" << endl;
         }

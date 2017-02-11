@@ -27,32 +27,23 @@
 
 namespace cpp14regress {
 
-    struct ast_graph_node {
-        std::string name;
-        std::string description;
-
-        ast_graph_node(std::string name_, std::string description_) :
-                name(name_), description(description_) {}
-
-        ast_graph_node(clang::Stmt* stmt, clang::ASTContext* context);
-        ast_graph_node(clang::Decl* decl, clang::ASTContext* context);
-        ast_graph_node(clang::Type* type, clang::ASTContext* context);
-    };
-
+    typedef clang::Stmt ast_graph_node;
     typedef std::pair<ast_graph_node*, ast_graph_node*> ast_graph_edge;
+    typedef std::vector<std::pair<std::string, std::string>> node_inf;
 
-    struct ast_graph
+    class ast_graph
     {
     private:
         std::vector<ast_graph_node*> f_nodes;
         std::vector<ast_graph_edge*> f_edges;
+        clang::ASTContext* f_context;
     public:
-        ast_graph(clang::Stmt* stmt, clang::ASTContext* context);
+        ast_graph(clang::Stmt* stmt_, clang::ASTContext* context_);
         bool to_dot_file(std::string file_name);
-        ~ast_graph();
+        ~ast_graph(){}
     private:
-        void recursive_visit(clang::Stmt *stmt, ast_graph_node *agn_f, clang::ASTContext* context);
-
+        void recursive_visit(ast_graph_node *agn_f);
+        node_inf get_stmt_inf(clang::Stmt* stmt_);
     };
 
 }
