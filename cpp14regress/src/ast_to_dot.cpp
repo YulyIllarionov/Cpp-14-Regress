@@ -19,6 +19,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <fstream>
+#include <algorithm>
 
 namespace cpp14regress {
 
@@ -43,25 +45,11 @@ namespace cpp14regress {
     void ast_graph::recursive_visit(Stmt *stmt, ast_graph_node *agn_f, ASTContext* context) {
         for (Stmt *subStmt : stmt->children()) {
             if (subStmt != nullptr) {
-                bool visit = false;
-                ast_graph_node *agn_c;
-                ast_graph_edge *age;
-                if (Stmt *s = dyn_cast<Stmt>(subStmt)) {
-                    agn_c = new ast_graph_node(s, context);
-                    visit = true;
-                }
-                if (Decl *d = dyn_cast<Decl>(subStmt))
-                    agn_c = new ast_graph_node(d, context);
-                if (Type *t = dyn_cast<Type>(subStmt))
-                    agn_c = new ast_graph_node(t, context);
-
-                if (agn_c == nullptr)
-                    agn_c = new ast_graph_node("unknown", "");
-                age = new ast_graph_edge(agn_f, agn_c);
+                ast_graph_node *agn_c = new ast_graph_node(subStmt, context);
+                ast_graph_edge *age = new ast_graph_edge(agn_f, agn_c);
                 f_nodes.push_back(agn_c);
                 f_edges.push_back(age);
-                if (visit)
-                    recursive_visit(subStmt, agn_c, context);
+                recursive_visit(subStmt, agn_c, context);
             }
         }
     }
@@ -74,5 +62,56 @@ namespace cpp14regress {
         ast_graph_node* agn = new ast_graph_node(stmt, context);
         f_nodes.push_back(agn);
         recursive_visit(stmt, agn, context);
+    }
+
+    ast_graph::~ast_graph()
+    {
+        for (ast_graph_node *n : f_nodes)
+            delete n;
+    }
+
+    bool ast_graph::to_dot_file(std::string file_name) {
+        ofstream dot(file_name);
+        if(!dot.is_open())
+            return false;
+
+        dot << "digraph graphname {" << endl;
+        dot << "rankdir = TB" << endl;
+        dot << endl;
+        for (size_t i = 0; i < f_nodes.size(); i++)
+        {
+            const ast_graph_node *n = f_nodes[i];
+            string::size_type index = 0;
+            string tmp(n->description);
+            while (true) {
+                index = tmp.find("\"", index);
+                if (index == string::npos)
+                    break;
+                tmp.insert(index, "\\");
+                index += 2;
+            }
+            index = 0;
+            while (true) {
+                index = tmp.find("\n", index);
+                if (index == string::npos)
+                    break;
+                tmp.replace(index, 1, "\\l");
+                index += 1;
+            }
+            dot << "n" << std::to_string(i) << " [label = \""
+                << n->name << "\\n" << "\\n" << tmp << "\\l" << "\" "
+                << "shape=\"box\""
+                << " ]" << endl;
+        }
+        dot << endl;
+        for (ast_graph_edge *e : f_edges)
+        {
+            dot << "n" << find(f_nodes.begin(), f_nodes.end(), e->first) - f_nodes.begin() << " -> "
+                << "n" << find(f_nodes.begin(), f_nodes.end(), e->second) - f_nodes.begin()  << endl;
+        }
+        dot << "}" << endl;
+
+        dot.close();
+        return true;
     }
 }

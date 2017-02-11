@@ -16,6 +16,7 @@
 
 #include "lambda_function.h"
 #include "utils.h"
+#include "ast_to_dot.h"
 
 #include <iostream>
 #include <string>
@@ -51,6 +52,10 @@ namespace cpp14regress {
     //TODO incapture initialization
     bool LambdaFunctionReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
         static int count = 0;
+        ast_graph ag(lambda, f_context);
+        string filename = "/home/yury/llvm-clang/test/dot/";
+        ag.to_dot_file(filename + "lambda" + to_string(count) + ".dot");
+
         cout << "Lambda " << count << ": " << endl << "----------------" << endl;
 
         Indent indent;
@@ -89,7 +94,6 @@ namespace cpp14regress {
             VarDecl *captured_var = it->getCapturedVar();
             cout << captured_var->getNameAsString() //TODO add f_
                  << " = " << captured_var->getNameAsString() << "_" << ";" << endl;
-
         }
         cout << "}" << endl;
         //Lambda class operator()

@@ -48,7 +48,8 @@ namespace cpp14regress {
         std::vector<ast_graph_edge*> f_edges;
     public:
         ast_graph(clang::Stmt* stmt, clang::ASTContext* context);
-        void to_dot_file(std::string file_name);
+        bool to_dot_file(std::string file_name);
+        ~ast_graph();
     private:
         void recursive_visit(clang::Stmt *stmt, ast_graph_node *agn_f, clang::ASTContext* context);
 

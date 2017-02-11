@@ -9,6 +9,5 @@ target_link_libraries(cpp14regress
         clangTooling
         #RangeBasedForRegress
         LambdaFunctionRegress
-        AstToDot
         )
 
