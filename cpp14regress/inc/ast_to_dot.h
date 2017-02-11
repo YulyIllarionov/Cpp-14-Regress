@@ -29,7 +29,8 @@ namespace cpp14regress {
 
     typedef clang::Stmt ast_graph_node;
     typedef std::pair<ast_graph_node*, ast_graph_node*> ast_graph_edge;
-    typedef std::vector<std::pair<std::string, std::string>> node_inf;
+    typedef std::pair<std::string, std::string> node_inf_record;
+    typedef std::vector<node_inf_record> node_inf;
 
     class ast_graph
     {
@@ -43,7 +44,9 @@ namespace cpp14regress {
         ~ast_graph(){}
     private:
         void recursive_visit(ast_graph_node *agn_f);
-        node_inf get_stmt_inf(clang::Stmt* stmt_);
+        node_inf get_stmt_inf(clang::Stmt* stmt);
+        std::string string_to_label(std::string s);
+        std::string node_inf_to_label(node_inf inf);
     };
 
 }

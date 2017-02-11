@@ -58,24 +58,9 @@ namespace cpp14regress {
         for (size_t i = 0; i < f_nodes.size(); i++)
         {
             ast_graph_node *node = f_nodes[i];
-            string name(node->getStmtClassName());
-            string description(stringFromStmt(node, f_context));
-            string::size_type index = 0;
-            while (( index = description.find("\"", index)) != string::npos )
-            {
-                description.replace(index, 1, "\\\"");
-                index += 2;
-            }
-            index = 0;
-            while (( index = description.find("\n", index)) != string::npos )
-            {
-                description.replace(index, 1, "\\l");
-                index += 2;
-            }
-            dot << "n" << std::to_string(i) << " [label = \""
-                << name << "\\n" << "\\n" << description << "\\l" << "\" "
-                << "shape=\"box\""
-                << " ]" << endl;
+            dot << "n" << to_string(i) << " [label = "
+                << node_inf_to_label(get_stmt_inf(node))
+                << ", shape = \"box\"" << " ]" << endl;
         }
         dot << endl;
         for (ast_graph_edge *e : f_edges)
@@ -88,4 +73,48 @@ namespace cpp14regress {
         dot.close();
         return true;
     }
+
+    string ast_graph::string_to_label(string s)
+    {
+        string::size_type index = 0;
+        while (( index = s.find("\"", index)) != string::npos )
+        {
+            s.replace(index, 1, "\\\"");
+            index += 2;
+        }
+        index = 0;
+        while (( index = s.find("\n", index)) != string::npos )
+        {
+            s.replace(index, 1, "\\l");
+            index += 2;
+        }
+        return s;
+    }
+
+    node_inf ast_graph::get_stmt_inf(clang::Stmt* stmt)
+    {
+        node_inf inf;
+        inf.push_back(node_inf_record(string(), stmt->getStmtClassName()));
+        inf.push_back(node_inf_record("Source code", string_to_label(stringFromStmt(stmt, f_context))));
+
+        return inf;
+    }
+
+    string ast_graph::node_inf_to_label(node_inf inf)
+    {
+        string table = "<<TABLE>";
+        for (node_inf_record record : inf)
+        {
+            table += "<TR><TD";
+            if (record.second.empty())
+                table += string(" colspan=\"2\" >" + record.first + "</TD>");
+            else
+                table += string("> " + record.first + " </TD>" +
+                                "<TD> <pre>" + record.second + "</pre> </TD>");
+            table += "</TR>";
+        }
+        table += "</TABLE>>";
+        return table;
+    }
 }
+
