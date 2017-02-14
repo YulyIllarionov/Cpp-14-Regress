@@ -29,7 +29,7 @@ namespace cpp14regress {
 
     typedef clang::Stmt ast_graph_node;
     typedef std::pair<ast_graph_node*, ast_graph_node*> ast_graph_edge;
-    typedef std::pair<std::string, std::string> node_inf_record;
+    typedef std::string node_inf_record;
     typedef std::vector<node_inf_record> node_inf;
 
     class ast_graph

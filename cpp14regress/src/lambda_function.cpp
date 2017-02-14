@@ -52,9 +52,9 @@ namespace cpp14regress {
     //TODO incapture initialization
     bool LambdaFunctionReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
         static int count = 0;
-        ast_graph ag(lambda, f_context);
-        string filename = "/home/yury/llvm-clang/test/dot/";
-        ag.to_dot_file(filename + "lambda" + to_string(count) + ".dot");
+        //ast_graph ag(lambda, f_context);
+        string dot_filename = "/home/yury/llvm-clang/test/dot/";
+        //ag.to_dot_file(dot_filename + "lambda" + to_string(count) + ".dot");
 
         cout << "Lambda " << count << ": " << endl << "----------------" << endl;
 
@@ -63,9 +63,13 @@ namespace cpp14regress {
         CXXRecordDecl* lambdaClass = lambda->getLambdaClass();
 
         for (auto it = lambdaClass->ctor_begin(); it != lambdaClass->ctor_end(); it++) {
+            //static int j = 0;
+            //ast_graph ag(it->getBody(), f_context);
+            //ag.to_dot_file(dot_filename + "lambda" + to_string(j) + ".dot");
+            //j++;
             for (size_t i = 0; i != it->param_size(); i++) {
                 ParmVarDecl* parameter = it->getParamDecl(i);
-                cout << parameter->getType().getAsString() << " "
+                cout << parameter->getType().getAsString() << endl
                      << parameter->getQualifiedNameAsString() << endl;
             }
             cout << "---" << endl;
@@ -108,7 +112,7 @@ namespace cpp14regress {
         }
         cout << stringFromStmt(lambda->getBody(), f_context) << endl;
         cout << "};" << endl;
-        cout << "----------------" << endl;
+        cout << "----------------" << endl << endl;
         count++;
         return true;
     }

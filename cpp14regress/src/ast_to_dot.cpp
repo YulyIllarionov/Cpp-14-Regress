@@ -94,26 +94,31 @@ namespace cpp14regress {
     node_inf ast_graph::get_stmt_inf(clang::Stmt* stmt)
     {
         node_inf inf;
-        inf.push_back(node_inf_record(string(), stmt->getStmtClassName()));
-        inf.push_back(node_inf_record("Source code", string_to_label(stringFromStmt(stmt, f_context))));
+        inf.push_back(node_inf_record(stmt->getStmtClassName()));
+        if(DeclRefExpr* dre = dyn_cast<DeclRefExpr>(stmt)) {
+            inf.push_back(node_inf_record(dre->getDecl()->getType().getAsString()));
+            inf.push_back(node_inf_record(dre->getDecl()->getQualifiedNameAsString()));
+        }
+        else if (Expr* expr = dyn_cast<Expr>(stmt)) {
+            inf.push_back(expr->getType().getAsString());
+            inf.push_back(node_inf_record(string_to_label(stringFromStmt(expr, f_context))));
+        }
+        else
+            inf.push_back(node_inf_record(string_to_label(stringFromStmt(stmt, f_context))));
 
         return inf;
     }
 
     string ast_graph::node_inf_to_label(node_inf inf)
     {
-        string table = "<<TABLE>";
+        string table = "\"";
         for (node_inf_record record : inf)
         {
-            table += "<TR><TD";
-            if (record.second.empty())
-                table += string(" colspan=\"2\" >" + record.first + "</TD>");
-            else
-                table += string("> " + record.first + " </TD>" +
-                                "<TD> <pre>" + record.second + "</pre> </TD>");
-            table += "</TR>";
+            table += record;
+            if(record != inf.back())
+                table += "\\n--------------\\n";
         }
-        table += "</TABLE>>";
+        table += "\"";
         return table;
     }
 }
