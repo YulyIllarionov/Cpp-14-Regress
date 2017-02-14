@@ -13,6 +13,7 @@
 #include "clang/Lex/Lexer.h"
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
+#include "llvm/ADT/DenseMap.h"
 
 #include "lambda_function.h"
 #include "utils.h"
@@ -25,6 +26,7 @@ namespace cpp14regress {
 
     using namespace std;
     using namespace clang;
+    using namespace llvm;
 
     const string LambaClassNameGenerator::f_name = "__cpp14regress_lambda_";
     int LambaClassNameGenerator::f_count = -1;
@@ -61,58 +63,58 @@ namespace cpp14regress {
         Indent indent;
 
         CXXRecordDecl* lambdaClass = lambda->getLambdaClass();
+        DenseMap<const VarDecl*, FieldDecl*> clangCaptures;
+        FieldDecl *thisField;
+        lambdaClass->getCaptureFields(clangCaptures, thisField);
 
-        for (auto it = lambdaClass->ctor_begin(); it != lambdaClass->ctor_end(); it++) {
-            //static int j = 0;
-            //ast_graph ag(it->getBody(), f_context);
-            //ag.to_dot_file(dot_filename + "lambda" + to_string(j) + ".dot");
-            //j++;
-            for (size_t i = 0; i != it->param_size(); i++) {
-                ParmVarDecl* parameter = it->getParamDecl(i);
-                cout << parameter->getType().getAsString() << endl
-                     << parameter->getQualifiedNameAsString() << endl;
-            }
-            cout << "---" << endl;
-        }
         cout << "class " << LambaClassNameGenerator::generate() << " {" << endl;
-        cout << "private:" << endl;
+        if (lambda->capture_begin() != lambda->capture_end())
+            cout << "private:" << endl;
         //Lambda class fields
+        ++indent;
         for (auto it = lambda->captures().begin(); it != lambda->captures().end(); it++) {
             VarDecl *captured_var = it->getCapturedVar();
-            cout << captured_var->getType().getAsString() << " "
-                 << captured_var->getNameAsString() << endl; //TODO add f_
-
+            cout << indent << ((lambda->isMutable()) ? "mutable " : "")
+                 << clangCaptures[captured_var]->getType().getAsString() << " "
+                 << captured_var->getNameAsString() << ";" << endl; //TODO add f_
         }
         cout << "public:" << endl;
         //Lambda class constructor
-        cout << LambaClassNameGenerator::toString() << "(";
+        cout << indent << LambaClassNameGenerator::toString() << "(";
         for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
             VarDecl *captured_var = it->getCapturedVar();
-            cout << captured_var->getType().getAsString() << " "
+            cout << clangCaptures[captured_var]->getType().getAsString() << " "
                  << captured_var->getNameAsString() << "_"
-                 << ((++it != lambda->capture_end()) ? ", " : ") ");
+                 << ((++it != lambda->capture_end()) ? ", " : ") : ");
         }
-        cout << "{" << endl;
         //Lambda class constructor body
-        for (auto it = lambda->capture_begin(); it != lambda->capture_end(); it++) {
+        for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
             VarDecl *captured_var = it->getCapturedVar();
             cout << captured_var->getNameAsString() //TODO add f_
-                 << " = " << captured_var->getNameAsString() << "_" << ";" << endl;
+                 << "(" << captured_var->getNameAsString() << "_" << ")"
+                 << ((++it != lambda->capture_end()) ? ", " : "");
         }
-        cout << "}" << endl;
+        cout << " {}" << endl;
         //Lambda class operator()
         FunctionDecl* lambdaFunction = lambda->getCallOperator();
-        cout << QualType::getAsString(lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
+        cout << indent << QualType::getAsString(lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
              << " operator ()(";
         for (size_t i = 0; i != lambdaFunction->param_size();) {
             ParmVarDecl* parameter = lambdaFunction->getParamDecl(i);
             cout << parameter->getType().getAsString() << " "
                  << parameter->getQualifiedNameAsString()
-                 << ((++i != lambdaFunction->param_size()) ? ", " : ") ");
+                 << ((++i != lambdaFunction->param_size()) ? ", " : "");
         }
+        cout << ") const ";
         cout << stringFromStmt(lambda->getBody(), f_context) << endl;
+        //Lambda class operator() body
+        //vector<string> body_lines = codeBlockToLines(stringFromStmt(lambda->getBody(), f_context));
+        //for (string line : body_lines)
+        //{
+        //    cout << indent << line << endl;
+        //}
         cout << "};" << endl;
-        cout << "----------------" << endl << endl;
+        cout << "----------------" << endl;
         count++;
         return true;
     }

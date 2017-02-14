@@ -59,13 +59,19 @@ namespace cpp14regress{
     {
     private:
         unsigned int f_level;
-        const static unsigned f_size = 4;
+        const static unsigned int f_size = 4;
     public:
-        Indent(){}
+        Indent() : f_level(0) {}
+        Indent(const Indent &other) = default;
         Indent& operator++();
+        Indent operator++(int);
         Indent& operator--();
+        Indent operator--(int);
+        operator std::string() const {return std::string(f_level * f_size, ' ');}
         friend std::ostream& operator<<(std::ostream& stream, const Indent& indent);
     };
+
+    std::vector<std::string> codeBlockToLines(const std::string& block);
 
 }
 

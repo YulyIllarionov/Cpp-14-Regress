@@ -7,7 +7,9 @@ set(CMAKE_CXX_STANDARD 14)
 
 set(SOURCE_FILES ./cpp14regress/tool/main.cpp )
 
-include_directories(./../../../include/ ./cpp14regress/inc/)
+include_directories(./../../../include/
+        ./../../../../../../llvm/include/
+        ./cpp14regress/inc/)
 
 set(HEADER_FILES ./cpp14regress/inc/base_types.h
         ./cpp14regress/inc/utils.h
