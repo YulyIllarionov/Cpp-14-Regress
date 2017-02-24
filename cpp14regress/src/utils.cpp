@@ -76,45 +76,4 @@ namespace cpp14regress {
             stream << ' ';
         return stream;
     }
-
-    vector<string> codeBlockToLines(const string &block) //XXX
-    {
-        vector<string> lines;
-        if(!block.empty()) {
-            Indent indent;
-            size_t b = block.find_first_not_of('\n') , e = b;
-            while ((e = block.find('\n', ++e)) != string::npos) {
-                lines.push_back(block.substr(b , e - b - 1));
-                b = e;
-                string &tmp_line = lines.back();
-                tmp_line.erase(0, tmp_line.find_first_not_of('\t'));
-                tmp_line.erase(0, tmp_line.find_first_not_of(' '));
-                tmp_line.erase(tmp_line.find_last_not_of(' ') + 1);
-                tmp_line.erase(tmp_line.find_last_not_of('\t') + 1);
-
-                //if (tmp_line.empty())
-                //    cout << endl;
-                //else {
-                //    size_t brace;
-                //    if ((brace = tmp_line.find('{')) != string::npos) {
-                //        if (brace == 0)
-                //            tmp_line = --indent + tmp_line;
-                //        else
-                //            tmp_line = indent-- + tmp_line;
-                //    }
-                //    if ((brace = tmp_line.find('}')) != string::npos) {
-                //        if (brace == 0)
-                //            tmp_line = --indent + tmp_line;
-                //        else
-                //            tmp_line = indent-- + tmp_line;
-                //    }
-                //
-                //    } else {
-                //        cout << indent << line << endl;
-                //    }
-                //}
-            }
-        }
-        return lines;
-    }
 }

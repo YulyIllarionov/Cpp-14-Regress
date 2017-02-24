@@ -70,9 +70,6 @@ namespace cpp14regress{
         operator std::string() const {return std::string(f_level * f_size, ' ');}
         friend std::ostream& operator<<(std::ostream& stream, const Indent& indent);
     };
-
-    std::vector<std::string> codeBlockToLines(const std::string& block);
-
 }
 
 #endif /*CPP14REGRESS_UTILS_H*/

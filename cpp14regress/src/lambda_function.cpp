@@ -51,16 +51,15 @@ namespace cpp14regress {
     }
 
     string GenericTypeGenerator::toString() {
-	return std::string("type_" + to_string(f_count));
+        return std::string("type_" + to_string(f_count));
     }
 
     string GenericTypeGenerator::generate() {
-	f_count++;
-	return toString();
+        f_count++;
+        return toString();
     }
 
-
-    //TODO generic?
+    //TODO generic
     //TODO incapture initialization
     bool LambdaFunctionReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
         static int count = 0;
@@ -72,8 +71,8 @@ namespace cpp14regress {
 
         Indent indent;
 
-        CXXRecordDecl* lambdaClass = lambda->getLambdaClass();
-        DenseMap<const VarDecl*, FieldDecl*> clangCaptures;
+        CXXRecordDecl *lambdaClass = lambda->getLambdaClass();
+        DenseMap<const VarDecl *, FieldDecl *> clangCaptures;
         FieldDecl *thisField;
         lambdaClass->getCaptureFields(clangCaptures, thisField);
 
@@ -106,42 +105,29 @@ namespace cpp14regress {
         }
         cout << " {}" << endl;
         //Lambda class operator()
-	/*vector<string> generics;
-	if(lambda->isGenericLambda())
-	{
-	    cout << indent << "template <";
-	    GenericTypeGenerator gtg;
-	    for (size_t i = 0; i != lambdaFunction->param_size();)
-	    {
-		ParmVarDecl* parameter = lambdaFunction->getParamDecl(i);
-		if(dyn_cast<AutoType>(parameter->getType().getTypePtr()))
-		    generics.push_back(gtg.generate());
-	    }
-	    for (string typeName : generics)
-	    {
-		cout << "typename " << 
-		     << (typeName == generics.last) ? "> " : ">");
-	    }
-	    cout << endl; 	
-	}
-        FunctionDecl* lambdaFunction = lambda->getCallOperator();
+        FunctionDecl *lambdaFunction = lambda->getCallOperator();
+        auto generics = lambda->getTemplateParameterList();
+        if (generics) {
+            cout << indent << "template <";
+            for (size_t i = 0; i < generics->size();) {
+                NamedDecl* nd = generics->getParam(i);
+                if (nd)
+                    cout << nd->getNameAsString();
+                cout << ((++i != generics->size()) ? ", " : ">");
+            }
+            cout << endl;
+        }
         cout << indent << QualType::getAsString(lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
              << " operator ()(";
-        for (size_t i = 0, auto g = generics.begin(); i != lambdaFunction->param_size();) {
-            ParmVarDecl* parameter = lambdaFunction->getParamDecl(i);
-            cout << ((dyn_cast<AutoType>(parameter->getType().getTypePtr())) ? 
-		    g++ : parameter->getType().getAsString()) << " "
+        for (size_t i = 0; i != lambdaFunction->param_size();) {
+            ParmVarDecl *parameter = lambdaFunction->getParamDecl(i);
+            cout << parameter->getType().getAsString() << " "
                  << parameter->getQualifiedNameAsString()
                  << ((++i != lambdaFunction->param_size()) ? ", " : "");
-        }*/
+        }
         cout << ") const ";
-        cout << stringFromStmt(lambda->getBody(), f_context) << endl;
         //Lambda class operator() body
-        //vector<string> body_lines = codeBlockToLines(stringFromStmt(lambda->getBody(), f_context));
-        //for (string line : body_lines)
-        //{
-        //    cout << indent << line << endl;
-        //}
+        cout << stringFromStmt(lambda->getBody(), f_context) << endl;
         cout << "};" << endl;
         cout << "----------------" << endl;
         count++;
