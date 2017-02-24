@@ -40,6 +40,15 @@ namespace cpp14regress {
         virtual std::string toString();
     };
 
+    class GenericTypeGenerator : public StringGenerator{
+    private:
+        int f_count;
+    public:
+        GenericTypeGenerator() : f_count(-1) {}
+        virtual std::string toString();
+	virtual std::string generate();
+    };
+
     class LambdaFunctionReplacer: public clang::RecursiveASTVisitor<LambdaFunctionReplacer> {
     private:
         clang::ASTContext *f_context;

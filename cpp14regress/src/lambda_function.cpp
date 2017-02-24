@@ -50,6 +50,16 @@ namespace cpp14regress {
                                   context->getLangOpts());
     }
 
+    string GenericTypeGenerator::toString() {
+	return std::string("type_" + to_string(f_count));
+    }
+
+    string GenericTypeGenerator::generate() {
+	f_count++;
+	return toString();
+    }
+
+
     //TODO generic?
     //TODO incapture initialization
     bool LambdaFunctionReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
@@ -96,15 +106,34 @@ namespace cpp14regress {
         }
         cout << " {}" << endl;
         //Lambda class operator()
+	/*vector<string> generics;
+	if(lambda->isGenericLambda())
+	{
+	    cout << indent << "template <";
+	    GenericTypeGenerator gtg;
+	    for (size_t i = 0; i != lambdaFunction->param_size();)
+	    {
+		ParmVarDecl* parameter = lambdaFunction->getParamDecl(i);
+		if(dyn_cast<AutoType>(parameter->getType().getTypePtr()))
+		    generics.push_back(gtg.generate());
+	    }
+	    for (string typeName : generics)
+	    {
+		cout << "typename " << 
+		     << (typeName == generics.last) ? "> " : ">");
+	    }
+	    cout << endl; 	
+	}
         FunctionDecl* lambdaFunction = lambda->getCallOperator();
         cout << indent << QualType::getAsString(lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
              << " operator ()(";
-        for (size_t i = 0; i != lambdaFunction->param_size();) {
+        for (size_t i = 0, auto g = generics.begin(); i != lambdaFunction->param_size();) {
             ParmVarDecl* parameter = lambdaFunction->getParamDecl(i);
-            cout << parameter->getType().getAsString() << " "
+            cout << ((dyn_cast<AutoType>(parameter->getType().getTypePtr())) ? 
+		    g++ : parameter->getType().getAsString()) << " "
                  << parameter->getQualifiedNameAsString()
                  << ((++i != lambdaFunction->param_size()) ? ", " : "");
-        }
+        }*/
         cout << ") const ";
         cout << stringFromStmt(lambda->getBody(), f_context) << endl;
         //Lambda class operator() body
