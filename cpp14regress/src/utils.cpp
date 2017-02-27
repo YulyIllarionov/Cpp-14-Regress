@@ -28,24 +28,6 @@ namespace cpp14regress {
         return true;
     }
 
-    std::string stringFromStmt(clang::Stmt *stmt, clang::ASTContext *context) {
-        const SourceManager &sm = context->getSourceManager();
-        const LangOptions &lo = context->getLangOpts();
-        SourceLocation b(stmt->getLocStart()), _e(stmt->getLocEnd());
-        SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, sm, lo));
-        return string(sm.getCharacterData(b),
-                      sm.getCharacterData(e) - sm.getCharacterData(b));
-    }
-
-    std::string stringFromDecl(clang::Decl *decl, clang::ASTContext *context) {
-        const SourceManager &sm = context->getSourceManager();
-        const LangOptions &lo = context->getLangOpts();
-        SourceLocation b(decl->getLocStart()), _e(decl->getLocEnd());
-        SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, sm, lo));
-        return string(sm.getCharacterData(b),
-                      sm.getCharacterData(e) - sm.getCharacterData(b));
-    }
-
     Indent& Indent::operator++() {
         f_level++;
         return *this;

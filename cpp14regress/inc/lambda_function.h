@@ -22,40 +22,44 @@
 
 namespace cpp14regress {
 
-    class LambaClassNameGenerator{
+    class LambaClassNameGenerator {
     private:
         static const std::string f_name;
         static int f_count;
     public:
         LambaClassNameGenerator() {}
+
         static std::string toString();
+
         static std::string generate();
     };
 
-    class LambaClassFieldNameGenerator : public StringGenerator{
+    class LambaClassFieldNameGenerator : public StringGenerator {
     private:
-        clang::ValueDecl* f_variable;
+        clang::ValueDecl *f_variable;
     public:
-        LambaClassFieldNameGenerator(clang::ValueDecl* variable_) : f_variable(variable_) {}
+        LambaClassFieldNameGenerator(clang::ValueDecl *variable_) : f_variable(variable_) {}
+
         virtual std::string toString();
     };
 
-    class GenericTypeGenerator : public StringGenerator{
+    class GenericTypeGenerator : public StringGenerator {
     private:
         int f_count;
     public:
         GenericTypeGenerator() : f_count(-1) {}
         virtual std::string toString();
-	virtual std::string generate();
+        virtual std::string generate();
     };
 
-    class LambdaFunctionReplacer: public clang::RecursiveASTVisitor<LambdaFunctionReplacer> {
+    class LambdaFunctionReplacer : public clang::RecursiveASTVisitor<LambdaFunctionReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
 
     public:
         explicit LambdaFunctionReplacer(clang::ASTContext *context);
+
         virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
     };
 }

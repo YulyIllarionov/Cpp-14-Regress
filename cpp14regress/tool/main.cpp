@@ -32,9 +32,11 @@ static cl::OptionCategory MyToolCategory("");
 int main(int argc, const char **argv) {
 
     vector<string> argv_tmp(argv, argv + argc);
+    cout << endl;
     for (int i = 1; argv_tmp[i] != "--"; i++)
     {
         argv_tmp[i].insert(argv_tmp[i].find_last_of('.'), "_regressed");
+        cout << "file №" << i << ": " << argv_tmp[i] << endl;
         ifstream  src(argv[i], std::ios::binary);
         if (src.is_open()) {
             ofstream dst(argv_tmp[i], std::ios::binary);
@@ -43,6 +45,7 @@ int main(int argc, const char **argv) {
             dst.close();
         }
     }
+    cout << endl;
     char** argv_mod = new char*[argc];
     for(int i = 0; i < argc; i++)
     {

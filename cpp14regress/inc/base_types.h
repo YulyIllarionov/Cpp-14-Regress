@@ -18,18 +18,17 @@
 
 #include "range_based_for.h"
 #include "lambda_function.h"
-
-#include <string>
+#include "auto.h"
 
 namespace cpp14regress {
 
     class RangeBasedForASTConsumer : public clang::ASTConsumer {
     private:
-        LambdaFunctionReplacer *visitor;
+        AutoReplacer *visitor;
 
     public:
         explicit RangeBasedForASTConsumer(clang::ASTContext *context)
-                : visitor(new LambdaFunctionReplacer(context)){}
+                : visitor(new AutoReplacer(context)){}
 
         virtual void HandleTranslationUnit(clang::ASTContext &context);
     };

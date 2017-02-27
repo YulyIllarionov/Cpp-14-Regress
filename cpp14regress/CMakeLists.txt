@@ -27,4 +27,18 @@ add_clang_library(LambdaFunctionRegress
         clangFrontend
         )
 
+add_clang_library(AutoRegress
+        ./src/base_types.cpp
+        ./src/utils.cpp
+        ./src/auto.cpp
+        ./src/ast_to_dot.cpp
+
+        LINK_LIBS
+        clangAST
+        clangASTMatchers
+        clangBasic
+        clangDynamicASTMatchers
+        clangFrontend
+        )
+
 add_subdirectory(tool)

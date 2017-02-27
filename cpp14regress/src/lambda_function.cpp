@@ -51,7 +51,7 @@ namespace cpp14regress {
     }
 
     string GenericTypeGenerator::toString() {
-        return std::string("type_" + to_string(f_count));
+        return std::string("type" + to_string(f_count));
     }
 
     string GenericTypeGenerator::generate() {
@@ -62,6 +62,10 @@ namespace cpp14regress {
     //TODO generic
     //TODO incapture initialization
     bool LambdaFunctionReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
+
+        if (f_context->getSourceManager().isInSystemHeader(lambda->getLocStart()))
+            return true;
+
         static int count = 0;
         //ast_graph ag(lambda, f_context);
         string dot_filename = "/home/yury/llvm-clang/test/dot/";
@@ -75,7 +79,7 @@ namespace cpp14regress {
         DenseMap<const VarDecl *, FieldDecl *> clangCaptures;
         FieldDecl *thisField;
         lambdaClass->getCaptureFields(clangCaptures, thisField);
-
+        //Lambda Class
         cout << "class " << LambaClassNameGenerator::generate() << " {" << endl;
         if (lambda->capture_begin() != lambda->capture_end())
             cout << "private:" << endl;
@@ -89,7 +93,7 @@ namespace cpp14regress {
         }
         cout << "public:" << endl;
         //Lambda class constructor
-        cout << indent << LambaClassNameGenerator::toString() << "(";
+        cout << indent << LambaClassNameGenerator::toString() << " (";
         for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
             VarDecl *captured_var = it->getCapturedVar();
             cout << clangCaptures[captured_var]->getType().getAsString() << " "
@@ -106,28 +110,31 @@ namespace cpp14regress {
         cout << " {}" << endl;
         //Lambda class operator()
         FunctionDecl *lambdaFunction = lambda->getCallOperator();
+        GenericTypeGenerator gtg;
+        std::vector<string> typeNames;
         auto generics = lambda->getTemplateParameterList();
         if (generics) {
             cout << indent << "template <";
             for (size_t i = 0; i < generics->size();) {
-                NamedDecl* nd = generics->getParam(i);
-                if (nd)
-                    cout << nd->getNameAsString();
-                cout << ((++i != generics->size()) ? ", " : ">");
+                typeNames.push_back(gtg.generate());
+                cout << "typename " << typeNames.back()
+                     << ((++i != generics->size()) ? ", " : ">");
             }
             cout << endl;
         }
         cout << indent << QualType::getAsString(lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
-             << " operator ()(";
+             << " operator() (";
+        auto tn = typeNames.begin();
         for (size_t i = 0; i != lambdaFunction->param_size();) {
             ParmVarDecl *parameter = lambdaFunction->getParamDecl(i);
-            cout << parameter->getType().getAsString() << " "
+            cout << ((isa<TemplateTypeParmType>(*parameter->getType())) ? *tn++ :
+                     parameter->getType().getAsString()) << " "
                  << parameter->getQualifiedNameAsString()
                  << ((++i != lambdaFunction->param_size()) ? ", " : "");
         }
         cout << ") const ";
         //Lambda class operator() body
-        cout << stringFromStmt(lambda->getBody(), f_context) << endl;
+        cout << toSting(lambda->getBody(), f_context) << endl;
         cout << "};" << endl;
         cout << "----------------" << endl;
         count++;

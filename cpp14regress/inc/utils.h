@@ -40,9 +40,15 @@ namespace cpp14regress{
         virtual bool  VisitDeclRefExpr(clang::DeclRefExpr *dre);
     };
 
-    std::string stringFromStmt(clang::Stmt *stmt, clang::ASTContext* context);
-    std::string stringFromDecl(clang::Decl *decl, clang::ASTContext* context);
-
+    template<typename T>
+    std::string toSting(T *source, clang::ASTContext* context) {
+        const clang::SourceManager &sm = context->getSourceManager();
+        const clang::LangOptions &lo = context->getLangOpts();
+        clang::SourceLocation b(source->getLocStart()), _e(source->getLocEnd());
+        clang::SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, sm, lo));
+        return std::string(sm.getCharacterData(b),
+                           sm.getCharacterData(e) - sm.getCharacterData(b));
+    }
     //class FileGenerator{
     //private:
     //    const std::string f_path;
