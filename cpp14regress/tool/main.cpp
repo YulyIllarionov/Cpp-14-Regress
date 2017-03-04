@@ -31,6 +31,12 @@ static cl::OptionCategory MyToolCategory("");
 
 int main(int argc, const char **argv) {
 
+    vector<string> filenames = filesInFolder(
+            "/home/yury/llvm-clang/llvm/tools/clang/tools/extra/cpp14regress_ide/cpp14regress/");
+
+    for (string file : filenames)
+        cout << file << endl;
+
     vector<string> argv_tmp(argv, argv + argc);
     cout << endl;
     for (int i = 1; argv_tmp[i] != "--"; i++)
@@ -55,11 +61,12 @@ int main(int argc, const char **argv) {
     CommonOptionsParser op(argc, const_cast<const char**>(argv_mod), MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
 
-    int result = Tool.run((newFrontendActionFactory<RangeBasedForFrontendAction>()).get());
+    //int result = Tool.run((newFrontendActionFactory<RangeBasedForFrontendAction>()).get());
 
     //std::error_code EC;
     //raw_fd_ostream *cured = new raw_fd_ostream(curedFilename, EC, sys::fs::F_Text);
     //cured->close();
 
-    return result;
+    //return result;
+    return 0;
 }

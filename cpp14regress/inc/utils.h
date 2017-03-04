@@ -18,30 +18,31 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
 
-namespace cpp14regress{
+namespace cpp14regress {
 
-    class StringGenerator{
+    class StringGenerator {
     public:
         virtual std::string toString() = 0;
     };
 
-    class RecursiveVariableReplacer : public clang::RecursiveASTVisitor<RecursiveVariableReplacer>{
+    class RecursiveVariableReplacer : public clang::RecursiveASTVisitor<RecursiveVariableReplacer> {
     private:
-        const clang::ValueDecl* f_variable;
-        StringGenerator* f_generator;
-        clang::Rewriter* f_rewriter;
+        const clang::ValueDecl *f_variable;
+        StringGenerator *f_generator;
+        clang::Rewriter *f_rewriter;
 
     public:
         RecursiveVariableReplacer(clang::ValueDecl *variable_,
-                                  StringGenerator *generator_, clang::Rewriter *rewriter_):
+                                  StringGenerator *generator_, clang::Rewriter *rewriter_) :
                 f_variable(variable_), f_generator(generator_), f_rewriter(rewriter_) {}
 
-        virtual bool  VisitDeclRefExpr(clang::DeclRefExpr *dre);
+        virtual bool VisitDeclRefExpr(clang::DeclRefExpr *dre);
     };
 
     template<typename T>
-    std::string toSting(T *source, clang::ASTContext* context) {
+    std::string toSting(T *source, clang::ASTContext *context) {
         const clang::SourceManager &sm = context->getSourceManager();
         const clang::LangOptions &lo = context->getLangOpts();
         clang::SourceLocation b(source->getLocStart()), _e(source->getLocEnd());
@@ -61,21 +62,32 @@ namespace cpp14regress{
     //
     //};
 
-    class Indent
-    {
+    class Indent {
     private:
         unsigned int f_level;
         const static unsigned int f_size = 4;
     public:
         Indent() : f_level(0) {}
+
         Indent(const Indent &other) = default;
-        Indent& operator++();
+
+        Indent &operator++();
+
         Indent operator++(int);
-        Indent& operator--();
+
+        Indent &operator--();
+
         Indent operator--(int);
-        operator std::string() const {return std::string(f_level * f_size, ' ');}
-        friend std::ostream& operator<<(std::ostream& stream, const Indent& indent);
+
+        operator std::string() const { return std::string(f_level * f_size, ' '); }
+
+        friend std::ostream &operator<<(std::ostream &stream, const Indent &indent);
     };
+
+    std::vector<std::string> filesInFolder(std::string folder);
+
+    bool isCppFile (std::string filename);
+
 }
 
 #endif /*CPP14REGRESS_UTILS_H*/
