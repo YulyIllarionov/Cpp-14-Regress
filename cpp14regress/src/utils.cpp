@@ -28,6 +28,13 @@ namespace cpp14regress {
         return true;
     }
 
+    bool isCppFile(const Twine &path) {
+        string filename(path.str());
+        if (filename.find(".cpp", filename.size() - 4) != string::npos)
+            return true;
+        return false;
+    }
+
     Indent &Indent::operator++() {
         f_level++;
         return *this;

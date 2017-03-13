@@ -57,6 +57,8 @@ namespace cpp14regress{
         return true;
     }
 
+    bool isCppFile(const clang::Twine& path);
+
     class Indent
     {
     private:

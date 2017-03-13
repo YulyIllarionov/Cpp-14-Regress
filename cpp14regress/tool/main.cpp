@@ -31,35 +31,56 @@ static cl::OptionCategory MyToolCategory("");
 
 int main(int argc, const char **argv) {
 
-    vector<string> argv_tmp(argv, argv + argc);
-    cout << endl;
-    for (int i = 1; argv_tmp[i] != "--"; i++)
-    {
-        argv_tmp[i].insert(argv_tmp[i].find_last_of('.'), "_regressed");
-        cout << "file №" << i << ": " << argv_tmp[i] << endl;
-        ifstream  src(argv[i], std::ios::binary);
-        if (src.is_open()) {
-            ofstream dst(argv_tmp[i], std::ios::binary);
-            dst << src.rdbuf();
-            src.close();
-            dst.close();
-        }
+    if (argc != 2) {
+        cerr << "error: wrong arguments count, need 2." << endl;
+        return 1;
     }
-    cout << endl;
-    char** argv_mod = new char*[argc];
-    for(int i = 0; i < argc; i++)
-    {
+
+    Twine dir = argv[1];
+
+    if (!sys::fs::is_directory(dir)) {
+        cerr << "error: second argument is not a folder" << endl;
+        return 2;
+    }
+
+    vector<string> argv_tmp{argv[0]};
+    std::error_code ec;
+    for (sys::fs::recursive_directory_iterator i(dir, ec), e; i != e; i.increment(ec)) {
+        if (isCppFile(i->path()))
+            argv_tmp.push_back(i->path());
+    }
+    argv_tmp.push_back("--");
+    argv_tmp.push_back("-std=c++14");
+    //for (int i = 1; argv_tmp[i] != "--"; i++) {
+    //    argv_tmp[i].insert(argv_tmp[i].find_last_of('.'), "_regressed");
+    //    cout << "file №" << i << ": " << argv_tmp[i] << endl;
+    //    ifstream src(argv[i], std::ios::binary);
+    //    if (src.is_open()) {
+    //        ofstream dst(argv_tmp[i], std::ios::binary);
+    //        dst << src.rdbuf();
+    //        src.close();
+    //        dst.close();
+    //    }
+    //}
+
+    int argc_mod = argv_tmp.size();
+    char **argv_mod = new char *[argc_mod];
+    for (size_t i = 0; i < argc_mod; i++) {
         argv_mod[i] = new char[argv_tmp[i].size() + 1];
         std::strcpy(argv_mod[i], argv_tmp[i].c_str());
     }
-    CommonOptionsParser op(argc, const_cast<const char**>(argv_mod), MyToolCategory);
+
+    //for (size_t i = 0 ; i < argc_mod; i++)
+    //    cout << argv_mod[i] << endl;
+
+    CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
 
     int result = Tool.run((newFrontendActionFactory<RangeBasedForFrontendAction>()).get());
 
-    //std::error_code EC;
-    //raw_fd_ostream *cured = new raw_fd_ostream(curedFilename, EC, sys::fs::F_Text);
-    //cured->close();
-
+    ////std::error_code EC;
+    ////raw_fd_ostream *cured = new raw_fd_ostream(curedFilename, EC, sys::fs::F_Text);
+    ////cured->close();
+//
     return result;
 }
