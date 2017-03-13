@@ -17,6 +17,7 @@
 #include "clang/AST/ParentMap.h"
 
 #include "utils.h"
+#include <vector>
 
 namespace cpp14regress {
 
@@ -24,7 +25,7 @@ namespace cpp14regress {
         begin,
         auto_keyword = begin, //found
         decltype_keyword, //found
-        constexpr_keyword, //?
+        constexpr_keyword, //found
         extern_template, //?
         default_specifier, //found
         delete_specifier, //found
@@ -47,6 +48,7 @@ namespace cpp14regress {
         user_defined_literals, //?
         long_long_int, //?
         implict_sizeof, //?
+        noexcept_keyword, //found
         alignof_operator, //?
         alignas_operator, //?
         attributes, //?
@@ -58,16 +60,16 @@ namespace cpp14regress {
     class cpp14features_stat {
     private:
         static unsigned const f_size = (int) cpp14features::end - (int) cpp14features::begin;
-        int f_features[f_size] = {0};
+        std::vector<clang::SourceLocation> f_features[f_size];
 
     public:
         cpp14features_stat() {}
 
         static constexpr unsigned size() { return (f_size); }
 
-        int &operator[](cpp14features f) { return f_features[(int) f]; }
+        std::vector<clang::SourceLocation> &operator[](cpp14features f) { return f_features[(int) f]; }
 
-        void increment(cpp14features f) { f_features[(int) f]++; }
+        void push(cpp14features f, clang::SourceLocation sl) { f_features[(int) f].push_back(sl); }
     };
 
     class Cpp14scanner : public clang::RecursiveASTVisitor<Cpp14scanner> {
@@ -80,34 +82,40 @@ namespace cpp14regress {
         Cpp14scanner(clang::ASTContext *context) : f_context(context) {}
 
         //range_based_for
-        virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *for_loop);
+        virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *forLoop);
 
         //lambda_function
-        virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
+        virtual bool VisitLambdaExpr(clang::LambdaExpr *lambdaExpr);
 
         //auto_keyword
         // decltype_keyword
         virtual bool VisitDeclaratorDecl(clang::DeclaratorDecl *valueDecl);
 
+        //constexpr keyword //TODO by FunctionDecl::isConstexpr()
+        virtual bool VisitFunctionDecl(clang::FunctionDecl *functionDecl);
+
         //default_specifier //TODO by CXXMethodDecl::isExplicitlyDefaulted()
         //delete_specifier //TODO by CXXMethodDecl::isDeleted()
-        virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *method);
+        virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl);
 
         //explicit_specifier //TODO by CXXConversionDecl::isExplicitSpecified()
-        virtual bool VisitCXXConversionDecl(clang::CXXConversionDecl *conversion_method);
+        virtual bool VisitCXXConversionDecl(clang::CXXConversionDecl *conversionMethod);
 
         //constuctor_delegation //TODO by CXXConstructorDecl::isDelegatingConstructor
         //explicit_specifier //TODO by CXXConstructorDecl::isExplicitSpecified()
-        virtual bool VisitCXXConstructorDecl(clang::CXXConstructorDecl *constructor);
+        virtual bool VisitCXXConstructorDecl(clang::CXXConstructorDecl *constructorDecl);
 
         //null_pointer_constant TODO by isNullPointerConstant()
-        virtual bool VisitExpr(clang::Expr* expr);
+        virtual bool VisitExpr(clang::Expr *expr);
+
+        //noexcept_keyword
+        virtual bool VisitCXXNoexceptExpr(clang::CXXNoexceptExpr *noexceptExpr);
 
         //enum_class //TODO by EnumDecl::isScoped() and EnumDecl::isScopedUsingClassTag()
-        virtual bool VisitEnumDecl(clang::EnumDecl *enum_decl);
+        virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl);
 
         //unrestricted_unions //TODO
-        virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *record_decl);
+        virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
 
         //unicode_string_literals //TODO
         virtual bool VisitStringLiteral(clang::StringLiteral *literal);
@@ -117,7 +125,6 @@ namespace cpp14regress {
 
         //digit_separators //TODO
         virtual bool VisitFloatingLiteral(clang::FloatingLiteral *literal);
-
     };
 
 

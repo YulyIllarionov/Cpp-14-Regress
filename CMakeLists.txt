@@ -41,9 +41,20 @@ set(HEADER_FILES
         ${CPP14REGRESS_INCLUDE_DIR}/lambda_function.h
         ${CPP14REGRESS_INCLUDE_DIR}/auto.h
         ${CPP14REGRESS_INCLUDE_DIR}/ast_to_dot.h
+        ${CPP14REGRESS_INCLUDE_DIR}/cpp14_scanner.h
         )
 
 set(SOURCE_FILES
+        #cpp14regress sources
+        ${CPP14REGRESS_SOURCE_DIR}/base_types.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/utils.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/range_based_for.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/lambda_function.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/auto.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/ast_to_dot.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/cpp14_scanner.cpp
+        #tool main.cpp
+        ./cpp14regress/tool/main.cpp
         #clang sources
         ${CPP14REGRESS_IDE_CLANG_SOURCE_DIR}/Driver/DriverOptions.cpp
         ${CPP14REGRESS_IDE_CLANG_SOURCE_DIR}/Driver/Multilib.cpp
@@ -231,15 +242,6 @@ set(SOURCE_FILES
         ${CPP14REGRESS_IDE_CLANG_SOURCE_DIR}/Lex/TokenLexer.cpp
         ${CPP14REGRESS_IDE_CLANG_SOURCE_DIR}/Lex/Lexer.cpp
         ${CPP14REGRESS_IDE_CLANG_SOURCE_DIR}/Lex/HeaderSearch.cpp
-        #cpp14regress sources
-        ${CPP14REGRESS_SOURCE_DIR}/base_types.cpp
-        ${CPP14REGRESS_SOURCE_DIR}/utils.cpp
-        ${CPP14REGRESS_SOURCE_DIR}/range_based_for.cpp
-        ${CPP14REGRESS_SOURCE_DIR}/lambda_function.cpp
-        ${CPP14REGRESS_SOURCE_DIR}/auto.cpp
-        ${CPP14REGRESS_SOURCE_DIR}/ast_to_dot.cpp
-        #tool main.cpp
-        ./cpp14regress/tool/main.cpp
         )
 
 add_executable(cpp14regress_ide ${SOURCE_FILES})

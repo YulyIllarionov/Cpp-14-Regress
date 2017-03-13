@@ -24,17 +24,17 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    bool Cpp14scanner::VisitCXXForRangeStmt(CXXForRangeStmt *for_loop) {
-        if (!inProcessedFile(for_loop, f_context))
+    bool Cpp14scanner::VisitCXXForRangeStmt(CXXForRangeStmt *forLoop) {
+        if (!inProcessedFile(forLoop, f_context))
             return true;
-        f_stat.increment(cpp14features::range_based_for);
+        f_stat.push(cpp14features::range_based_for, forLoop->getLocStart());
         return true;
     }
 
-    bool Cpp14scanner::VisitLambdaExpr(clang::LambdaExpr *lambda) {
-        if (!inProcessedFile(lambda, f_context))
+    bool Cpp14scanner::VisitLambdaExpr(clang::LambdaExpr *lambdaExpr) {
+        if (!inProcessedFile(lambdaExpr, f_context))
             return true;
-        f_stat.increment(cpp14features::lambda_function);
+        f_stat.push(cpp14features::lambda_function, lambdaExpr->getLocStart());
         return true;
     }
 
@@ -42,53 +42,61 @@ namespace cpp14regress {
         if (!inProcessedFile(valueDecl, f_context))
             return true;
         if (isa<AutoType>(valueDecl->getType().getTypePtr())) {
-            f_stat.increment(cpp14features::auto_keyword);
+            f_stat.push(cpp14features::auto_keyword, valueDecl->getLocStart());
             cout << toSting<>(valueDecl, f_context) << endl;
         } else if (isa<DecltypeType>(valueDecl->getType().getTypePtr()))
-            f_stat.increment(cpp14features::decltype_keyword);
+            f_stat.push(cpp14features::decltype_keyword, valueDecl->getLocStart());
         return true;
     }
 
-    bool Cpp14scanner::VisitCXXMethodDecl(clang::CXXMethodDecl *method) {
-        if (!inProcessedFile(method, f_context))
+    bool Cpp14scanner::VisitFunctionDecl(clang::FunctionDecl *functionDecl) {
+        if (!inProcessedFile(functionDecl, f_context))
             return true;
-        if (method->isExplicitlyDefaulted())
-            f_stat.increment(cpp14features::default_specifier);
-        if (method->isDeleted())
-            f_stat.increment(cpp14features::delete_specifier);
+        if (functionDecl->isConstexpr())
+            f_stat.push(cpp14features::constexpr_keyword, functionDecl->getLocStart());
         return true;
     }
 
-    bool Cpp14scanner::VisitCXXConversionDecl(clang::CXXConversionDecl *conversion_method) {
-        if (!inProcessedFile(conversion_method, f_context))
+    bool Cpp14scanner::VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl) {
+        if (!inProcessedFile(methodDecl, f_context))
             return true;
-        if (conversion_method->isExplicitSpecified())
-            f_stat.increment(cpp14features::explicit_specifier);
+        if (methodDecl->isExplicitlyDefaulted())
+            f_stat.push(cpp14features::default_specifier, methodDecl->getLocStart());
+        if (methodDecl->isDeleted())
+            f_stat.push(cpp14features::delete_specifier, methodDecl->getLocStart());
         return true;
     }
 
-    bool Cpp14scanner::VisitCXXConstructorDecl(clang::CXXConstructorDecl *constructor) {
-        if (!inProcessedFile(constructor, f_context))
+    bool Cpp14scanner::VisitCXXConversionDecl(clang::CXXConversionDecl *conversionMethod) {
+        if (!inProcessedFile(conversionMethod, f_context))
             return true;
-        if (constructor->isExplicitSpecified())
-            f_stat.increment(cpp14features::explicit_specifier);
-        if (constructor->isDelegatingConstructor())
-            f_stat.increment(cpp14features::constuctor_delegation);
+        if (conversionMethod->isExplicitSpecified())
+            f_stat.push(cpp14features::explicit_specifier, conversionMethod->getLocStart());
         return true;
     }
 
-    bool Cpp14scanner::VisitEnumDecl(clang::EnumDecl *enum_decl) {
-        if (!inProcessedFile(enum_decl, f_context))
+    bool Cpp14scanner::VisitCXXConstructorDecl(clang::CXXConstructorDecl *constructorDecl) {
+        if (!inProcessedFile(constructorDecl, f_context))
             return true;
-        if (enum_decl->isScopedUsingClassTag())
-            f_stat.increment(cpp14features::enum_class);
+        if (constructorDecl->isExplicitSpecified())
+            f_stat.push(cpp14features::explicit_specifier, constructorDecl->getLocStart());
+        if (constructorDecl->isDelegatingConstructor())
+            f_stat.push(cpp14features::constuctor_delegation, constructorDecl->getLocStart());
         return true;
     }
 
-    bool Cpp14scanner::VisitCXXRecordDecl(clang::CXXRecordDecl *record_decl) {
-        if (!inProcessedFile(record_decl, f_context))
+    bool Cpp14scanner::VisitEnumDecl(clang::EnumDecl *enumDecl) {
+        if (!inProcessedFile(enumDecl, f_context))
             return true;
-        if (record_decl->isUnion()) {
+        if (enumDecl->isScopedUsingClassTag())
+            f_stat.push(cpp14features::enum_class, enumDecl->getLocStart());
+        return true;
+    }
+
+    bool Cpp14scanner::VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl) {
+        if (!inProcessedFile(recordDecl, f_context))
+            return true;
+        if (recordDecl->isUnion()) {
             //TODO hasUninitializedReferenceMember, isTriviallyCopyable
         }
         return true;
@@ -100,7 +108,7 @@ namespace cpp14regress {
         if ((literal->isUTF8()) ||
             (literal->isUTF16()) ||
             (literal->isUTF32()))
-            f_stat.increment(cpp14features::unicode_string_literals);
+            f_stat.push(cpp14features::unicode_string_literals, literal->getLocStart());
         return true;
     }
 
@@ -109,7 +117,7 @@ namespace cpp14regress {
             return true;
         string i = toSting(literal, f_context);
         if (i.find('\'') != string::npos)
-            f_stat.increment(cpp14features::digit_separators);
+            f_stat.push(cpp14features::digit_separators, literal->getLocStart());
         return true;
     }
 
@@ -118,18 +126,27 @@ namespace cpp14regress {
             return true;
         string f = toSting(literal, f_context);
         if (f.find('\'') != string::npos)
-            f_stat.increment(cpp14features::digit_separators);
+            f_stat.push(cpp14features::digit_separators, literal->getLocStart());
         return true;
     }
 
     bool Cpp14scanner::VisitExpr(clang::Expr *expr) {
         if (!inProcessedFile(expr, f_context))
             return true;
+        //TODO NPC_NeverValueDependent
         if (expr->isNullPointerConstant(*f_context,
                                         Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent)
             == Expr::NullPointerConstantKind::NPCK_CXX11_nullptr) {
-            f_stat.increment(cpp14features::null_pointer_constant);
+            f_stat.push(cpp14features::null_pointer_constant, expr->getLocStart());
         }
+        return true;
+    }
+
+    bool Cpp14scanner::VisitCXXNoexceptExpr(clang::CXXNoexceptExpr* noexceptExpr)
+    {
+        if (!inProcessedFile(noexceptExpr, f_context))
+            return true;
+        f_stat.push(cpp14features::noexcept_keyword, noexceptExpr->getLocStart());
         return true;
     }
 
