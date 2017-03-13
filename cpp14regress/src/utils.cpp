@@ -28,32 +28,30 @@ namespace cpp14regress {
         return true;
     }
 
-    Indent& Indent::operator++() {
+    Indent &Indent::operator++() {
         f_level++;
         return *this;
     }
 
-    Indent Indent::operator++(int)
-    {
+    Indent Indent::operator++(int) {
         Indent tmp(*this);
         ++(*this);
         return tmp;
     }
 
-    Indent& Indent::operator--() {
-        if(f_level)
+    Indent &Indent::operator--() {
+        if (f_level)
             f_level--;
         return *this;
     }
 
-    Indent Indent::operator--(int)
-    {
+    Indent Indent::operator--(int) {
         Indent tmp(*this);
         --(*this);
         return tmp;
     }
 
-    ostream& operator<<(ostream& stream, const Indent& indent) {
+    ostream &operator<<(ostream &stream, const Indent &indent) {
         for (unsigned int i = 0; i < indent.f_size * indent.f_level; i++)
             stream << ' ';
         return stream;

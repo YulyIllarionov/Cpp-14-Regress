@@ -49,17 +49,13 @@ namespace cpp14regress{
         return std::string(sm.getCharacterData(b),
                            sm.getCharacterData(e) - sm.getCharacterData(b));
     }
-    //class FileGenerator{
-    //private:
-    //    const std::string f_path;
-//
-    //public:
-    //    FileGenerator(std::string path_);
-    //    FileGenerator(std::string directory, std::string filename);
-    //    bool open();
-    //    bool close();
-    //
-    //};
+
+    template<typename T>
+    inline bool inProcessedFile(T *source, clang::ASTContext *context){
+        if (context->getSourceManager().isInSystemHeader(source->getLocStart()))
+            return false;
+        return true;
+    }
 
     class Indent
     {

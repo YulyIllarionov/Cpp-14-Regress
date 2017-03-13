@@ -19,24 +19,25 @@
 #include "range_based_for.h"
 #include "lambda_function.h"
 #include "auto.h"
+#include "cpp14_scanner.h"
 
 namespace cpp14regress {
 
     class RangeBasedForASTConsumer : public clang::ASTConsumer {
     private:
-        AutoReplacer *visitor;
+        Cpp14scanner *visitor;
 
     public:
         explicit RangeBasedForASTConsumer(clang::ASTContext *context)
-                : visitor(new AutoReplacer(context)){}
+                : visitor(new Cpp14scanner(context)) {}
 
         virtual void HandleTranslationUnit(clang::ASTContext &context);
     };
 
     class RangeBasedForFrontendAction : public clang::ASTFrontendAction {
     public:
-        virtual std::unique_ptr <clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
-                                                                       llvm::StringRef file);
+        virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
+                                                                      llvm::StringRef file);
     };
 
 }

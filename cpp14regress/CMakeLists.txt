@@ -41,4 +41,17 @@ add_clang_library(AutoRegress
         clangFrontend
         )
 
+add_clang_library(Cpp14scanner
+        ./src/base_types.cpp
+        ./src/utils.cpp
+        ./src/cpp14_scanner.cpp
+
+        LINK_LIBS
+        clangAST
+        clangASTMatchers
+        clangBasic
+        clangDynamicASTMatchers
+        clangFrontend
+        )
+
 add_subdirectory(tool)

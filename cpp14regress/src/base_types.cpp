@@ -25,8 +25,9 @@ namespace cpp14regress {
         visitor->TraverseDecl(context.getTranslationUnitDecl());
     }
 
-    unique_ptr <ASTConsumer> RangeBasedForFrontendAction::CreateASTConsumer(CompilerInstance &CI, StringRef file) {
+    unique_ptr<ASTConsumer> RangeBasedForFrontendAction::CreateASTConsumer(CompilerInstance &CI, StringRef file) {
         ASTConsumer *astConsumer = new RangeBasedForASTConsumer(&CI.getASTContext());
         return unique_ptr<ASTConsumer>(astConsumer);
     }
+
 }
