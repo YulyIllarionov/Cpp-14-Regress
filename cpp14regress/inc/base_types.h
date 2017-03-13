@@ -38,6 +38,7 @@ namespace cpp14regress {
     public:
         virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
                                                                       llvm::StringRef file);
+
     };
 
 }

@@ -70,6 +70,10 @@ namespace cpp14regress {
         std::vector<clang::SourceLocation> &operator[](cpp14features f) { return f_features[(int) f]; }
 
         void push(cpp14features f, clang::SourceLocation sl) { f_features[(int) f].push_back(sl); }
+
+        std::string toString(cpp14features f);
+
+        void print(std::ostream &os);
     };
 
     class Cpp14scanner : public clang::RecursiveASTVisitor<Cpp14scanner> {
@@ -80,6 +84,8 @@ namespace cpp14regress {
     public:
 
         Cpp14scanner(clang::ASTContext *context) : f_context(context) {}
+
+        cpp14features_stat* getStat() {return &f_stat; }; //TODO bad * ?
 
         //range_based_for
         virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *forLoop);

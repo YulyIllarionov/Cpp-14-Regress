@@ -29,6 +29,10 @@ using namespace cpp14regress;
 
 static cl::OptionCategory MyToolCategory("");
 
+// слияние AST -- ASTMergeAction
+// как работать с хедерами?
+// handleBeginSource и BeginSourceFileAction
+
 int main(int argc, const char **argv) {
 
     if (argc != 2) {
@@ -65,13 +69,13 @@ int main(int argc, const char **argv) {
 
     int argc_mod = argv_tmp.size();
     char **argv_mod = new char *[argc_mod];
-    for (size_t i = 0; i < argc_mod; i++) {
+    for (int i = 0; i < argc_mod; i++) {
         argv_mod[i] = new char[argv_tmp[i].size() + 1];
         std::strcpy(argv_mod[i], argv_tmp[i].c_str());
     }
 
-    //for (size_t i = 0 ; i < argc_mod; i++)
-    //    cout << argv_mod[i] << endl;
+    for (int i = 0 ; i < argc_mod; i++)
+        cout << argv_mod[i] << endl;
 
     CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());

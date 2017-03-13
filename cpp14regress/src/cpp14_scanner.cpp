@@ -24,6 +24,49 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
+    string cpp14features_stat::toString(cpp14features f){
+         static const char* features[this->size()] = {
+                "auto keyword", //found
+                "decltype keyword", //found
+                "constexpr keyword", //found
+                "extern template", //?
+                "default specifier", //found
+                "delete specifier", //found
+                "override specifier", //?
+                "final specifier", //?
+                "explicit specifier", //found
+                "initializer list", //?
+                "uniform initialization", //?
+                "range based for", //found
+                "lambda function", //found
+                "alternative function syntax", //?
+                "constuctor delegation", //found
+                "null pointer constant", //?
+                "enum class", //found
+                "right angle bracket", //?
+                "typedef template", //?
+                "unrestricted unions", //?
+                "variadic templates", //?
+                "unicode string literals", //found
+                "user defined literals", //?
+                "long long int", //?
+                "implict sizeof", //?
+                "noexcept keyword", //found
+                "alignof operator", //?
+                "alignas operator", //?
+                "attributes", //?
+                "variable templates", //?
+                "digit separators" //found
+        };
+        return string(features[(size_t)f - (size_t)cpp14features::begin]);
+    }
+
+    void cpp14features_stat::print(std::ostream &os)
+    {
+        for (int i = (int)cpp14features::begin; i < (int)cpp14features::end; i++)
+            cout << toString((cpp14features)i) << " -- " << f_features[i].size() << endl;
+    }
+
     bool Cpp14scanner::VisitCXXForRangeStmt(CXXForRangeStmt *forLoop) {
         if (!inProcessedFile(forLoop, f_context))
             return true;
@@ -43,7 +86,6 @@ namespace cpp14regress {
             return true;
         if (isa<AutoType>(valueDecl->getType().getTypePtr())) {
             f_stat.push(cpp14features::auto_keyword, valueDecl->getLocStart());
-            cout << toSting<>(valueDecl, f_context) << endl;
         } else if (isa<DecltypeType>(valueDecl->getType().getTypePtr()))
             f_stat.push(cpp14features::decltype_keyword, valueDecl->getLocStart());
         return true;
@@ -82,6 +124,18 @@ namespace cpp14regress {
             f_stat.push(cpp14features::explicit_specifier, constructorDecl->getLocStart());
         if (constructorDecl->isDelegatingConstructor())
             f_stat.push(cpp14features::constuctor_delegation, constructorDecl->getLocStart());
+        return true;
+    }
+
+    bool Cpp14scanner::VisitExpr(clang::Expr *expr) {
+        if (!inProcessedFile(expr, f_context))
+            return true;
+        //TODO NPC_NeverValueDependent
+        if (expr->isNullPointerConstant(*f_context,
+                                        Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent)
+            == Expr::NullPointerConstantKind::NPCK_CXX11_nullptr) {
+            f_stat.push(cpp14features::null_pointer_constant, expr->getLocStart());
+        }
         return true;
     }
 
@@ -130,20 +184,7 @@ namespace cpp14regress {
         return true;
     }
 
-    bool Cpp14scanner::VisitExpr(clang::Expr *expr) {
-        if (!inProcessedFile(expr, f_context))
-            return true;
-        //TODO NPC_NeverValueDependent
-        if (expr->isNullPointerConstant(*f_context,
-                                        Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent)
-            == Expr::NullPointerConstantKind::NPCK_CXX11_nullptr) {
-            f_stat.push(cpp14features::null_pointer_constant, expr->getLocStart());
-        }
-        return true;
-    }
-
-    bool Cpp14scanner::VisitCXXNoexceptExpr(clang::CXXNoexceptExpr* noexceptExpr)
-    {
+    bool Cpp14scanner::VisitCXXNoexceptExpr(clang::CXXNoexceptExpr *noexceptExpr) {
         if (!inProcessedFile(noexceptExpr, f_context))
             return true;
         f_stat.push(cpp14features::noexcept_keyword, noexceptExpr->getLocStart());

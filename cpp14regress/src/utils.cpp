@@ -30,7 +30,8 @@ namespace cpp14regress {
 
     bool isCppFile(const Twine &path) {
         string filename(path.str());
-        if (filename.find(".cpp", filename.size() - 4) != string::npos)
+        if ((filename.substr(filename.size() - 4, 4) == ".cpp")
+            /*|| (filename.substr(filename.size() - 2, 2) == ".h")*/)
             return true;
         return false;
     }
