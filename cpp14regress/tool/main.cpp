@@ -33,6 +33,9 @@ static cl::OptionCategory MyToolCategory("");
 // как работать с хедерами?
 // handleBeginSource и BeginSourceFileAction
 
+//json
+
+
 int main(int argc, const char **argv) {
 
     if (argc != 2) {

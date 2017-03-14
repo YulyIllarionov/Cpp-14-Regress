@@ -42,7 +42,7 @@ namespace cpp14regress {
         enum_class, //found
         right_angle_bracket, //?
         typedef_template, //?
-        unrestricted_unions, //?
+        unrestricted_unions, //? //boost::variant или placement-new
         variadic_templates, //?
         unicode_string_literals, //found
         user_defined_literals, //?
