@@ -19,6 +19,7 @@
 #include <cstdarg>
 
 #include "base_types.h"
+#include "cpp14_scanner.h"
 
 using namespace std;
 using namespace clang;
@@ -83,11 +84,11 @@ int main(int argc, const char **argv) {
     CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
 
-    int result = Tool.run((newFrontendActionFactory<RangeBasedForFrontendAction>()).get());
+    int result = Tool.run((newFrontendActionFactory<Cpp14RegressFrontendAction<Cpp14scanner>>()).get());
 
     ////std::error_code EC;
     ////raw_fd_ostream *cured = new raw_fd_ostream(curedFilename, EC, sys::fs::F_Text);
     ////cured->close();
-//
+
     return result;
 }

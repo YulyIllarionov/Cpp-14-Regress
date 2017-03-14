@@ -16,6 +16,7 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
+#include "base_types.h"
 #include "utils.h"
 #include <vector>
 
@@ -67,13 +68,13 @@ namespace cpp14regress {
 
         static constexpr unsigned size() { return (f_size); }
 
+        size_t size(cpp14features i) { return f_features[(int) i].size(); }
+
         std::vector<clang::SourceLocation> &operator[](cpp14features f) { return f_features[(int) f]; }
 
         void push(cpp14features f, clang::SourceLocation sl) { f_features[(int) f].push_back(sl); }
 
-        std::string toString(cpp14features f);
-
-        void print(std::ostream &os);
+        static std::string toString(cpp14features f);
     };
 
     class Cpp14scanner : public clang::RecursiveASTVisitor<Cpp14scanner> {
@@ -85,7 +86,9 @@ namespace cpp14regress {
 
         Cpp14scanner(clang::ASTContext *context) : f_context(context) {}
 
-        cpp14features_stat* getStat() {return &f_stat; }; //TODO bad * ?
+        cpp14features_stat *getStat() { return &f_stat; }; //TODO bad * ?
+
+        virtual void EndFileAction();
 
         //range_based_for
         virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *forLoop);
@@ -132,7 +135,6 @@ namespace cpp14regress {
         //digit_separators //TODO
         virtual bool VisitFloatingLiteral(clang::FloatingLiteral *literal);
     };
-
 
 }
 

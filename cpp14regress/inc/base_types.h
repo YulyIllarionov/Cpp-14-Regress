@@ -23,24 +23,36 @@
 
 namespace cpp14regress {
 
-    class RangeBasedForASTConsumer : public clang::ASTConsumer {
+    template<typename VisitorType>
+    class Cpp14RegressASTConsumer : public clang::ASTConsumer {
     private:
-        Cpp14scanner *visitor;
+        VisitorType *visitor;
 
     public:
-        explicit RangeBasedForASTConsumer(clang::ASTContext *context)
-                : visitor(new Cpp14scanner(context)) {}
+        explicit Cpp14RegressASTConsumer(clang::ASTContext *context)
+                : visitor(new VisitorType(context)) {}
 
-        virtual void HandleTranslationUnit(clang::ASTContext &context);
+        virtual void HandleTranslationUnit(clang::ASTContext &context) {
+            visitor->TraverseDecl(context.getTranslationUnitDecl());
+        }
+
+        virtual void EndFileAction() { visitor->EndFileAction(); }
     };
 
-    class RangeBasedForFrontendAction : public clang::ASTFrontendAction {
+    template<typename VisitorType>
+    class Cpp14RegressFrontendAction : public clang::ASTFrontendAction {
     public:
         virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
-                                                                      llvm::StringRef file);
+                                                                      llvm::StringRef file) {
+            f_consumer = new Cpp14RegressASTConsumer<VisitorType>(&CI.getASTContext());
+            return std::unique_ptr<clang::ASTConsumer>(f_consumer);
+        }
 
+        virtual void EndSourceFileAction() { f_consumer->EndFileAction(); }
+
+    private:
+        Cpp14RegressASTConsumer<VisitorType> *f_consumer;
     };
-
 }
 
 #endif /*CPP14REGRESS_BASE_TYPES_H*/

@@ -16,6 +16,7 @@
 #include "llvm/ADT/DenseMap.h"
 
 #include "cpp14_scanner.h"
+#include "base_types.h"
 #include "utils.h"
 
 namespace cpp14regress {
@@ -24,8 +25,8 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    string cpp14features_stat::toString(cpp14features f){
-         static const char* features[this->size()] = {
+    string cpp14features_stat::toString(cpp14features f) {
+        static const char *features[size()] = {
                 "auto keyword", //found
                 "decltype keyword", //found
                 "constexpr keyword", //found
@@ -58,13 +59,16 @@ namespace cpp14regress {
                 "variable templates", //?
                 "digit separators" //found
         };
-        return string(features[(size_t)f - (size_t)cpp14features::begin]);
+        return string(features[(size_t) f - (size_t) cpp14features::begin]);
     }
 
-    void cpp14features_stat::print(std::ostream &os)
-    {
-        for (int i = (int)cpp14features::begin; i < (int)cpp14features::end; i++)
-            cout << toString((cpp14features)i) << " -- " << f_features[i].size() << endl;
+    void Cpp14scanner::EndFileAction() {
+        cout << "---------------" << endl;
+        for (int i = (int) cpp14features::begin; i < (int) cpp14features::end; i++)
+            if (f_stat.size((cpp14features) i) != 0)
+                cout << f_stat.toString((cpp14features) i) << " -- "
+                     << f_stat.size((cpp14features) i) << endl;
+        cout << "---------------" << endl;
     }
 
     bool Cpp14scanner::VisitCXXForRangeStmt(CXXForRangeStmt *forLoop) {
