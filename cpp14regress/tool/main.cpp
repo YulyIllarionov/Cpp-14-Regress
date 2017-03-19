@@ -84,7 +84,18 @@ int main(int argc, const char **argv) {
     CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
 
-    int result = Tool.run((newFrontendActionFactory<Cpp14RegressFrontendAction<Cpp14scanner>>()).get());
+    cpp14features_stat stat;
+
+    Cpp14RegressFrontendActionFactory<Cpp14scanner> factory(&stat);
+
+    int result = Tool.run(&factory);
+
+    cout << "---------------" << endl;
+    for (int i = (int) cpp14features::begin; i < (int) cpp14features::end; i++)
+        if (stat.size((cpp14features) i) != 0)
+            cout << stat.toString((cpp14features) i) << " -- "
+                 << stat.size((cpp14features) i) << endl;
+    cout << "---------------" << endl;
 
     ////std::error_code EC;
     ////raw_fd_ostream *cured = new raw_fd_ostream(curedFilename, EC, sys::fs::F_Text);

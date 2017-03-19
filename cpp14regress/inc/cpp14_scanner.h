@@ -22,73 +22,17 @@
 
 namespace cpp14regress {
 
-    enum class cpp14features {
-        begin,
-        auto_keyword = begin, //found
-        decltype_keyword, //found
-        constexpr_keyword, //found
-        extern_template, //?
-        default_specifier, //found
-        delete_specifier, //found
-        override_specifier, //?
-        final_specifier, //?
-        explicit_specifier, //found
-        initializer_list, //?
-        uniform_initialization, //?
-        range_based_for, //found
-        lambda_function, //found
-        alternative_function_syntax, //?
-        constuctor_delegation, //found
-        null_pointer_constant, //?
-        enum_class, //found
-        right_angle_bracket, //?
-        typedef_template, //?
-        unrestricted_unions, //? //boost::variant или placement-new
-        variadic_templates, //?
-        unicode_string_literals, //found
-        user_defined_literals, //?
-        long_long_int, //?
-        implict_sizeof, //?
-        noexcept_keyword, //found
-        alignof_operator, //?
-        alignas_operator, //?
-        attributes, //?
-        variable_templates, //?
-        digit_separators, //found
-        end
-    };
-
-    class cpp14features_stat {
-    private:
-        static unsigned const f_size = (int) cpp14features::end - (int) cpp14features::begin;
-        std::vector<clang::SourceLocation> f_features[f_size];
-
-    public:
-        cpp14features_stat() {}
-
-        static constexpr unsigned size() { return (f_size); }
-
-        size_t size(cpp14features i) { return f_features[(int) i].size(); }
-
-        std::vector<clang::SourceLocation> &operator[](cpp14features f) { return f_features[(int) f]; }
-
-        void push(cpp14features f, clang::SourceLocation sl) { f_features[(int) f].push_back(sl); }
-
-        static std::string toString(cpp14features f);
-    };
-
     class Cpp14scanner : public clang::RecursiveASTVisitor<Cpp14scanner> {
     private:
-        cpp14features_stat f_stat;
         clang::ASTContext *f_context;
+        cpp14features_stat* f_stat;
 
     public:
 
-        Cpp14scanner(clang::ASTContext *context) : f_context(context) {}
+        Cpp14scanner(clang::ASTContext *context, cpp14features_stat* stat)
+                : f_context(context), f_stat(stat) {}
 
-        cpp14features_stat *getStat() { return &f_stat; }; //TODO bad * ?
-
-        virtual void EndFileAction();
+        virtual void EndFileAction() {};
 
         //range_based_for
         virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *forLoop);
