@@ -25,63 +25,17 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    string cpp14features_stat::toString(cpp14features f) {
-        static const char *features[size()] = {
-                "auto keyword", //found
-                "decltype keyword", //found
-                "constexpr keyword", //found
-                "extern template", //?
-                "default specifier", //found
-                "delete specifier", //found
-                "override specifier", //?
-                "final specifier", //?
-                "explicit specifier", //found
-                "initializer list", //?
-                "uniform initialization", //?
-                "range based for", //found
-                "lambda function", //found
-                "alternative function syntax", //?
-                "constuctor delegation", //found
-                "null pointer constant", //?
-                "enum class", //found
-                "right angle bracket", //?
-                "typedef template", //?
-                "unrestricted unions", //?
-                "variadic templates", //?
-                "unicode string literals", //found
-                "user defined literals", //?
-                "long long int", //?
-                "implict sizeof", //?
-                "noexcept keyword", //found
-                "alignof operator", //?
-                "alignas operator", //?
-                "attributes", //?
-                "variable templates", //?
-                "digit separators" //found
-        };
-        return string(features[(size_t) f - (size_t) cpp14features::begin]);
-    }
-
-    void Cpp14scanner::EndFileAction() {
-        cout << "---------------" << endl;
-        for (int i = (int) cpp14features::begin; i < (int) cpp14features::end; i++)
-            if (f_stat.size((cpp14features) i) != 0)
-                cout << f_stat.toString((cpp14features) i) << " -- "
-                     << f_stat.size((cpp14features) i) << endl;
-        cout << "---------------" << endl;
-    }
-
     bool Cpp14scanner::VisitCXXForRangeStmt(CXXForRangeStmt *forLoop) {
         if (!inProcessedFile(forLoop, f_context))
             return true;
-        f_stat.push(cpp14features::range_based_for, forLoop->getLocStart());
+        f_stat->push(cpp14features::range_based_for, forLoop->getLocStart());
         return true;
     }
 
     bool Cpp14scanner::VisitLambdaExpr(clang::LambdaExpr *lambdaExpr) {
         if (!inProcessedFile(lambdaExpr, f_context))
             return true;
-        f_stat.push(cpp14features::lambda_function, lambdaExpr->getLocStart());
+        f_stat->push(cpp14features::lambda_function, lambdaExpr->getLocStart());
         return true;
     }
 
@@ -89,9 +43,9 @@ namespace cpp14regress {
         if (!inProcessedFile(valueDecl, f_context))
             return true;
         if (isa<AutoType>(valueDecl->getType().getTypePtr())) {
-            f_stat.push(cpp14features::auto_keyword, valueDecl->getLocStart());
+            f_stat->push(cpp14features::auto_keyword, valueDecl->getLocStart());
         } else if (isa<DecltypeType>(valueDecl->getType().getTypePtr()))
-            f_stat.push(cpp14features::decltype_keyword, valueDecl->getLocStart());
+            f_stat->push(cpp14features::decltype_keyword, valueDecl->getLocStart());
         return true;
     }
 
@@ -99,7 +53,7 @@ namespace cpp14regress {
         if (!inProcessedFile(functionDecl, f_context))
             return true;
         if (functionDecl->isConstexpr())
-            f_stat.push(cpp14features::constexpr_keyword, functionDecl->getLocStart());
+            f_stat->push(cpp14features::constexpr_keyword, functionDecl->getLocStart());
         return true;
     }
 
@@ -107,9 +61,9 @@ namespace cpp14regress {
         if (!inProcessedFile(methodDecl, f_context))
             return true;
         if (methodDecl->isExplicitlyDefaulted())
-            f_stat.push(cpp14features::default_specifier, methodDecl->getLocStart());
+            f_stat->push(cpp14features::default_specifier, methodDecl->getLocStart());
         if (methodDecl->isDeleted())
-            f_stat.push(cpp14features::delete_specifier, methodDecl->getLocStart());
+            f_stat->push(cpp14features::delete_specifier, methodDecl->getLocStart());
         return true;
     }
 
@@ -117,7 +71,7 @@ namespace cpp14regress {
         if (!inProcessedFile(conversionMethod, f_context))
             return true;
         if (conversionMethod->isExplicitSpecified())
-            f_stat.push(cpp14features::explicit_specifier, conversionMethod->getLocStart());
+            f_stat->push(cpp14features::explicit_specifier, conversionMethod->getLocStart());
         return true;
     }
 
@@ -125,9 +79,9 @@ namespace cpp14regress {
         if (!inProcessedFile(constructorDecl, f_context))
             return true;
         if (constructorDecl->isExplicitSpecified())
-            f_stat.push(cpp14features::explicit_specifier, constructorDecl->getLocStart());
+            f_stat->push(cpp14features::explicit_specifier, constructorDecl->getLocStart());
         if (constructorDecl->isDelegatingConstructor())
-            f_stat.push(cpp14features::constuctor_delegation, constructorDecl->getLocStart());
+            f_stat->push(cpp14features::constuctor_delegation, constructorDecl->getLocStart());
         return true;
     }
 
@@ -138,7 +92,7 @@ namespace cpp14regress {
         if (expr->isNullPointerConstant(*f_context,
                                         Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent)
             == Expr::NullPointerConstantKind::NPCK_CXX11_nullptr) {
-            f_stat.push(cpp14features::null_pointer_constant, expr->getLocStart());
+            f_stat->push(cpp14features::null_pointer_constant, expr->getLocStart());
         }
         return true;
     }
@@ -147,7 +101,7 @@ namespace cpp14regress {
         if (!inProcessedFile(enumDecl, f_context))
             return true;
         if (enumDecl->isScopedUsingClassTag())
-            f_stat.push(cpp14features::enum_class, enumDecl->getLocStart());
+            f_stat->push(cpp14features::enum_class, enumDecl->getLocStart());
         return true;
     }
 
@@ -166,16 +120,17 @@ namespace cpp14regress {
         if ((literal->isUTF8()) ||
             (literal->isUTF16()) ||
             (literal->isUTF32()))
-            f_stat.push(cpp14features::unicode_string_literals, literal->getLocStart());
+            f_stat->push(cpp14features::unicode_string_literals, literal->getLocStart());
         return true;
     }
 
+    //TODO
     bool Cpp14scanner::VisitIntegerLiteral(clang::IntegerLiteral *literal) {
-        if (!inProcessedFile(literal, f_context))
-            return true;
-        string i = toSting(literal, f_context);
-        if (i.find('\'') != string::npos)
-            f_stat.push(cpp14features::digit_separators, literal->getLocStart());
+        //if (!inProcessedFile(literal, f_context))
+        //    return true;
+        //string i = toSting(literal, f_context);
+        //if (i.find('\'') != string::npos)
+        //    f_stat->push(cpp14features::digit_separators, literal->getLocStart());
         return true;
     }
 
@@ -184,14 +139,14 @@ namespace cpp14regress {
             return true;
         string f = toSting(literal, f_context);
         if (f.find('\'') != string::npos)
-            f_stat.push(cpp14features::digit_separators, literal->getLocStart());
+            f_stat->push(cpp14features::digit_separators, literal->getLocStart());
         return true;
     }
 
     bool Cpp14scanner::VisitCXXNoexceptExpr(clang::CXXNoexceptExpr *noexceptExpr) {
         if (!inProcessedFile(noexceptExpr, f_context))
             return true;
-        f_stat.push(cpp14features::noexcept_keyword, noexceptExpr->getLocStart());
+        f_stat->push(cpp14features::noexcept_keyword, noexceptExpr->getLocStart());
         return true;
     }
 
