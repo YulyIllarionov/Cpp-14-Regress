@@ -20,6 +20,7 @@
 #include "lambda_function.h"
 #include "auto.h"
 #include "cpp14_scanner.h"
+#include <memory>
 
 namespace cpp14regress {
 
@@ -36,7 +37,7 @@ namespace cpp14regress {
             visitor->TraverseDecl(context.getTranslationUnitDecl());
         }
 
-        virtual void EndFileAction() { visitor->EndFileAction(); }
+        //virtual void EndFileAction() { visitor->EndFileAction(); }
     };
 
     template<typename VisitorType>
@@ -48,10 +49,18 @@ namespace cpp14regress {
             return std::unique_ptr<clang::ASTConsumer>(f_consumer);
         }
 
-        virtual void EndSourceFileAction() { f_consumer->EndFileAction(); }
+        //virtual void EndSourceFileAction() { f_consumer->EndFileAction(); }
 
     private:
         Cpp14RegressASTConsumer<VisitorType> *f_consumer;
+    };
+
+    template<typename VisitorType>
+    struct Cpp14scannerConsumerCreator {
+        std::unique_ptr<clang::ASTConsumer> newASTConsumer() {
+            clang::ASTConsumer *consumer = new Cpp14RegressASTConsumer<VisitorType>();
+            return std::unique_ptr<clang::ASTConsumer>(consumer);
+        }
     };
 }
 

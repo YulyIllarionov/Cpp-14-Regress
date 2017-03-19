@@ -84,11 +84,21 @@ int main(int argc, const char **argv) {
     CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
 
-    int result = Tool.run((newFrontendActionFactory<Cpp14RegressFrontendAction<Cpp14scanner>>()).get());
+    Cpp14scannerConsumerCreator<Cpp14scanner> consumerCreator;
+
+    int result = Tool.run((newFrontendActionFactory(&consumerCreator)).get());
 
     ////std::error_code EC;
     ////raw_fd_ostream *cured = new raw_fd_ostream(curedFilename, EC, sys::fs::F_Text);
     ////cured->close();
+
+    //int main(int argc, char **argv) {
+    //  ClangTool Tool(argc, argv);
+    //  MatchFinder finder;
+    //  finder.AddMatcher(Id("id", record(hasName("::a_namespace::AClass"))),
+    //                    new HandleMatch);
+    //  return Tool.Run(newFrontendActionFactory(&finder));
+    //}
 
     return result;
 }

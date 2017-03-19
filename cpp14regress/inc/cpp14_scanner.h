@@ -136,6 +136,16 @@ namespace cpp14regress {
         virtual bool VisitFloatingLiteral(clang::FloatingLiteral *literal);
     };
 
+
+    class Cpp14RegressCallback : public clang::tooling::SourceFileCallbacks {
+    private:
+        cpp14features_stat *f_stat;
+        int f_number = 0;
+
+        virtual void handleEndSource() { std::cout << "file №" << ++f_number << " processed" << std::endl; }
+
+    };
+
 }
 
 #endif /*CPP14REGRESS_SCANNER_H*/
