@@ -12,6 +12,7 @@
 #include "clang/Lex/Lexer.h"
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
+#include "clang/Tooling/JSONCompilationDatabase.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -30,13 +31,6 @@ using namespace cpp14regress;
 
 static cl::OptionCategory MyToolCategory("");
 
-// слияние AST -- ASTMergeAction
-// как работать с хедерами?
-// handleBeginSource и BeginSourceFileAction
-
-//json
-
-
 int main(int argc, const char **argv) {
 
     if (argc != 2) {
@@ -50,7 +44,6 @@ int main(int argc, const char **argv) {
         cerr << "error: second argument is not a folder" << endl;
         return 2;
     }
-
     vector<string> argv_tmp{argv[0]};
     std::error_code ec;
     for (sys::fs::recursive_directory_iterator i(dir, ec), e; i != e; i.increment(ec)) {
@@ -58,6 +51,8 @@ int main(int argc, const char **argv) {
             argv_tmp.push_back(i->path());
     }
     argv_tmp.push_back("--");
+    argv_tmp.push_back("-p");
+    argv_tmp.push_back("/home/yury/llvm-clang/test/build");
     argv_tmp.push_back("-std=c++14");
     //for (int i = 1; argv_tmp[i] != "--"; i++) {
     //    argv_tmp[i].insert(argv_tmp[i].find_last_of('.'), "_regressed");
@@ -82,8 +77,8 @@ int main(int argc, const char **argv) {
         cout << argv_mod[i] << endl;
 
     CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
-    ClangTool Tool(op.getCompilations(), op.getSourcePathList());
 
+    ClangTool Tool(op.getCompilations(), op.getSourcePathList());
 
     cpp14features_stat stat;
 

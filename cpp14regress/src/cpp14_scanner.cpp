@@ -88,12 +88,12 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitExpr(clang::Expr *expr) {
         if (!inProcessedFile(expr, f_context))
             return true;
-        //TODO NPC_NeverValueDependent
-        if (expr->isNullPointerConstant(*f_context,
-                                        Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent)
-            == Expr::NullPointerConstantKind::NPCK_CXX11_nullptr) {
-            f_stat->push(cpp14features::null_pointer_constant, expr->getLocStart());
-        }
+        //TODO NPC_NeverValueDependent, fix
+        //if (expr->isNullPointerConstant(*f_context,
+        //                                Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent)
+        //    == Expr::NullPointerConstantKind::NPCK_CXX11_nullptr) {
+        //    f_stat->push(cpp14features::null_pointer_constant, expr->getLocStart());
+        //}
         return true;
     }
 
@@ -124,7 +124,7 @@ namespace cpp14regress {
         return true;
     }
 
-    //TODO
+    //TODO fix, string too long
     bool Cpp14scanner::VisitIntegerLiteral(clang::IntegerLiteral *literal) {
         //if (!inProcessedFile(literal, f_context))
         //    return true;
