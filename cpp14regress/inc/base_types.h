@@ -27,8 +27,8 @@ namespace cpp14regress {
         extern_template, //?
         default_specifier, //found
         delete_specifier, //found
-        override_specifier, //?
-        final_specifier, //?
+        override_specifier, //found
+        final_specifier, //found
         explicit_specifier, //found
         initializer_list, //?
         uniform_initialization, //?
@@ -36,16 +36,18 @@ namespace cpp14regress {
         lambda_function, //found
         alternative_function_syntax, //?
         constuctor_delegation, //found
-        null_pointer_constant, //?
+        null_pointer_constant, //found
         enum_class, //found
         right_angle_bracket, //?
-        typedef_template, //?
+        alias_template, //found
+        alias_type, //found
         unrestricted_unions, //? //boost::variant или placement-new
         variadic_templates, //?
+        raw_string_literals, //?
         unicode_string_literals, //found
         user_defined_literals, //?
         long_long_int, //?
-        implict_sizeof, //?
+        implict_sizeof, //found //TODO sizeof... ??
         noexcept_keyword, //found
         alignof_operator, //?
         alignas_operator, //?

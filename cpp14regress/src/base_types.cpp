@@ -23,37 +23,39 @@ namespace cpp14regress {
 
     string cpp14features_stat::toString(cpp14features f) {
         static const char *features[size()] = {
-                "auto keyword", //found
-                "decltype keyword", //found
-                "constexpr keyword", //found
-                "extern template", //?
-                "default specifier", //found
-                "delete specifier", //found
-                "override specifier", //?
-                "final specifier", //?
-                "explicit specifier", //found
-                "initializer list", //?
-                "uniform initialization", //?
-                "range based for", //found
-                "lambda function", //found
-                "alternative function syntax", //?
-                "constuctor delegation", //found
-                "null pointer constant", //?
-                "enum class", //found
-                "right angle bracket", //?
-                "typedef template", //?
-                "unrestricted unions", //?
-                "variadic templates", //?
-                "unicode string literals", //found
-                "user defined literals", //?
-                "long long int", //?
-                "implict sizeof", //?
-                "noexcept keyword", //found
-                "alignof operator", //?
-                "alignas operator", //?
-                "attributes", //?
-                "variable templates", //?
-                "digit separators" //found
+                "auto keyword",
+                "decltype keyword",
+                "constexpr keyword",
+                "extern template",
+                "default specifier",
+                "delete specifier",
+                "override specifier",
+                "final specifier",
+                "explicit specifier",
+                "initializer list",
+                "uniform initialization",
+                "range based for",
+                "lambda function",
+                "alternative function syntax",
+                "constuctor delegation",
+                "null pointer constant",
+                "enum class",
+                "right angle bracket",
+                "alias template",
+                "alias_type",
+                "unrestricted unions",
+                "variadic templates",
+                "raw_string_literals",
+                "unicode string literals",
+                "user defined literals",
+                "long long int",
+                "implict sizeof",
+                "noexcept keyword",
+                "alignof operator",
+                "alignas operator",
+                "attributes",
+                "variable templates",
+                "digit separators"
         };
         return string(features[(size_t) f - (size_t) cpp14features::begin]);
     }

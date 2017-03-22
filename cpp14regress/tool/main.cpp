@@ -50,9 +50,13 @@ int main(int argc, const char **argv) {
         if (isCppFile(i->path()))
             argv_tmp.push_back(i->path());
     }
+
+    for (auto it = ++argv_tmp.begin(); it != argv_tmp.end(); it++)
+        cout << "file " << *it << endl;
+
     argv_tmp.push_back("--");
-    argv_tmp.push_back("-p");
-    argv_tmp.push_back("/home/yury/llvm-clang/test/build");
+    //argv_tmp.push_back("-p");
+    //argv_tmp.push_back("/home/yury/llvm-clang/test/build");
     argv_tmp.push_back("-std=c++14");
     //for (int i = 1; argv_tmp[i] != "--"; i++) {
     //    argv_tmp[i].insert(argv_tmp[i].find_last_of('.'), "_regressed");
@@ -72,9 +76,6 @@ int main(int argc, const char **argv) {
         argv_mod[i] = new char[argv_tmp[i].size() + 1];
         std::strcpy(argv_mod[i], argv_tmp[i].c_str());
     }
-
-    for (int i = 0 ; i < argc_mod; i++)
-        cout << argv_mod[i] << endl;
 
     CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
 

@@ -25,11 +25,11 @@ namespace cpp14regress {
     class Cpp14scanner : public clang::RecursiveASTVisitor<Cpp14scanner> {
     private:
         clang::ASTContext *f_context;
-        cpp14features_stat* f_stat;
+        cpp14features_stat *f_stat;
 
     public:
 
-        Cpp14scanner(clang::ASTContext *context, cpp14features_stat* stat)
+        Cpp14scanner(clang::ASTContext *context, cpp14features_stat *stat)
                 : f_context(context), f_stat(stat) {}
 
         virtual void EndFileAction() {};
@@ -78,16 +78,17 @@ namespace cpp14regress {
 
         //digit_separators //TODO
         virtual bool VisitFloatingLiteral(clang::FloatingLiteral *literal);
-    };
 
+        //alias_template //TODO check if TypeAliasTemplateDecl inherits from TypeAliasDecl
+        virtual bool VisitTypeAliasTemplateDecl(clang::TypeAliasTemplateDecl *aliasTemplateDecl);
 
-    class Cpp14RegressCallback : public clang::tooling::SourceFileCallbacks {
-    private:
-        cpp14features_stat *f_stat;
-        int f_number = 0;
+        //alias_template //TODO
+        //alias_typedef //TODO
+        virtual bool VisitTypeAliasDecl(clang::TypeAliasDecl* aliasTypeDecl);
 
-        virtual void handleEndSource() { std::cout << "file №" << ++f_number << " processed" << std::endl; }
+        virtual bool VisitSizeOfPackExpr(clang::SizeOfPackExpr* sizeofPackExpr);
 
+        virtual bool VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr* sizeofOrAlignof);
     };
 
 }

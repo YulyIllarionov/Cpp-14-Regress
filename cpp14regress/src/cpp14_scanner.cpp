@@ -44,8 +44,10 @@ namespace cpp14regress {
             return true;
         if (isa<AutoType>(valueDecl->getType().getTypePtr())) {
             f_stat->push(cpp14features::auto_keyword, valueDecl->getLocStart());
-        } else if (isa<DecltypeType>(valueDecl->getType().getTypePtr()))
+        } else if (isa<DecltypeType>(valueDecl->getType().getTypePtr())) {
             f_stat->push(cpp14features::decltype_keyword, valueDecl->getLocStart());
+            //cout << "decltype: " << valueDecl->getLocStart().printToString(f_context->getSourceManager()) << endl;
+        }
         return true;
     }
 
@@ -60,10 +62,15 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl) {
         if (!inProcessedFile(methodDecl, f_context))
             return true;
+        string methodString = toSting(methodDecl, f_context);
         if (methodDecl->isExplicitlyDefaulted())
             f_stat->push(cpp14features::default_specifier, methodDecl->getLocStart());
         if (methodDecl->isDeleted())
             f_stat->push(cpp14features::delete_specifier, methodDecl->getLocStart());
+        if (methodString.find(" override") != string::npos) //TODO
+            f_stat->push(cpp14features::override_specifier, methodDecl->getLocStart());
+        if (methodString.find(" final") != string::npos) //TODO
+            f_stat->push(cpp14features::final_specifier, methodDecl->getLocStart());
         return true;
     }
 
@@ -88,12 +95,13 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitExpr(clang::Expr *expr) {
         if (!inProcessedFile(expr, f_context))
             return true;
-        //TODO NPC_NeverValueDependent, fix
-        //if (expr->isNullPointerConstant(*f_context,
-        //                                Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent)
-        //    == Expr::NullPointerConstantKind::NPCK_CXX11_nullptr) {
-        //    f_stat->push(cpp14features::null_pointer_constant, expr->getLocStart());
-        //}
+        //TODO NPC_NeverValueDependent, fix, twice on one file
+        if (expr->isNullPointerConstant(*f_context,
+                                        Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent)
+            == Expr::NullPointerConstantKind::NPCK_CXX11_nullptr) {
+            f_stat->push(cpp14features::null_pointer_constant, expr->getLocStart());
+            //cout << "nullptr: " << expr->getLocStart().printToString(f_context->getSourceManager()) << endl;
+        }
         return true;
     }
 
@@ -124,22 +132,27 @@ namespace cpp14regress {
         return true;
     }
 
-    //TODO fix, string too long
+    //TODO fix, exception string too long
     bool Cpp14scanner::VisitIntegerLiteral(clang::IntegerLiteral *literal) {
-        //if (!inProcessedFile(literal, f_context))
-        //    return true;
-        //string i = toSting(literal, f_context);
-        //if (i.find('\'') != string::npos)
-        //    f_stat->push(cpp14features::digit_separators, literal->getLocStart());
+        if (!inProcessedFile(literal, f_context))
+            return true;
+        string i = toSting(literal, f_context);
+        //cout << "Integer literal: " << i << endl;
+        if (i.find('\'') != string::npos) {
+            f_stat->push(cpp14features::digit_separators, literal->getLocStart());
+            //cout << "Integer with separators: " << i << endl;
+        }
         return true;
     }
-
+    //TODO fix, exception string too long
     bool Cpp14scanner::VisitFloatingLiteral(clang::FloatingLiteral *literal) {
         if (!inProcessedFile(literal, f_context))
             return true;
         string f = toSting(literal, f_context);
-        if (f.find('\'') != string::npos)
+        if (f.find('\'') != string::npos) {
             f_stat->push(cpp14features::digit_separators, literal->getLocStart());
+            //cout << "Float with separators: " << f << endl;
+        }
         return true;
     }
 
@@ -147,6 +160,64 @@ namespace cpp14regress {
         if (!inProcessedFile(noexceptExpr, f_context))
             return true;
         f_stat->push(cpp14features::noexcept_keyword, noexceptExpr->getLocStart());
+        return true;
+    }
+
+    bool Cpp14scanner::VisitTypeAliasTemplateDecl(clang::TypeAliasTemplateDecl *aliasTemplateDecl) {
+        if (!inProcessedFile(aliasTemplateDecl, f_context))
+            return true;
+        f_stat->push(cpp14features::alias_template, aliasTemplateDecl->getLocStart()); //TODO
+        //cout << "alias template: " << toSting(aliasTemplateDecl, f_context) << endl;
+        return true;
+    }
+
+    bool Cpp14scanner::VisitTypeAliasDecl(clang::TypeAliasDecl *aliasTypeDecl) {
+        if (!inProcessedFile(aliasTypeDecl, f_context))
+            return true;
+        if (isa<TypeAliasTemplateDecl>(aliasTypeDecl)) {
+            f_stat->push(cpp14features::alias_template, aliasTypeDecl->getLocStart()); //TODO
+            //cout << "alias template: " << toSting(aliasTypeDecl, f_context) << endl;
+        } else {
+            f_stat->push(cpp14features::alias_type, aliasTypeDecl->getLocStart());
+            //cout << "alias type: " << toSting(aliasTypeDecl, f_context) << endl;
+        }
+        return true;
+    }
+
+    bool Cpp14scanner::VisitSizeOfPackExpr(clang::SizeOfPackExpr *sizeofPackExpr) {
+        if (!inProcessedFile(sizeofPackExpr, f_context))
+            return true;
+        cout << "Found sizeof...: " << toSting(sizeofPackExpr, f_context) << endl;
+        return true;
+    }
+
+    bool Cpp14scanner::VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *sizeofOrAlignof) {
+        if (!inProcessedFile(sizeofOrAlignof, f_context))
+            return true;
+        if (sizeofOrAlignof->getKind() == UnaryExprOrTypeTrait::UETT_SizeOf) {
+            if (!sizeofOrAlignof->isArgumentType()) {
+
+                Expr *arg = sizeofOrAlignof->getArgumentExpr();
+                while (auto parenExpr = dyn_cast<ParenExpr>(arg))
+                    arg = parenExpr->getSubExpr();
+
+                if (auto dre = dyn_cast<DeclRefExpr>(arg)) {
+                    if (dre->hasQualifier()) { //TODO check
+                        if ((dre->getQualifier()->getKind() ==
+                             clang::NestedNameSpecifier::SpecifierKind::TypeSpec) ||
+                            (dre->getQualifier()->getKind() ==
+                             clang::NestedNameSpecifier::SpecifierKind::TypeSpecWithTemplate)) {
+                            //cout << "sizeof: " << toSting(sizeofOrAlignof->getArgumentExpr(), f_context)
+                            //     << " is implict" << endl;
+                            f_stat->push(cpp14features::implict_sizeof, sizeofOrAlignof->getLocStart());
+                        }
+                    }
+                }
+            }
+        } else if (sizeofOrAlignof->getKind() == UnaryExprOrTypeTrait::UETT_AlignOf) {
+            f_stat->push(cpp14features::alignof_operator, sizeofOrAlignof->getLocStart());
+            //cout << "alignof: " << toSting(sizeofOrAlignof, f_context) << endl;
+        }
         return true;
     }
 
