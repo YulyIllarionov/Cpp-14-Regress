@@ -42,14 +42,14 @@ namespace cpp14regress {
         alias_template, //found
         alias_type, //found
         unrestricted_unions, //? //boost::variant или placement-new
-        variadic_templates, //?
-        raw_string_literals, //?
+        variadic_templates, //found
+        raw_string_literals, //found
         unicode_string_literals, //found
         user_defined_literals, //?
         long_long_int, //?
         implict_sizeof, //found //TODO sizeof... ??
         noexcept_keyword, //found
-        alignof_operator, //?
+        alignof_operator, //found
         alignas_operator, //?
         attributes, //?
         variable_templates, //?

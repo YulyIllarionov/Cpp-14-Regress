@@ -13,6 +13,7 @@
 #include "clang/Lex/Lexer.h"
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
+#include "clang/AST/DeclCXX.h"
 #include "llvm/ADT/DenseMap.h"
 
 #include "cpp14_scanner.h"
@@ -125,6 +126,10 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitStringLiteral(clang::StringLiteral *literal) {
         if (!inProcessedFile(literal, f_context))
             return true;
+        if (toSting(literal, f_context)[0] == 'R') {
+            cout << "Raw string literal: " << toSting(literal, f_context) << endl;
+            f_stat->push(cpp14features::raw_string_literals, literal->getLocStart());
+        }
         if ((literal->isUTF8()) ||
             (literal->isUTF16()) ||
             (literal->isUTF32()))
@@ -184,7 +189,10 @@ namespace cpp14regress {
         return true;
     }
 
-    bool Cpp14scanner::VisitSizeOfPackExpr(clang::SizeOfPackExpr *sizeofPackExpr) {
+    bool Cpp14scanner::
+
+
+    VisitSizeOfPackExpr(clang::SizeOfPackExpr *sizeofPackExpr) {
         if (!inProcessedFile(sizeofPackExpr, f_context))
             return true;
         cout << "Found sizeof...: " << toSting(sizeofPackExpr, f_context) << endl;
@@ -217,7 +225,28 @@ namespace cpp14regress {
         } else if (sizeofOrAlignof->getKind() == UnaryExprOrTypeTrait::UETT_AlignOf) {
             f_stat->push(cpp14features::alignof_operator, sizeofOrAlignof->getLocStart());
             //cout << "alignof: " << toSting(sizeofOrAlignof, f_context) << endl;
+        } else { //TODO delete
+            cout << "Also caught: "
+                 << sizeofOrAlignof->getLocStart().printToString(f_context->getSourceManager()) << endl;
         }
+        return true;
+    }
+
+    bool Cpp14scanner::VisitRedeclarableTemplateDecl(clang::RedeclarableTemplateDecl *templateDecl) {
+        if (!inProcessedFile(templateDecl, f_context))
+            return true;
+        TemplateParameterList *tps = templateDecl->getTemplateParameters();
+        bool variadic = false;
+        for (auto it = tps->begin(); it != tps->end(); it++)
+            if (auto tp = dyn_cast_or_null<TemplateTypeParmDecl>(*it))
+                if (tp->isParameterPack())
+                    variadic = true;
+        if (variadic) {
+            //cout << "Variadic template: " << toSting(templateDecl, f_context) << endl;
+            f_stat->push(cpp14features::variadic_templates, templateDecl->getLocStart());
+        }
+        //if (expr->containsUnexpandedParameterPack()) { //TODO may also works
+
         return true;
     }
 

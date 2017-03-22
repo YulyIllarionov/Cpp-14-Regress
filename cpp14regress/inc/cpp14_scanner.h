@@ -71,6 +71,7 @@ namespace cpp14regress {
         virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
 
         //unicode_string_literals //TODO
+        //raw_string_literals //TODO
         virtual bool VisitStringLiteral(clang::StringLiteral *literal);
 
         //digit_separators //TODO
@@ -86,9 +87,16 @@ namespace cpp14regress {
         //alias_typedef //TODO
         virtual bool VisitTypeAliasDecl(clang::TypeAliasDecl* aliasTypeDecl);
 
+        //sizeof...
         virtual bool VisitSizeOfPackExpr(clang::SizeOfPackExpr* sizeofPackExpr);
 
+        //implict_sizeof //TODO
+        //alignof_operator //TODO
         virtual bool VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr* sizeofOrAlignof);
+
+        //variadic_templates //TODO
+        virtual bool VisitRedeclarableTemplateDecl(clang::RedeclarableTemplateDecl* templateDecl);
+
     };
 
 }
