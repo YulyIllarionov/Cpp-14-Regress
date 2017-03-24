@@ -46,7 +46,7 @@ namespace cpp14regress {
         raw_string_literals, //found
         unicode_string_literals, //found
         user_defined_literals, //?
-        long_long_int, //? //TODO literals spec like 12345LL
+        long_long_int, //found //TODO literals spec like 12345LL
         implict_sizeof, //found //TODO sizeof... ??
         noexcept_keyword, //found
         alignof_operator, //found

@@ -261,7 +261,34 @@ namespace cpp14regress {
                 f_stat->push(cpp14features::long_long_int, varDecl->getLocStart());
             }
         }
+        return true;
+    }
 
+    bool Cpp14scanner::VisitCStyleCastExpr(clang::CStyleCastExpr *castExpr) {
+        if (!inProcessedFile(castExpr, f_context))
+            return true;
+        if (auto *bt = dyn_cast<BuiltinType>(castExpr->getTypeAsWritten())) {
+            if ((bt->getKind() == BuiltinType::LongLong) ||
+                (bt->getKind() == BuiltinType::ULongLong)) {
+                //cout << "Cast kind: " << castExpr->getCastKindName() << " -- "
+                //     << castExpr->getLocStart().printToString(f_context->getSourceManager()) << endl;
+                f_stat->push(cpp14features::long_long_int, castExpr->getLocStart());
+            }
+        }
+        return true;
+    }
+
+    bool Cpp14scanner::VisitCXXFunctionalCastExpr(clang::CXXFunctionalCastExpr *castExpr) {
+        if (!inProcessedFile(castExpr, f_context))
+            return true;
+        if (auto *bt = dyn_cast<BuiltinType>(castExpr->getTypeAsWritten())) {
+            if ((bt->getKind() == BuiltinType::LongLong) ||
+                (bt->getKind() == BuiltinType::ULongLong)) {
+                //cout << "Cast kind: " << castExpr->getCastKindName() << " -- "
+                //     << castExpr->getLocStart().printToString(f_context->getSourceManager()) << endl;
+                f_stat->push(cpp14features::long_long_int, castExpr->getLocStart());
+            }
+        }
         return true;
     }
 
