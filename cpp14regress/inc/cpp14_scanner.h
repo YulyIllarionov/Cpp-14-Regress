@@ -97,6 +97,9 @@ namespace cpp14regress {
         //variadic_templates //TODO
         virtual bool VisitRedeclarableTemplateDecl(clang::RedeclarableTemplateDecl* templateDecl);
 
+        //long_long_int //TODO find all occurence of type cast to long long
+        virtual bool VisitVarDecl(clang::VarDecl* varDecl);
+
     };
 
 }

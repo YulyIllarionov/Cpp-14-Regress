@@ -127,7 +127,7 @@ namespace cpp14regress {
         if (!inProcessedFile(literal, f_context))
             return true;
         if (toSting(literal, f_context)[0] == 'R') {
-            cout << "Raw string literal: " << toSting(literal, f_context) << endl;
+            //cout << "Raw string literal: " << toSting(literal, f_context) << endl;
             f_stat->push(cpp14features::raw_string_literals, literal->getLocStart());
         }
         if ((literal->isUTF8()) ||
@@ -246,6 +246,21 @@ namespace cpp14regress {
             f_stat->push(cpp14features::variadic_templates, templateDecl->getLocStart());
         }
         //if (expr->containsUnexpandedParameterPack()) { //TODO may also works
+
+        return true;
+    }
+
+    bool Cpp14scanner::VisitVarDecl(clang::VarDecl *varDecl) {
+        if (!inProcessedFile(varDecl, f_context))
+            return true;
+        if (auto *bt = dyn_cast<BuiltinType>(varDecl->getType())) {
+            if ((bt->getKind() == BuiltinType::LongLong) ||
+                (bt->getKind() == BuiltinType::ULongLong)) {
+                //cout << "Long long int: " << toSting(varDecl, f_context) << " -- "
+                //     << varDecl->getLocStart().printToString(f_context->getSourceManager()) << endl;
+                f_stat->push(cpp14features::long_long_int, varDecl->getLocStart());
+            }
+        }
 
         return true;
     }
