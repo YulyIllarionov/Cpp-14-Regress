@@ -64,6 +64,7 @@ namespace cpp14regress {
             //cout << "User-defined literal: " << toSting(functionDecl, f_context) << endl;
             f_stat->push(cpp14features::user_defined_literals, functionDecl->getLocStart());
         }
+        //functionDecl->getLiteralIdentifier() TODO user defined literal
         //TODO doesn't work
         BeforeThanCompare<SourceLocation> isBefore(f_context->getSourceManager());
         SourceLocation funcTypeLoc = functionDecl->getReturnTypeSourceRange().getBegin();
@@ -163,6 +164,7 @@ namespace cpp14regress {
         }
         return true;
     }
+
     //TODO fix, exception string too long
     bool Cpp14scanner::VisitFloatingLiteral(clang::FloatingLiteral *literal) {
         if (!inProcessedFile(literal, f_context))
@@ -264,6 +266,7 @@ namespace cpp14regress {
         return true;
     }
 
+    //TODO check visit type
     bool Cpp14scanner::VisitVarDecl(clang::VarDecl *varDecl) {
         if (!inProcessedFile(varDecl, f_context))
             return true;
@@ -323,4 +326,12 @@ namespace cpp14regress {
     //    return true;
     //}
 
+    //TODO check
+    virtual bool Cpp14scanner::VisitTemplateDecl(clang::TemplateDecl *templateDecl) {
+        if (!inProcessedFile(templateDecl, f_context))
+            return true;
+        if (templateDecl->isLocalExternDecl())
+            cout << "Extern template: " << toSting(templateDecl, f_context) << endl;
+        return true;
+    }
 }

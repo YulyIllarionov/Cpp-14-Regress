@@ -113,6 +113,7 @@ namespace cpp14regress {
         //user_defined_literals //TODO
         //virtual bool VisitUserDefinedLiteral (clang::UserDefinedLiteral* userDefinedLiteral);
 
+        virtual bool VisitTemplateDecl(clang::TemplateDecl* classTemplateDecl);
     };
 
 }

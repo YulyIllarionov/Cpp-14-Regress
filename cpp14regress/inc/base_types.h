@@ -27,8 +27,8 @@ namespace cpp14regress {
         extern_template, //?
         default_specifier, //found
         delete_specifier, //found
-        override_specifier, //found
-        final_specifier, //found
+        override_specifier, //found-
+        final_specifier, //found-
         explicit_specifier, //found
         initializer_list, //?
         uniform_initialization, //?
@@ -46,11 +46,11 @@ namespace cpp14regress {
         raw_string_literals, //found
         unicode_string_literals, //found
         user_defined_literals, //found
-        long_long_int, //found //TODO literals spec like 12345LL
+        long_long_int, //found //TODO literals spec like 12345LL //TODO template
         implict_sizeof, //found //TODO sizeof... ?
         noexcept_keyword, //found
         alignof_operator, //found
-        alignas_operator, //?
+        alignas_operator, //? //TODO Check attr
         attributes, //?
         variable_templates, //found
         digit_separators, //found
