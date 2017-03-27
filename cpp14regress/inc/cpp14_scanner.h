@@ -45,6 +45,7 @@ namespace cpp14regress {
         virtual bool VisitDeclaratorDecl(clang::DeclaratorDecl *valueDecl);
 
         //constexpr keyword //TODO by FunctionDecl::isConstexpr()
+        //user_defined_literals //TODO can user defined literals be a template?
         virtual bool VisitFunctionDecl(clang::FunctionDecl *functionDecl);
 
         //default_specifier //TODO by CXXMethodDecl::isExplicitlyDefaulted()
@@ -59,7 +60,7 @@ namespace cpp14regress {
         virtual bool VisitCXXConstructorDecl(clang::CXXConstructorDecl *constructorDecl);
 
         //null_pointer_constant TODO by isNullPointerConstant()
-        virtual bool VisitExpr(clang::Expr *expr);
+        virtual bool VisitCXXNullPtrLiteralExpr(clang::CXXNullPtrLiteralExpr *nullPtrExpr);
 
         //noexcept_keyword
         virtual bool VisitCXXNoexceptExpr(clang::CXXNoexceptExpr *noexceptExpr);
@@ -71,7 +72,7 @@ namespace cpp14regress {
         virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
 
         //unicode_string_literals //TODO
-        //raw_string_literals //TODO
+        //raw_string_literals //TODO fix
         virtual bool VisitStringLiteral(clang::StringLiteral *literal);
 
         //digit_separators //TODO
@@ -105,6 +106,12 @@ namespace cpp14regress {
 
         //long_long_int //TODO
         virtual bool VisitCXXFunctionalCastExpr(clang::CXXFunctionalCastExpr* castExpr);
+
+        //variable_templates //TODO
+        virtual bool VisitVarTemplateDecl(clang::VarTemplateDecl* varTemplate);
+
+        //user_defined_literals //TODO
+        //virtual bool VisitUserDefinedLiteral (clang::UserDefinedLiteral* userDefinedLiteral);
 
     };
 

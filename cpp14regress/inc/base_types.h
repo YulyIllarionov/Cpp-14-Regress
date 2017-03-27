@@ -45,14 +45,14 @@ namespace cpp14regress {
         variadic_templates, //found
         raw_string_literals, //found
         unicode_string_literals, //found
-        user_defined_literals, //?
+        user_defined_literals, //found
         long_long_int, //found //TODO literals spec like 12345LL
-        implict_sizeof, //found //TODO sizeof... ??
+        implict_sizeof, //found //TODO sizeof... ?
         noexcept_keyword, //found
         alignof_operator, //found
         alignas_operator, //?
         attributes, //?
-        variable_templates, //?
+        variable_templates, //found
         digit_separators, //found
         end
     };

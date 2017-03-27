@@ -16,9 +16,12 @@
 #include "clang/AST/DeclCXX.h"
 #include "llvm/ADT/DenseMap.h"
 
+#include <algorithm>
+
 #include "cpp14_scanner.h"
 #include "base_types.h"
 #include "utils.h"
+
 
 namespace cpp14regress {
 
@@ -57,6 +60,20 @@ namespace cpp14regress {
             return true;
         if (functionDecl->isConstexpr())
             f_stat->push(cpp14features::constexpr_keyword, functionDecl->getLocStart());
+        if (functionDecl->getNameAsString().find("\"\"") != string::npos) { //TODO fix
+            //cout << "User-defined literal: " << toSting(functionDecl, f_context) << endl;
+            f_stat->push(cpp14features::user_defined_literals, functionDecl->getLocStart());
+        }
+        //TODO doesn't work
+        BeforeThanCompare<SourceLocation> isBefore(f_context->getSourceManager());
+        SourceLocation funcTypeLoc = functionDecl->getReturnTypeSourceRange().getBegin();
+        SourceLocation funcNameLoc = functionDecl->getNameInfo().getLoc();
+        //TODO file and macro ID
+        if ((funcTypeLoc.isValid()) &&
+            (funcNameLoc.isValid()) &&
+            (isBefore(funcNameLoc, funcTypeLoc))) {
+            cout << "Alternate syntax: " << toSting(functionDecl, f_context) << endl;
+        }
         return true;
     }
 
@@ -93,16 +110,12 @@ namespace cpp14regress {
         return true;
     }
 
-    bool Cpp14scanner::VisitExpr(clang::Expr *expr) {
-        if (!inProcessedFile(expr, f_context))
+    bool Cpp14scanner::VisitCXXNullPtrLiteralExpr(clang::CXXNullPtrLiteralExpr *nullPtrExpr) {
+        if (!inProcessedFile(nullPtrExpr, f_context))
             return true;
-        //TODO NPC_NeverValueDependent, fix, twice on one file
-        if (expr->isNullPointerConstant(*f_context,
-                                        Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent)
-            == Expr::NullPointerConstantKind::NPCK_CXX11_nullptr) {
-            f_stat->push(cpp14features::null_pointer_constant, expr->getLocStart());
-            //cout << "nullptr: " << expr->getLocStart().printToString(f_context->getSourceManager()) << endl;
-        }
+        //cout << "Nullptr: " << toSting(nullPtrExpr, f_context) << " -- "
+        //     << nullPtrExpr->getLocStart().printToString(f_context->getSourceManager()) << endl;
+        f_stat->push(cpp14features::null_pointer_constant, nullPtrExpr->getLocStart());
         return true;
     }
 
@@ -126,7 +139,8 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitStringLiteral(clang::StringLiteral *literal) {
         if (!inProcessedFile(literal, f_context))
             return true;
-        if (toSting(literal, f_context)[0] == 'R') {
+        string s = toSting(literal, f_context);
+        if (s[max(int(s.find('\"')) - 1, 0)] == 'R') { //TODO need fix
             //cout << "Raw string literal: " << toSting(literal, f_context) << endl;
             f_stat->push(cpp14features::raw_string_literals, literal->getLocStart());
         }
@@ -291,5 +305,22 @@ namespace cpp14regress {
         }
         return true;
     }
+
+    bool Cpp14scanner::VisitVarTemplateDecl(clang::VarTemplateDecl *varTemplate) {
+        if (!inProcessedFile(varTemplate, f_context))
+            return true;
+        f_stat->push(cpp14features::variable_templates, varTemplate->getLocStart());
+        //cout << "Variable template: " << toSting(varTemplate, f_context) << endl;
+        return true;
+    }
+
+    //bool Cpp14scanner::VisitUserDefinedLiteral(clang::UserDefinedLiteral *userDefinedLiteral) {
+    //    if (!inProcessedFile(userDefinedLiteral, f_context))
+    //        return true;
+    //    //cout << "User-defined literal: " << toSting(userDefinedLiteral, f_context) << endl;
+    //    //if (FunctionDecl *func = userDefinedLiteral->getDirectCallee())
+    //    //    cout << func->getNameAsString() << endl;
+    //    return true;
+    //}
 
 }
