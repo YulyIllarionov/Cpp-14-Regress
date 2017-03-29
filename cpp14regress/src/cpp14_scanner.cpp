@@ -64,15 +64,10 @@ namespace cpp14regress {
             //cout << "User-defined literal: " << toSting(functionDecl, f_context) << endl;
             f_stat->push(cpp14features::user_defined_literals, functionDecl->getLocStart());
         }
-        //TODO doesn't work
-        BeforeThanCompare<SourceLocation> isBefore(f_context->getSourceManager());
-        SourceLocation funcTypeLoc = functionDecl->getReturnTypeSourceRange().getBegin();
-        SourceLocation funcNameLoc = functionDecl->getNameInfo().getLoc();
-        //TODO file and macro ID
-        if ((funcTypeLoc.isValid()) &&
-            (funcNameLoc.isValid()) &&
-            (isBefore(funcNameLoc, funcTypeLoc))) {
-            cout << "Alternate syntax: " << toSting(functionDecl, f_context) << endl;
+        if (functionDecl->getType().getAsString().find("->") != string::npos)
+        {
+            //cout << "Alternate syntax: " << functionDecl->getLocStart().printToString(f_context->getSourceManager()) << endl;
+            f_stat->push(cpp14features::alternative_function_syntax, functionDecl->getLocStart());
         }
         return true;
     }
@@ -132,18 +127,12 @@ namespace cpp14regress {
             return true;
         if (recordDecl->isUnion()) {
             //cout << "Union: " << toSting(recordDecl, f_context) << endl;
-            for (auto it = recordDecl->field_begin(); it != recordDecl->field_end(); it++)
-            {
-                //cout << "Union field: " << toSting(*it, f_context) << endl;
-                //cout << "union member type: " << (*it)->getType().getAsString() << endl;
-                if(CXXRecordDecl* f =  (*it)->getType()->getAsCXXRecordDecl())
+            for (auto it = recordDecl->field_begin(); it != recordDecl->field_end(); it++) {
+                if(!((*it)->getType().isCXX98PODType(*f_context)))
                 {
-                    if(!f->isCLike()) //TODO QualType::isCXX98PODType() in clang > 3.8.1
-                    {
-                        //cout << "Unrestricted union candidate: " << toSting(recordDecl, f_context) << endl;
-                        f_stat->push(cpp14features::unrestricted_unions, recordDecl->getLocStart());
-                        break;
-                    }
+                    //cout << "Unrestricted union: " << toSting(recordDecl, f_context) << endl;
+                    f_stat->push(cpp14features::unrestricted_unions, recordDecl->getLocStart());
+                    break;
                 }
             }
         }
@@ -264,7 +253,6 @@ namespace cpp14regress {
         if (!inProcessedFile(templateDecl, f_context))
             return true;
         TemplateParameterList *tps = templateDecl->getTemplateParameters();
-        bool variadic = false;
         for (auto it = tps->begin(); it != tps->end(); it++) {
             if (auto tp = dyn_cast_or_null<TemplateTypeParmDecl>(*it)) {
                 if (tp->isParameterPack()) {
