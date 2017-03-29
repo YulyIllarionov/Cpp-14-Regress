@@ -64,7 +64,7 @@ namespace cpp14regress {
             //cout << "User-defined literal: " << toSting(functionDecl, f_context) << endl;
             f_stat->push(cpp14features::user_defined_literals, functionDecl->getLocStart());
         }
-        if (functionDecl->getType().getAsString().find("->") != string::npos)
+        if (functionDecl->getType().getAsString().find("->") != string::npos) //TODO need fix
         {
             //cout << "Alternate syntax: " << functionDecl->getLocStart().printToString(f_context->getSourceManager()) << endl;
             f_stat->push(cpp14features::alternative_function_syntax, functionDecl->getLocStart());
@@ -125,15 +125,22 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitRecordDecl(clang::RecordDecl *recordDecl) {
         if (!inProcessedFile(recordDecl, f_context))
             return true;
+        //cout << "Record decl" << endl << "---------" << endl
+        //     << toSting(recordDecl, f_context) << "---------" << endl;
         if (recordDecl->isUnion()) {
             //cout << "Union: " << toSting(recordDecl, f_context) << endl;
             for (auto it = recordDecl->field_begin(); it != recordDecl->field_end(); it++) {
-                if(!((*it)->getType().isCXX98PODType(*f_context)))
-                {
+                if (!((*it)->getType().isCXX98PODType(*f_context))) {
                     //cout << "Unrestricted union: " << toSting(recordDecl, f_context) << endl;
                     f_stat->push(cpp14features::unrestricted_unions, recordDecl->getLocStart());
                     break;
                 }
+            }
+        }
+        for (auto it = recordDecl->attr_begin(); it != recordDecl->attr_end(); it++) {
+            if ((*it)->getKind() == attr::Kind::Aligned) {
+                //cout << "Attr: " << toSting(recordDecl, f_context) << endl;
+                f_stat->push(cpp14features::alignas_specifier, recordDecl->getLocStart());
             }
         }
         return true;
@@ -160,7 +167,7 @@ namespace cpp14regress {
             return true;
         string i = toSting(literal, f_context);
         //cout << "Integer literal: " << i << endl;
-        if (i.find('\'') != string::npos) {
+        if (i.find('\'') != string::npos) { //TODO need fix
             f_stat->push(cpp14features::digit_separators, literal->getLocStart());
             //cout << "Integer with separators: " << i << endl;
         }
@@ -171,7 +178,7 @@ namespace cpp14regress {
         if (!inProcessedFile(literal, f_context))
             return true;
         string f = toSting(literal, f_context);
-        if (f.find('\'') != string::npos) {
+        if (f.find('\'') != string::npos) { //TODO need fix
             f_stat->push(cpp14features::digit_separators, literal->getLocStart());
             //cout << "Float with separators: " << f << endl;
         }
@@ -242,9 +249,6 @@ namespace cpp14regress {
         } else if (sizeofOrAlignof->getKind() == UnaryExprOrTypeTrait::UETT_AlignOf) {
             f_stat->push(cpp14features::alignof_operator, sizeofOrAlignof->getLocStart());
             //cout << "alignof: " << toSting(sizeofOrAlignof, f_context) << endl;
-        } else { //TODO delete
-            cout << "Also caught: "
-                 << sizeofOrAlignof->getLocStart().printToString(f_context->getSourceManager()) << endl;
         }
         return true;
     }
@@ -278,6 +282,16 @@ namespace cpp14regress {
                 f_stat->push(cpp14features::long_long_int, varDecl->getLocStart());
             }
         }
+        //if (varDecl->getInitStyle() == VarDecl::InitializationStyle::ListInit) {
+        //    //cout << "Uniform init: " << toSting(varDecl, f_context) << endl;
+        //    f_stat->push(cpp14features::uniform_initialization, varDecl->getLocStart());
+        //}
+        if (varDecl->hasInit()) {
+            if (isa<InitListExpr>(varDecl->getInit())) {
+                cout << "Uniform init: " << toSting(varDecl, f_context) << endl;
+                f_stat->push(cpp14features::uniform_initialization, varDecl->getLocStart());
+            }
+        }
         return true;
     }
 
@@ -306,6 +320,13 @@ namespace cpp14regress {
                 f_stat->push(cpp14features::long_long_int, castExpr->getLocStart());
             }
         }
+        Expr *arg = castExpr->getSubExpr();
+        while (auto parenExpr = dyn_cast<ParenExpr>(arg))
+            arg = parenExpr->getSubExpr();
+        if (isa<InitListExpr>(arg)) {
+            cout << "Uniform cast: " << toSting(castExpr, f_context) << endl;
+            f_stat->push(cpp14features::uniform_initialization, castExpr->getSubExpr()->getLocStart());
+        }
         return true;
     }
 
@@ -317,12 +338,44 @@ namespace cpp14regress {
         return true;
     }
 
+    bool Cpp14scanner::VisitValueDecl(clang::ValueDecl *valueDecl) {
+        if (!inProcessedFile(valueDecl, f_context))
+            return true;
+        for (auto it = valueDecl->attr_begin(); it != valueDecl->attr_end(); it++) {
+            if ((*it)->getKind() == attr::Kind::Aligned) {
+                //cout << "Attr: " << toSting(valueDecl, f_context) << endl;
+                f_stat->push(cpp14features::alignas_specifier, valueDecl->getLocStart());
+            }
+        }
+        return true;
+    }
+
     //bool Cpp14scanner::VisitUserDefinedLiteral(clang::UserDefinedLiteral *userDefinedLiteral) {
     //    if (!inProcessedFile(userDefinedLiteral, f_context))
     //        return true;
     //    //cout << "User-defined literal: " << toSting(userDefinedLiteral, f_context) << endl;
     //    //if (FunctionDecl *func = userDefinedLiteral->getDirectCallee())
     //    //    cout << func->getNameAsString() << endl;
+    //    return true;
+    //}
+
+    //bool Cpp14scanner::VisitAttr(clang::Attr *attr) {
+    //    if (attr->getLocation().isValid())
+    //        if (f_context->getSourceManager().getFileCharacteristic(attr->getLocation()) !=
+    //            clang::SrcMgr::CharacteristicKind::C_User)
+    //            return true;
+//
+    //    if (attr->getKind() == attr::Kind::Aligned)
+    //        cout << "Attr: "
+    //             << std::string(f_context->getSourceManager().getCharacterData(attr->getRange().getBegin()),
+    //                            f_context->getSourceManager().getCharacterData(
+    //                                    SourceLocation(Lexer::getLocForEndOfToken(
+    //                                            attr->getRange().getEnd(), 0, f_context->getSourceManager(),
+    //                                            f_context->getLangOpts()))) -
+    //                            f_context->getSourceManager().getCharacterData(attr->getRange().getBegin()))
+    //             << endl;
+//
+//
     //    return true;
     //}
 
