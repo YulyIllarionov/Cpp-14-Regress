@@ -69,7 +69,7 @@ namespace cpp14regress {
         virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl);
 
         //unrestricted_unions //TODO
-        virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
+        virtual bool VisitRecordDecl(clang::RecordDecl *recordDecl);
 
         //unicode_string_literals //TODO
         //raw_string_literals //TODO fix

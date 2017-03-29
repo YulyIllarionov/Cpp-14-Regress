@@ -41,7 +41,7 @@ namespace cpp14regress {
         right_angle_bracket, //?
         alias_template, //found
         alias_type, //found
-        unrestricted_unions, //? //boost::variant или placement-new
+        unrestricted_unions, //found //boost::variant или placement-new
         variadic_templates, //found
         raw_string_literals, //found
         unicode_string_literals, //found

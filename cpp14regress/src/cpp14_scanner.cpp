@@ -127,11 +127,25 @@ namespace cpp14regress {
         return true;
     }
 
-    bool Cpp14scanner::VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl) {
+    bool Cpp14scanner::VisitRecordDecl(clang::RecordDecl *recordDecl) {
         if (!inProcessedFile(recordDecl, f_context))
             return true;
         if (recordDecl->isUnion()) {
-            //TODO hasUninitializedReferenceMember, isTriviallyCopyable
+            //cout << "Union: " << toSting(recordDecl, f_context) << endl;
+            for (auto it = recordDecl->field_begin(); it != recordDecl->field_end(); it++)
+            {
+                //cout << "Union field: " << toSting(*it, f_context) << endl;
+                //cout << "union member type: " << (*it)->getType().getAsString() << endl;
+                if(CXXRecordDecl* f =  (*it)->getType()->getAsCXXRecordDecl())
+                {
+                    if(!f->isCLike()) //TODO QualType::isCXX98PODType() in clang > 3.8.1
+                    {
+                        //cout << "Unrestricted union candidate: " << toSting(recordDecl, f_context) << endl;
+                        f_stat->push(cpp14features::unrestricted_unions, recordDecl->getLocStart());
+                        break;
+                    }
+                }
+            }
         }
         return true;
     }
@@ -251,13 +265,14 @@ namespace cpp14regress {
             return true;
         TemplateParameterList *tps = templateDecl->getTemplateParameters();
         bool variadic = false;
-        for (auto it = tps->begin(); it != tps->end(); it++)
-            if (auto tp = dyn_cast_or_null<TemplateTypeParmDecl>(*it))
-                if (tp->isParameterPack())
-                    variadic = true;
-        if (variadic) {
-            //cout << "Variadic template: " << toSting(templateDecl, f_context) << endl;
-            f_stat->push(cpp14features::variadic_templates, templateDecl->getLocStart());
+        for (auto it = tps->begin(); it != tps->end(); it++) {
+            if (auto tp = dyn_cast_or_null<TemplateTypeParmDecl>(*it)) {
+                if (tp->isParameterPack()) {
+                    //cout << "Variadic template: " << toSting(templateDecl, f_context) << endl;
+                    f_stat->push(cpp14features::variadic_templates, templateDecl->getLocStart());
+                    break;
+                }
+            }
         }
         //if (expr->containsUnexpandedParameterPack()) { //TODO may also works
 
