@@ -52,7 +52,7 @@ namespace cpp14regress {
                 "implict sizeof",
                 "noexcept keyword",
                 "alignof operator",
-                "alignas operator",
+                "alignas specifier",
                 "attributes",
                 "variable templates",
                 "digit separators"

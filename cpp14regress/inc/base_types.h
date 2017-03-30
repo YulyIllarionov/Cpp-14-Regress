@@ -34,14 +34,14 @@ namespace cpp14regress {
         uniform_initialization, //?
         range_based_for, //found
         lambda_function, //found
-        alternative_function_syntax, //?
+        alternative_function_syntax, //found
         constuctor_delegation, //found
         null_pointer_constant, //found
         enum_class, //found
         right_angle_bracket, //?
         alias_template, //found
         alias_type, //found
-        unrestricted_unions, //? //boost::variant или placement-new
+        unrestricted_unions, //found //boost::variant или placement-new
         variadic_templates, //found
         raw_string_literals, //found
         unicode_string_literals, //found
@@ -50,7 +50,11 @@ namespace cpp14regress {
         implict_sizeof, //found //TODO sizeof... ?
         noexcept_keyword, //found
         alignof_operator, //found
+<<<<<<< HEAD
         alignas_operator, //? //TODO Check attr
+=======
+        alignas_specifier, //found
+>>>>>>> a8ba95fe87bac919ee556b7224d5b1595ee3ad84
         attributes, //?
         variable_templates, //found
         digit_separators, //found
@@ -128,6 +132,7 @@ namespace cpp14regress {
             return std::unique_ptr<clang::ASTConsumer>(consumer);
         }
     };
+
 }
 
 #endif /*CPP14REGRESS_BASE_TYPES_H*/
