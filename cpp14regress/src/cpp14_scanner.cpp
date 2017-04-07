@@ -77,9 +77,9 @@ namespace cpp14regress {
             return true;
         string methodString = toSting(methodDecl, f_context);
         if (methodDecl->isExplicitlyDefaulted())
-            f_stat->push(cpp14features::default_specifier, methodDecl->getLocStart());
+            f_stat->push(cpp14features::default_keyword, methodDecl->getLocStart());
         if (methodDecl->isDeleted())
-            f_stat->push(cpp14features::delete_specifier, methodDecl->getLocStart());
+            f_stat->push(cpp14features::delete_keyword, methodDecl->getLocStart());
         if (methodString.find(" override") != string::npos) //TODO
             f_stat->push(cpp14features::override_specifier, methodDecl->getLocStart());
         if (methodString.find(" final") != string::npos) //TODO
@@ -173,6 +173,7 @@ namespace cpp14regress {
         }
         return true;
     }
+
     //TODO fix, exception string too long
     bool Cpp14scanner::VisitFloatingLiteral(clang::FloatingLiteral *literal) {
         if (!inProcessedFile(literal, f_context))
@@ -288,8 +289,25 @@ namespace cpp14regress {
         //}
         if (varDecl->hasInit()) {
             if (isa<InitListExpr>(varDecl->getInit())) {
-                cout << "Uniform init: " << toSting(varDecl, f_context) << endl;
-                f_stat->push(cpp14features::uniform_initialization, varDecl->getLocStart());
+                switch (varDecl->getInitStyle()) {
+                    case VarDecl::InitializationStyle::CInit : {
+                        cout << "CInit: " << toSting(varDecl, f_context) << endl;
+                        break;
+                    }
+                    case VarDecl::InitializationStyle::CallInit : {
+                        cout << "CallInit: " << toSting(varDecl, f_context) << endl;
+                        break;
+                    }
+                    case VarDecl::InitializationStyle::ListInit : {
+                        cout << "ListInit: " << toSting(varDecl, f_context) << endl;
+                        break;
+                    }
+                }
+
+                //if (varDecl->getInitStyle() == VarDecl::InitializationStyle::CInit) {
+                //    cout << "Uniform init: " << toSting(varDecl, f_context) << endl;
+                //    f_stat->push(cpp14features::uniform_initialization, varDecl->getLocStart());
+                //}
             }
         }
         return true;
@@ -346,6 +364,19 @@ namespace cpp14regress {
                 //cout << "Attr: " << toSting(valueDecl, f_context) << endl;
                 f_stat->push(cpp14features::alignas_specifier, valueDecl->getLocStart());
             }
+        }
+        return true;
+    }
+
+    bool Cpp14scanner::VisitFieldDecl(clang::FieldDecl *fieldDecl) {
+        if (!inProcessedFile(fieldDecl, f_context))
+            return true;
+        if (fieldDecl->getInClassInitStyle() == InClassInitStyle::ICIS_ListInit) {
+            cout << "In class list init: " << toSting(fieldDecl, f_context) << " -- "
+                 << fieldDecl->getInClassInitializer()->getStmtClassName() << endl;
+        } else if (fieldDecl->getInClassInitStyle() == InClassInitStyle::ICIS_CopyInit) {
+            cout << "In class copy init: " << toSting(fieldDecl, f_context) << " -- "
+                 << fieldDecl->getInClassInitializer()->getStmtClassName() << endl;
         }
         return true;
     }

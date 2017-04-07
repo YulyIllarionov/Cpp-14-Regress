@@ -1,5 +1,19 @@
 set(LLVM_LINK_COMPONENTS support)
 include_directories(./inc)
+
+add_clang_library(Cpp14scanner
+        ./src/base_types.cpp
+        ./src/utils.cpp
+        ./src/cpp14_scanner.cpp
+
+        LINK_LIBS
+        clangAST
+        clangASTMatchers
+        clangBasic
+        clangDynamicASTMatchers
+        clangFrontend
+        )
+
 add_clang_library(RangeBasedForRegress
         ./src/base_types.cpp
         ./src/utils.cpp
@@ -17,7 +31,7 @@ add_clang_library(LambdaFunctionRegress
         ./src/base_types.cpp
         ./src/utils.cpp
         ./src/lambda_function.cpp
-        ./src/ast_to_dot.cpp
+        #./src/ast_to_dot.cpp
 
         LINK_LIBS
         clangAST
@@ -31,7 +45,7 @@ add_clang_library(AutoRegress
         ./src/base_types.cpp
         ./src/utils.cpp
         ./src/auto.cpp
-        ./src/ast_to_dot.cpp
+        #./src/ast_to_dot.cpp
 
         LINK_LIBS
         clangAST
@@ -41,10 +55,10 @@ add_clang_library(AutoRegress
         clangFrontend
         )
 
-add_clang_library(Cpp14scanner
+add_clang_library(DefaultKeywordRegress
         ./src/base_types.cpp
         ./src/utils.cpp
-        ./src/cpp14_scanner.cpp
+        ./src/default_keyword.cpp
 
         LINK_LIBS
         clangAST

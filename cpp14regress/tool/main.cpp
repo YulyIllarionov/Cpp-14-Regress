@@ -21,6 +21,7 @@
 
 #include "base_types.h"
 #include "cpp14_scanner.h"
+#include "default_keyword.h"
 
 using namespace std;
 using namespace clang;
@@ -83,7 +84,7 @@ int main(int argc, const char **argv) {
 
     cpp14features_stat stat;
 
-    Cpp14RegressFrontendActionFactory<Cpp14scanner> factory(&stat);
+    Cpp14RegressFrontendActionFactory<DefaultKeywordReplacer> factory(&stat);
 
     int result = Tool.run(&factory);
 

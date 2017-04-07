@@ -42,14 +42,14 @@ namespace cpp14regress {
 
         //auto_keyword
         // decltype_keyword
-        virtual bool VisitDeclaratorDecl(clang::DeclaratorDecl *valueDecl);
+        virtual bool VisitDeclaratorDecl(clang::DeclaratorDecl *declaratorDecl);
 
         //constexpr keyword //TODO by FunctionDecl::isConstexpr()
         //user_defined_literals //TODO can user defined literals be a template?
         virtual bool VisitFunctionDecl(clang::FunctionDecl *functionDecl);
 
-        //default_specifier //TODO by CXXMethodDecl::isExplicitlyDefaulted()
-        //delete_specifier //TODO by CXXMethodDecl::isDeleted()
+        //default_keyword //TODO by CXXMethodDecl::isExplicitlyDefaulted()
+        //delete_keyword //TODO by CXXMethodDecl::isDeleted()
         virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl);
 
         //explicit_specifier //TODO by CXXConversionDecl::isExplicitSpecified()
@@ -115,6 +115,8 @@ namespace cpp14regress {
 
         //virtual bool VisitAttr(clang::Attr* a);
         virtual bool VisitValueDecl(clang::ValueDecl* valueDecl);
+
+        virtual bool VisitFieldDecl(clang::FieldDecl* fieldDecl);
 
     };
 

@@ -25,8 +25,8 @@ namespace cpp14regress {
         decltype_keyword, //found
         constexpr_keyword, //found
         extern_template, //?
-        default_specifier, //found
-        delete_specifier, //found
+        default_keyword, //found
+        delete_keyword, //found
         override_specifier, //found
         final_specifier, //found
         explicit_specifier, //found

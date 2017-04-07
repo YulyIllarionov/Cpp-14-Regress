@@ -42,6 +42,7 @@ set(HEADER_FILES
         ${CPP14REGRESS_INCLUDE_DIR}/auto.h
         ${CPP14REGRESS_INCLUDE_DIR}/ast_to_dot.h
         ${CPP14REGRESS_INCLUDE_DIR}/cpp14_scanner.h
+        ${CPP14REGRESS_INCLUDE_DIR}/default_keyword.h
         )
 
 set(SOURCE_FILES
@@ -53,6 +54,7 @@ set(SOURCE_FILES
         ${CPP14REGRESS_SOURCE_DIR}/auto.cpp
         ${CPP14REGRESS_SOURCE_DIR}/ast_to_dot.cpp
         ${CPP14REGRESS_SOURCE_DIR}/cpp14_scanner.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/default_keyword.cpp
         #tool main.cpp
         ./cpp14regress/tool/main.cpp
         #clang sources
