@@ -7,8 +7,10 @@ target_link_libraries(cpp14regress
         clangDynamicASTMatchers
         clangFrontend
         clangTooling
-        #RangeBasedForRegress
+        Cpp14scanner
+        RangeBasedForRegress
         LambdaFunctionRegress
         AutoRegress
+        DefaultKeywordRegress
         )
 

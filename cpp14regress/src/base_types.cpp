@@ -21,12 +21,43 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    void RangeBasedForASTConsumer::HandleTranslationUnit(ASTContext &context) {
-        visitor->TraverseDecl(context.getTranslationUnitDecl());
+    string cpp14features_stat::toString(cpp14features f) {
+        static const char *features[size()] = {
+                "auto keyword",
+                "decltype keyword",
+                "constexpr keyword",
+                "extern template",
+                "default keyword",
+                "delete keyword",
+                "override specifier",
+                "final specifier",
+                "explicit specifier",
+                "initializer list",
+                "uniform initialization",
+                "range based for",
+                "lambda function",
+                "alternative function syntax",
+                "constuctor delegation",
+                "null pointer constant",
+                "enum class",
+                "right angle bracket",
+                "alias template",
+                "alias_type",
+                "unrestricted unions",
+                "variadic templates",
+                "raw_string_literals",
+                "unicode string literals",
+                "user defined literals",
+                "long long int",
+                "implict sizeof",
+                "noexcept keyword",
+                "alignof operator",
+                "alignas specifier",
+                "attributes",
+                "variable templates",
+                "digit separators"
+        };
+        return string(features[(size_t) f - (size_t) cpp14features::begin]);
     }
 
-    unique_ptr <ASTConsumer> RangeBasedForFrontendAction::CreateASTConsumer(CompilerInstance &CI, StringRef file) {
-        ASTConsumer *astConsumer = new RangeBasedForASTConsumer(&CI.getASTContext());
-        return unique_ptr<ASTConsumer>(astConsumer);
-    }
 }

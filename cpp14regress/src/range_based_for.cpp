@@ -31,10 +31,9 @@ namespace cpp14regress {
         return string(f_array->getNameAsString() + "[" + f_variable->getNameAsString() + "]");
     }
 
-    RangeBasedForReplacer::RangeBasedForReplacer(ASTContext *context)
-    {
+    RangeBasedForReplacer::RangeBasedForReplacer(ASTContext *context) {
         f_rewriter = new Rewriter(context->getSourceManager(),
-                                 context->getLangOpts());
+                                  context->getLangOpts());
     }
 
     bool RangeBasedForReplacer::VisitCXXForRangeStmt(CXXForRangeStmt *for_loop) {
