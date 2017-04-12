@@ -13,6 +13,7 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 #include "clang/Tooling/JSONCompilationDatabase.h"
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -21,7 +22,11 @@
 
 #include "base_types.h"
 #include "cpp14_scanner.h"
-#include "default_keyword.h"
+#include "default.h"
+#include "auto.h"
+#include "decltype.h"
+#include "lambda.h"
+#include "constuctor_delegation.h"
 
 using namespace std;
 using namespace clang;
@@ -32,28 +37,61 @@ using namespace cpp14regress;
 
 static cl::OptionCategory MyToolCategory("");
 
+//TODO спросить про отображние стека вызовов
+
 int main(int argc, const char **argv) {
 
-    if (argc != 2) {
-        cerr << "error: wrong arguments count, need 2." << endl;
+    if (argc < 3) {
+        cerr << "error: too few arguments" << endl;
         return 1;
     }
 
-    Twine dir = argv[1];
+    std::error_code ec;
 
-    if (!sys::fs::is_directory(dir)) {
+    string src_dir = argv[1];
+    if (src_dir.back() != '/')
+        src_dir += '/';
+    Twine srcDir(src_dir);
+    if (!sys::fs::is_directory(srcDir)) {
         cerr << "error: second argument is not a folder" << endl;
         return 2;
     }
+
+    string dst_dir = argv[2];
+    if (dst_dir.back() != '/')
+        dst_dir += '/';
+    Twine dstDir(dst_dir);
+    if (sys::fs::exists(dstDir)) {
+        if (!sys::fs::is_directory(dstDir)) {
+            cerr << "error: third argument is not a folder" << endl;
+            return 3;
+        } else {
+            for (sys::fs::directory_iterator i(dstDir, ec), e; i != e; i.increment(ec)) { //TODO recursive
+                sys::fs::remove(i->path());
+            }
+        }
+    } else {
+        sys::fs::create_directory(dstDir);
+    }
+
+    size_t name_start = srcDir.str().size();
+    for (sys::fs::recursive_directory_iterator i(srcDir, ec), e; i != e; i.increment(ec)) {
+        if (isCppFile(i->path())) {
+            //cout << dstDir.concat(i->path().substr(name_start)).str() << endl;
+            sys::fs::copy_file(Twine(i->path()), dstDir.concat(i->path().substr(name_start)));
+        }
+    }
+    return 0;
+
     vector<string> argv_tmp{argv[0]};
-    std::error_code ec;
-    for (sys::fs::recursive_directory_iterator i(dir, ec), e; i != e; i.increment(ec)) {
-        if (isCppFile(i->path()))
+    for (sys::fs::recursive_directory_iterator i(dstDir, ec), e; i != e; i.increment(ec)) {
+        if (isCppSourceFile(i->path()))
             argv_tmp.push_back(i->path());
     }
 
-    for (auto it = ++argv_tmp.begin(); it != argv_tmp.end(); it++)
-        cout << "file " << *it << endl;
+    //for (auto it = ++argv_tmp.begin(); it != argv_tmp.end(); it++)
+    //    cout << "file " << *it << endl;
+
 
     argv_tmp.push_back("--");
     //argv_tmp.push_back("-p");
@@ -71,6 +109,15 @@ int main(int argc, const char **argv) {
     //    }
     //}
 
+    if (argc > 3) {
+        //cout << "Compilation Database:" << argv[3] << endl;
+        argv_tmp.insert(argv_tmp.begin() + 1, string(argv[3]));
+        argv_tmp.insert(argv_tmp.begin() + 1, "-p");
+    }
+
+    for (string sp : argv_tmp)
+        cout << sp << endl;
+
     int argc_mod = argv_tmp.size();
     char **argv_mod = new char *[argc_mod];
     for (int i = 0; i < argc_mod; i++) {
@@ -84,7 +131,7 @@ int main(int argc, const char **argv) {
 
     cpp14features_stat stat;
 
-    Cpp14RegressFrontendActionFactory<DefaultKeywordReplacer> factory(&stat);
+    Cpp14RegressFrontendActionFactory<ConstructorDelegationReplacer> factory(&stat);
 
     int result = Tool.run(&factory);
 
@@ -107,6 +154,5 @@ int main(int argc, const char **argv) {
     //  return Tool.Run(newFrontendActionFactory(&finder));
     //}
 
-    //return result;
-    return 0;
+    return result;
 }

@@ -21,8 +21,8 @@ namespace cpp14regress {
 
     enum class cpp14features {
         begin,
-        auto_keyword = begin, //found
-        decltype_keyword, //found
+        auto_keyword = begin, //found //cured
+        decltype_keyword, //found //cured
         constexpr_keyword, //found
         extern_template, //?
         default_keyword, //found

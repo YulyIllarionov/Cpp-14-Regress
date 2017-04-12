@@ -16,6 +16,7 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
+#include "base_types.h"
 #include "utils.h"
 
 #include <string>
@@ -48,7 +49,9 @@ namespace cpp14regress {
         int f_count;
     public:
         GenericTypeGenerator() : f_count(-1) {}
+
         virtual std::string toString();
+
         virtual std::string generate();
     };
 
@@ -56,9 +59,14 @@ namespace cpp14regress {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
+        cpp14features_stat *f_stat;
+        const std::string f_header_path = "/home/yury/llvm-clang/test/cpp14regress_lambda.h";
+        std::string f_code;
 
     public:
-        explicit LambdaFunctionReplacer(clang::ASTContext *context);
+        explicit LambdaFunctionReplacer(clang::ASTContext *context, cpp14features_stat *stat);
+
+        virtual void EndFileAction() { f_rewriter->overwriteChangedFiles(); } //TODO add check
 
         virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
     };

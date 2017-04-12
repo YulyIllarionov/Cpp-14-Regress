@@ -42,7 +42,7 @@ namespace cpp14regress {
     };
 
     template<typename T>
-    std::string toSting(T *source, clang::ASTContext *context) {
+    std::string toSting(T *source, clang::ASTContext *context) { //TODO fix name
         const clang::SourceManager &sm = context->getSourceManager();
         const clang::LangOptions &lo = context->getLangOpts();
         clang::SourceLocation b(source->getLocStart()), _e(source->getLocEnd());
@@ -86,7 +86,11 @@ namespace cpp14regress {
 
     std::vector<std::string> filesInFolder(std::string folder);
 
-    bool isCppFile (std::string filename);
+    bool isCppFile(std::string filename);
+
+    bool isCppSourceFile(std::string filename);
+
+    clang::SourceRange getParamRange(const clang::FunctionDecl *func, const clang::ASTContext *context); //TODO improve
 
 }
 

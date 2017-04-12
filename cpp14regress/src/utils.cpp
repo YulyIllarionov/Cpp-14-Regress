@@ -89,4 +89,50 @@ namespace cpp14regress {
             return true;
         return false;
     }
+
+    bool isCppSourceFile(string filename) {
+        if ((string(filename.end() - 4, filename.end()) == ".cpp") ||
+            (string(filename.end() - 2, filename.end()) == ".c"))
+            return true;
+        return false;
+    }
+
+    SourceRange getParamRange(const FunctionDecl *func, const ASTContext *context) {
+        SourceRange range;
+        if ((!func) || (!context))
+            return range;
+
+        SourceLocation sl = func->getLocation();
+        SourceLocation bodyBegin;
+        const SourceManager &sm = context->getSourceManager();
+        if (func->hasBody())
+            bodyBegin = func->getBody()->getLocStart();
+        else
+            bodyBegin = func->getLocEnd();
+        int l = sm.getCharacterData(bodyBegin) - sm.getCharacterData(sl);
+        int i = 1;
+        for (; i < l; i++) {
+            sl = Lexer::findLocationAfterToken(
+                    sl, tok::TokenKind::l_paren,
+                    context->getSourceManager(),
+                    context->getLangOpts(), false);
+            if (sl.isValid())
+                break;
+            else
+                sl = func->getLocation().getLocWithOffset(i);
+        }
+        range.setBegin(sl.getLocWithOffset(-1));
+        for (; i < l; i++) {
+            sl = Lexer::findLocationAfterToken(
+                    sl, tok::TokenKind::r_paren,
+                    context->getSourceManager(),
+                    context->getLangOpts(), false);
+            if (sl.isValid())
+                break;
+            else
+                sl = func->getLocation().getLocWithOffset(i);
+        }
+        range.setEnd(sl.getLocWithOffset(-1));
+        return range;
+    }
 }

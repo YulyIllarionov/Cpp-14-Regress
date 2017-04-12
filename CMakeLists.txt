@@ -38,11 +38,13 @@ set(HEADER_FILES
         ${CPP14REGRESS_INCLUDE_DIR}/base_types.h
         ${CPP14REGRESS_INCLUDE_DIR}/utils.h
         ${CPP14REGRESS_INCLUDE_DIR}/range_based_for.h
-        ${CPP14REGRESS_INCLUDE_DIR}/lambda_function.h
+        ${CPP14REGRESS_INCLUDE_DIR}/lambda.h
         ${CPP14REGRESS_INCLUDE_DIR}/auto.h
         ${CPP14REGRESS_INCLUDE_DIR}/ast_to_dot.h
         ${CPP14REGRESS_INCLUDE_DIR}/cpp14_scanner.h
-        ${CPP14REGRESS_INCLUDE_DIR}/default_keyword.h
+        ${CPP14REGRESS_INCLUDE_DIR}/default.h
+        ${CPP14REGRESS_INCLUDE_DIR}/decltupe.h
+        ${CPP14REGRESS_INCLUDE_DIR}/constuctor_delegation.h
         )
 
 set(SOURCE_FILES
@@ -50,11 +52,13 @@ set(SOURCE_FILES
         ${CPP14REGRESS_SOURCE_DIR}/base_types.cpp
         ${CPP14REGRESS_SOURCE_DIR}/utils.cpp
         ${CPP14REGRESS_SOURCE_DIR}/range_based_for.cpp
-        ${CPP14REGRESS_SOURCE_DIR}/lambda_function.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/lambda.cpp
         ${CPP14REGRESS_SOURCE_DIR}/auto.cpp
         ${CPP14REGRESS_SOURCE_DIR}/ast_to_dot.cpp
         ${CPP14REGRESS_SOURCE_DIR}/cpp14_scanner.cpp
-        ${CPP14REGRESS_SOURCE_DIR}/default_keyword.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/default.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/decltype.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/constuctor_delegation.cpp
         #tool main.cpp
         ./cpp14regress/tool/main.cpp
         #clang sources

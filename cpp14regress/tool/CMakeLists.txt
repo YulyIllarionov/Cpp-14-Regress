@@ -8,9 +8,10 @@ target_link_libraries(cpp14regress
         clangFrontend
         clangTooling
         Cpp14scanner
-        RangeBasedForRegress
-        LambdaFunctionRegress
-        AutoRegress
-        DefaultKeywordRegress
+        Cpp14Regress
+        #RangeBasedForRegress
+        #LambdaFunctionRegress
+        #AutoRegress
+        #DefaultKeywordRegress
         )
 

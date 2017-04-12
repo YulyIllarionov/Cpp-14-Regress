@@ -16,8 +16,6 @@
 #include "llvm/ADT/DenseMap.h"
 
 #include "auto.h"
-#include "utils.h"
-#include "ast_to_dot.h"
 
 namespace cpp14regress {
 
@@ -25,55 +23,50 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    AutoReplacer::AutoReplacer(ASTContext *context) {
-        f_context = context;
-        f_rewriter = new Rewriter(context->getSourceManager(),
+    AutoReplacer::AutoReplacer(ASTContext *context, cpp14features_stat *stat)
+            : f_context(context), f_stat(stat) {
+        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
                                   context->getLangOpts());
     }
 
-    bool AutoReplacer::VisitDeclaratorDecl(DeclaratorDecl *valueDecl) {
-        if (f_context->getSourceManager().isInSystemHeader(valueDecl->getLocStart()))
+    bool AutoReplacer::VisitDeclaratorDecl(DeclaratorDecl *declaratorDecl) {
+        if (!inProcessedFile(declaratorDecl, f_context))
             return true;
-        auto at = dyn_cast<AutoType>(valueDecl->getType().getTypePtr());
-        if (!at)
-            return true;
+        if (auto at = dyn_cast<AutoType>(declaratorDecl->getType().getTypePtr())) {
+            //TODO need GNUAutoType?
+            QualType qt = at->getDeducedType(); //TODO understand deduced
+            if (!qt.isNull()) {
+                string typeName = qt.getAsString();
+                SourceRange typeRange = declaratorDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange();
+                if (qt->isFunctionPointerType()) { //TODO auto a, b, c; ???
+                    size_t pointerPos = typeName.find("(*)"); //TODO change
+                    if (pointerPos != string::npos) {
+                        typeName.insert(pointerPos + 2, declaratorDecl->getNameAsString());
+                    } else {
+                        cerr << "auto tool error" << endl;
+                        return false;
+                    }
+                    typeRange.setEnd(Lexer::getLocForEndOfToken(declaratorDecl->getLocation(), 0,
+                                                                f_context->getSourceManager(),
+                                                                f_context->getLangOpts()));
 
-        static bool first = true;
-        if (first) {
-            cout << "------------" << endl;
-            first = false;
+                    //typeRange.setEnd(declaratorDecl->loc)
+                    //cout << qt.getAsString() << " -- " << qt->getTypeClassName();
+                    //if (auto fpt = dyn_cast_or_null<FunctionProtoType>(qt->getPointeeType().getTypePtr())) {
+                    //    cout << " -- " << fpt->getLocallyUnqualifiedSingleStepDesugaredType().getAsString()
+                    //         << " -- " << fpt->getTypeClassName() << endl;
+                    //    for (auto it = fpt->param_type_begin(); it != fpt->param_type_end(); it++) {
+                    //        cout << it->getAsString() << " -- " << (*it)->getTypeClassName() << endl;
+                    //    }
+                    //}
+                    //cout << endl;
+                }
+                f_rewriter->ReplaceText(typeRange, typeName);
+            }
+            else {
+                //TODO not deduced
+            }
         }
-
-        cout << toSting<>(valueDecl, f_context) << endl;
-        auto tl = valueDecl->getTypeSourceInfo()->getTypeLoc();
-        cout << toSting(&tl, f_context) << endl;
-        QualType qt = at->getDeducedType(); //TODO understand deduced
-        if (!qt.isNull()) {
-            if (valueDecl->isFunctionOrFunctionTemplate()) {
-                cout << "function decl" << endl;
-            } else {
-                cout << qt.getAsString() << " "
-                     << valueDecl->getNameAsString() << endl;
-            }
-            const Type *t = qt.getTypePtr();
-            if (isa<DependentNameType>(t)
-                || isa<DependentTemplateSpecializationType>(t)
-                || isa<ElaboratedType>(t)) {
-                cout << "Keyword Type" << endl;
-            }
-        } else
-            cout << "Not deduced" << endl;
-        cout << "------------" << endl;
-
-
-        //if (auto dnt = dyn_cast<DependentNameType>(qt.getTypePtr())) {
-        //    cout << "DependentNameType" << endl;
-        //}
-        //if (auto dtst = dyn_cast<DependentTemplateSpecializationType>(qt.getTypePtr())) {
-        //    cout << "DependentTemplateSpecializationType" << endl;
-        //}
-        //if(auto et = dyn_cast<ElaboratedType>(qt.getTypePtr()))
-        //cout << "---" << et->getKeywordName(et->getKeyword()).str() << endl;
         return true;
     }
 }

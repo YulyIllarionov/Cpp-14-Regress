@@ -15,12 +15,12 @@
 #include "clang/AST/ParentMap.h"
 #include "llvm/ADT/DenseMap.h"
 
-#include "lambda_function.h"
-#include "utils.h"
-#include "ast_to_dot.h"
+#include "lambda.h"
 
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <sstream>
 
 namespace cpp14regress {
 
@@ -44,12 +44,6 @@ namespace cpp14regress {
         return string("f_" + f_variable->getNameAsString());
     }
 
-    LambdaFunctionReplacer::LambdaFunctionReplacer(ASTContext *context) {
-        f_context = context;
-        f_rewriter = new Rewriter(context->getSourceManager(),
-                                  context->getLangOpts());
-    }
-
     string GenericTypeGenerator::toString() {
         return std::string("type" + to_string(f_count));
     }
@@ -59,19 +53,26 @@ namespace cpp14regress {
         return toString();
     }
 
+    LambdaFunctionReplacer::LambdaFunctionReplacer(ASTContext *context, cpp14features_stat *stat)
+            : f_context(context), f_stat(stat) {
+        f_rewriter = new Rewriter(context->getSourceManager(),
+                                  context->getLangOpts());
+    }
+
+
+
     //TODO generic
     //TODO incapture initialization
     bool LambdaFunctionReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
-
-        if (f_context->getSourceManager().isInSystemHeader(lambda->getLocStart()))
+        if (!inProcessedFile(lambda, f_context))
             return true;
 
-        static int count = 0;
-        //ast_graph ag(lambda, f_context);
-        string dot_filename = "/home/yury/llvm-clang/test/dot/";
-        //ag.to_dot_file(dot_filename + "lambda" + to_string(count) + ".dot");
+        cout << f_context->getSourceManager().getFileLoc(lambda->getLocStart()).
+                printToString(f_context->getSourceManager()) << endl;
 
-        cout << "Lambda " << count << ": " << endl << "----------------" << endl;
+        stringstream header;
+        header << "//Lambda at:"
+               << lambda->getLocStart().printToString(f_context->getSourceManager())<<  endl;
 
         Indent indent;
 
@@ -80,64 +81,78 @@ namespace cpp14regress {
         FieldDecl *thisField;
         lambdaClass->getCaptureFields(clangCaptures, thisField);
         //Lambda Class
-        cout << "class " << LambaClassNameGenerator::generate() << " {" << endl;
+        header << "class " << LambaClassNameGenerator::generate() << " {" << endl;
         if (lambda->capture_begin() != lambda->capture_end())
-            cout << "private:" << endl;
+            header << "private:" << endl;
         //Lambda class fields
         ++indent;
         for (auto it = lambda->captures().begin(); it != lambda->captures().end(); it++) {
             VarDecl *captured_var = it->getCapturedVar();
-            cout << indent << ((lambda->isMutable()) ? "mutable " : "")
+            header << indent << ((lambda->isMutable()) ? "mutable " : "")
                  << clangCaptures[captured_var]->getType().getAsString() << " "
                  << captured_var->getNameAsString() << ";" << endl; //TODO add f_
         }
-        cout << "public:" << endl;
+        header << "public:" << endl;
         //Lambda class constructor
-        cout << indent << LambaClassNameGenerator::toString() << " (";
+        header << indent << LambaClassNameGenerator::toString() << " (";
         for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
             VarDecl *captured_var = it->getCapturedVar();
-            cout << clangCaptures[captured_var]->getType().getAsString() << " "
+            header << clangCaptures[captured_var]->getType().getAsString() << " "
                  << captured_var->getNameAsString() << "_"
                  << ((++it != lambda->capture_end()) ? ", " : ") : ");
         }
         //Lambda class constructor body
         for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
             VarDecl *captured_var = it->getCapturedVar();
-            cout << captured_var->getNameAsString() //TODO add f_
+            header << captured_var->getNameAsString() //TODO add f_
                  << "(" << captured_var->getNameAsString() << "_" << ")"
                  << ((++it != lambda->capture_end()) ? ", " : "");
         }
-        cout << " {}" << endl;
-        //Lambda class operator()
+        header << " {}" << endl;
+        //Lambda class operator()1111
         FunctionDecl *lambdaFunction = lambda->getCallOperator();
         GenericTypeGenerator gtg;
         std::vector<string> typeNames;
         auto generics = lambda->getTemplateParameterList();
         if (generics) {
-            cout << indent << "template <";
+            header << indent << "template <";
             for (size_t i = 0; i < generics->size();) {
                 typeNames.push_back(gtg.generate());
-                cout << "typename " << typeNames.back()
+                header << "typename " << typeNames.back()
                      << ((++i != generics->size()) ? ", " : ">");
             }
-            cout << endl;
+            header << endl;
         }
-        cout << indent << QualType::getAsString(lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
+        header << indent << QualType::getAsString(lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
              << " operator() (";
         auto tn = typeNames.begin();
         for (size_t i = 0; i != lambdaFunction->param_size();) {
             ParmVarDecl *parameter = lambdaFunction->getParamDecl(i);
-            cout << ((isa<TemplateTypeParmType>(*parameter->getType())) ? *tn++ :
+            header << ((isa<TemplateTypeParmType>(*parameter->getType())) ? *tn++ :
                      parameter->getType().getAsString()) << " "
                  << parameter->getQualifiedNameAsString()
                  << ((++i != lambdaFunction->param_size()) ? ", " : "");
         }
-        cout << ") const ";
+        header << ") const ";
         //Lambda class operator() body
-        cout << toSting(lambda->getBody(), f_context) << endl;
-        cout << "};" << endl;
-        cout << "----------------" << endl;
-        count++;
+        header << toSting(lambda->getBody(), f_context) << endl;
+        header << "};" << endl;
+        header << endl;
+        //header.flush();
+        ofstream header_file;
+        static bool first = true;
+        if (first) {
+            header_file.open(f_header_path);
+            first = false;
+        }
+        else
+            header_file.open(f_header_path, fstream::app);
+        if (!header_file.is_open()) {
+            cerr << "Can not open " << f_header_path << " file" << endl;
+            return false;
+        }
+        header_file << header.str();
+        header_file.close();
         return true;
     }
 

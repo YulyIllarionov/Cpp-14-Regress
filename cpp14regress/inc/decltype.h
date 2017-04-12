@@ -1,5 +1,5 @@
-#ifndef CPP14REGRESS_DEFAULT_KEYWORD_H
-#define CPP14REGRESS_DEFAULT_KEYWORD_H
+#ifndef CPP14REGRESS_DECLTYPE_H
+#define CPP14REGRESS_DECLTYPE_H
 
 #include "clang/Driver/Options.h"
 #include "clang/AST/AST.h"
@@ -17,21 +17,23 @@
 #include "clang/AST/ParentMap.h"
 
 #include "base_types.h"
+#include "utils.h"
 
 namespace cpp14regress {
-    class DefaultKeywordReplacer : public clang::RecursiveASTVisitor<DefaultKeywordReplacer> {
+
+    class DecltypeReplacer : public clang::RecursiveASTVisitor<DecltypeReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
         cpp14features_stat *f_stat;
 
     public:
-        explicit DefaultKeywordReplacer(clang::ASTContext *context, cpp14features_stat *stat);
+        explicit DecltypeReplacer(clang::ASTContext *context, cpp14features_stat *stat);
 
-        virtual void EndFileAction() {};
-
-        virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl);
+        virtual void EndFileAction() { f_rewriter->overwriteChangedFiles(); } //TODO add check
+        virtual bool VisitDeclaratorDecl(clang::DeclaratorDecl *valueDecl);
     };
+
 }
 
-#endif //CPP14REGRESS_DEFAULT_KEYWORD_H
+#endif /*CPP14REGRESS_DECLTYPE_H*/

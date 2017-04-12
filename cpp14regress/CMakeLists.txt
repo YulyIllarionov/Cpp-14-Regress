@@ -14,51 +14,15 @@ add_clang_library(Cpp14scanner
         clangFrontend
         )
 
-add_clang_library(RangeBasedForRegress
+add_clang_library(Cpp14Regress
         ./src/base_types.cpp
         ./src/utils.cpp
         ./src/range_based_for.cpp
-
-        LINK_LIBS
-        clangAST
-        clangASTMatchers
-        clangBasic
-        clangDynamicASTMatchers
-        clangFrontend
-        )
-
-add_clang_library(LambdaFunctionRegress
-        ./src/base_types.cpp
-        ./src/utils.cpp
-        ./src/lambda_function.cpp
-        #./src/ast_to_dot.cpp
-
-        LINK_LIBS
-        clangAST
-        clangASTMatchers
-        clangBasic
-        clangDynamicASTMatchers
-        clangFrontend
-        )
-
-add_clang_library(AutoRegress
-        ./src/base_types.cpp
-        ./src/utils.cpp
+        ./src/lambda.cpp
         ./src/auto.cpp
-        #./src/ast_to_dot.cpp
-
-        LINK_LIBS
-        clangAST
-        clangASTMatchers
-        clangBasic
-        clangDynamicASTMatchers
-        clangFrontend
-        )
-
-add_clang_library(DefaultKeywordRegress
-        ./src/base_types.cpp
-        ./src/utils.cpp
-        ./src/default_keyword.cpp
+        ./src/decltype.cpp
+        ./src/default.cpp
+        ./src/constuctor_delegation.cpp
 
         LINK_LIBS
         clangAST

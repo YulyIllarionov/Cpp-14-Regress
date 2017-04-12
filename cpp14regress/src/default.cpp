@@ -16,7 +16,7 @@
 #include "clang/AST/ParentMap.h"
 #include "llvm/ADT/DenseMap.h"
 
-#include "default_keyword.h"
+#include "default.h"
 #include "base_types.h"
 #include "utils.h"
 #include "ast_to_dot.h"
@@ -65,13 +65,13 @@ namespace cpp14regress {
                     //cout << "Defaulted move constructor: " << toSting(constructorDecl, f_context) << endl << "---------" << endl;
                     //TODO
                 }
-            } else if (auto destructorDecl = dyn_cast<CXXDestructorDecl>(methodDecl)) {
+            } else if (isa<CXXDestructorDecl>(methodDecl)) {
                 //cout << "Defaulted destructor: " << toSting(destructorDecl, f_context) << endl << "---------" << endl;
                 defaultBody = " {}";
             } else {
                 if (methodDecl->isCopyAssignmentOperator()) {
                     //cout << "Defaulted copy operator: " << toSting(methodDecl, f_context) << endl << "---------" << endl;
-                    defaultBody = " {\n";
+                    defaultBody = " {\n"; //TODO unnecessary duplication
                     for (auto it = baseClass->field_begin(); it != baseClass->field_end(); it++) {
                         string fieldCopy = "this->" + (*it)->getNameAsString() + " = " +
                                            methodDecl->parameters().front()->getNameAsString()
@@ -84,9 +84,9 @@ namespace cpp14regress {
                     //TODO
                 }
             }
-            cout << "-----" << endl << defaultBody << endl << "-----" << endl;
+            f_rewriter->RemoveText(SourceRange(defaultBegin, defaultEnd));
+            f_rewriter->InsertText(defaultBegin, defaultBody, true, true);
         }
-
         return true;
     }
 }
