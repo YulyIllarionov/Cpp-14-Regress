@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 #include <cstdarg>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 #include "base_types.h"
 #include "cpp14_scanner.h"
@@ -35,124 +37,80 @@ using namespace clang::tooling;
 using namespace llvm;
 using namespace cpp14regress;
 
+std::string console_hline() {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    return string(w.ws_col, '*');
+}
+
 static cl::OptionCategory MyToolCategory("");
 
 //TODO спросить про отображние стека вызовов
 
 int main(int argc, const char **argv) {
 
-    if (argc < 3) {
-        cerr << "error: too few arguments" << endl;
+    if (argc != 2) {
+        cerr << "error: wrong argument number" << endl;
         return 1;
     }
 
-    std::error_code ec;
-
-    string src_dir = argv[1];
-    if (src_dir.back() != '/')
-        src_dir += '/';
-    Twine srcDir(src_dir);
-    if (!sys::fs::is_directory(srcDir)) {
+    Twine srcDir(argv[1]);
+    if (!sys::fs::is_directory(argv[1])) {
         cerr << "error: second argument is not a folder" << endl;
         return 2;
     }
 
-    string dst_dir = argv[2];
-    if (dst_dir.back() != '/')
-        dst_dir += '/';
-    Twine dstDir(dst_dir);
-    if (sys::fs::exists(dstDir)) {
-        if (!sys::fs::is_directory(dstDir)) {
-            cerr << "error: third argument is not a folder" << endl;
-            return 3;
-        } else {
-            for (sys::fs::directory_iterator i(dstDir, ec), e; i != e; i.increment(ec)) { //TODO recursive
-                sys::fs::remove(i->path());
-            }
-        }
-    } else {
-        sys::fs::create_directory(dstDir);
-    }
-
-    size_t name_start = srcDir.str().size();
-    for (sys::fs::recursive_directory_iterator i(srcDir, ec), e; i != e; i.increment(ec)) {
-        if (isCppFile(i->path())) {
-            //cout << dstDir.concat(i->path().substr(name_start)).str() << endl;
-            sys::fs::copy_file(Twine(i->path()), dstDir.concat(i->path().substr(name_start)));
-        }
-    }
-    return 0;
-
-    vector<string> argv_tmp{argv[0]};
-    for (sys::fs::recursive_directory_iterator i(dstDir, ec), e; i != e; i.increment(ec)) {
-        if (isCppSourceFile(i->path()))
-            argv_tmp.push_back(i->path());
-    }
-
-    //for (auto it = ++argv_tmp.begin(); it != argv_tmp.end(); it++)
-    //    cout << "file " << *it << endl;
-
-
-    argv_tmp.push_back("--");
-    //argv_tmp.push_back("-p");
-    //argv_tmp.push_back("/home/yury/llvm-clang/test/build");
-    argv_tmp.push_back("-std=c++14");
-    //for (int i = 1; argv_tmp[i] != "--"; i++) {
-    //    argv_tmp[i].insert(argv_tmp[i].find_last_of('.'), "_regressed");
-    //    cout << "file №" << i << ": " << argv_tmp[i] << endl;
-    //    ifstream src(argv[i], std::ios::binary);
-    //    if (src.is_open()) {
-    //        ofstream dst(argv_tmp[i], std::ios::binary);
-    //        dst << src.rdbuf();
-    //        src.close();
-    //        dst.close();
-    //    }
-    //}
-
-    if (argc > 3) {
-        //cout << "Compilation Database:" << argv[3] << endl;
-        argv_tmp.insert(argv_tmp.begin() + 1, string(argv[3]));
-        argv_tmp.insert(argv_tmp.begin() + 1, "-p");
-    }
-
-    for (string sp : argv_tmp)
-        cout << sp << endl;
-
-    int argc_mod = argv_tmp.size();
-    char **argv_mod = new char *[argc_mod];
-    for (int i = 0; i < argc_mod; i++) {
-        argv_mod[i] = new char[argv_tmp[i].size() + 1];
-        std::strcpy(argv_mod[i], argv_tmp[i].c_str());
-    }
-
-    CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
-
-    ClangTool Tool(op.getCompilations(), op.getSourcePathList());
-
     cpp14features_stat stat;
+    Cpp14RegressFrontendActionFactory<Cpp14scanner> factory(&stat);
+    int result;
 
-    Cpp14RegressFrontendActionFactory<ConstructorDelegationReplacer> factory(&stat);
+    string em;
+    unique_ptr<CompilationDatabase> cb =
+            CompilationDatabase::loadFromDirectory(srcDir.str(), em);
+    if (!cb) {
+        std::error_code ec;
+        vector<string> argv_tmp{argv[0]};
+        for (sys::fs::recursive_directory_iterator i(srcDir, ec), e; i != e; i.increment(ec)) {
+            if (isCppSourceFile(i->path()))
+                argv_tmp.push_back(i->path());
+        }
+        cout << "Running tool from source files" << endl;
+        cout << console_hline() << endl;
+        for (auto it = argv_tmp.begin() + 1; it != argv_tmp.end(); it++)
+            cout << *it << endl;
 
-    int result = Tool.run(&factory);
+        argv_tmp.push_back("--");
+        argv_tmp.push_back("-std=c++14");
+        int argc_mod = argv_tmp.size();
+        char **argv_mod = new char *[argc_mod];
+        for (int i = 0; i < argc_mod; i++) {
+            argv_mod[i] = new char[argv_tmp[i].size() + 1];
+            std::strcpy(argv_mod[i], argv_tmp[i].c_str());
+        }
+        CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
+        ClangTool Tool(op.getCompilations(), op.getSourcePathList());
+        cout << console_hline() << endl;
+        cout << "Press enter to continue";
+        getchar();
+        result = Tool.run(&factory);
+    } else {
+        cout << "Running tool from compilation database" << endl;
+        cout << console_hline() << endl;
+        for (auto file: cb->getAllFiles())
+            cout << file << endl;
+        ClangTool Tool(*cb, cb->getAllFiles());
+        cout << console_hline() << endl;
+        cout << "Press enter to continue" << endl;
+        getchar();
+        result = Tool.run(&factory);
+    }
 
-    cout << "---------------" << endl;
+    cout << console_hline() << endl;
     for (int i = (int) cpp14features::begin; i < (int) cpp14features::end; i++)
         if (stat.size((cpp14features) i) != 0)
             cout << stat.toString((cpp14features) i) << " -- "
                  << stat.size((cpp14features) i) << endl;
-    cout << "---------------" << endl;
-
-    ////std::error_code EC;
-    ////raw_fd_ostream *cured = new raw_fd_ostream(curedFilename, EC, sys::fs::F_Text);
-    ////cured->close();
-
-    //int main(int argc, char **argv) {
-    //  ClangTool Tool(argc, argv);
-    //  MatchFinder finder;
-    //  finder.AddMatcher(Id("id", record(hasName("::a_namespace::AClass"))),
-    //                    new HandleMatch);
-    //  return Tool.Run(newFrontendActionFactory(&finder));
-    //}
+    cout << console_hline() << endl;
 
     return result;
 }
