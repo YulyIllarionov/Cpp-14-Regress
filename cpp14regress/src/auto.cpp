@@ -36,9 +36,13 @@ namespace cpp14regress {
             //TODO need GNUAutoType?
             QualType qt = at->getDeducedType(); //TODO understand deduced
             if (!qt.isNull()) {
+                //TODO method pointer and reference
+                //TODO field pointer and reference
+                //TODO array reference
+                //TODO function reference
                 string typeName = qt.getAsString();
                 SourceRange typeRange = declaratorDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange();
-                if (qt->isFunctionPointerType()) { //TODO auto a, b, c; ???
+                if (qt->isFunctionPointerType()) { //TODO auto a, b, c; FIX
                     size_t pointerPos = typeName.find("(*)"); //TODO change
                     if (pointerPos != string::npos) {
                         typeName.insert(pointerPos + 2, declaratorDecl->getNameAsString());

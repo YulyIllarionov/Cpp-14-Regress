@@ -36,6 +36,9 @@ namespace cpp14regress {
                                   context->getLangOpts());
     }
 
+
+    //TODO comment move constructor operator=
+    //TODO check in class non constant initialization in c++03
     bool DefaultKeywordReplacer::VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl) {
         if (!inProcessedFile(methodDecl, f_context))
             return true;

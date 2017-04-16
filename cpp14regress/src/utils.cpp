@@ -111,7 +111,7 @@ namespace cpp14regress {
             bodyBegin = func->getLocEnd();
         int l = sm.getCharacterData(bodyBegin) - sm.getCharacterData(sl);
         int i = 1;
-        for (; i < l; i++) {
+        for (; i < l; i++) { //TODO fix getLocationAfterToken
             sl = Lexer::findLocationAfterToken(
                     sl, tok::TokenKind::l_paren,
                     context->getSourceManager(),
