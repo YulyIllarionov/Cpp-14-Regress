@@ -61,7 +61,7 @@ int main(int argc, const char **argv) {
     }
 
     cpp14features_stat stat;
-    Cpp14RegressFrontendActionFactory<Cpp14scanner> factory(&stat);
+    Cpp14RegressFrontendActionFactory<ConstructorDelegationReplacer> factory(&stat);
     int result;
 
     string em;

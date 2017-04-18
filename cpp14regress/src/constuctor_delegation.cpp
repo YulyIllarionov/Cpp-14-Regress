@@ -34,9 +34,13 @@ namespace cpp14regress {
     bool ConstructorDelegationReplacer::VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl) {
         if (!inProcessedFile(recordDecl, f_context))
             return true;
+        if (recordDecl->ctor_begin() == recordDecl->ctor_end())
+            return true;
         vector<CXXConstructorDecl *> targetCtros;
         const SourceManager &sm = f_context->getSourceManager();
         for (auto it = recordDecl->ctor_begin(); it != recordDecl->ctor_end(); it++) {
+            //cout << toSting(*it, f_context) << " -- " << f_context->getSourceManager().getFileEntryForID(
+            //        f_context->getSourceManager().getFileID(it->getLocation()))->getName() << endl << endl;
             if (it->isDelegatingConstructor()) {
                 auto targetCtor = it->getTargetConstructor();
                 size_t pos = find(targetCtros.begin(), targetCtros.end(), targetCtor) -
@@ -55,10 +59,11 @@ namespace cpp14regress {
                 string initFunCall("\n" +
                                    initFunNameGenerator(it->getNameAsString()).toString() +
                                    initFunCallParam + ";");
-                f_rewriter->InsertTextAfterToken(it->getBody()->getLocStart(), initFunCall);
-                SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>(*it), f_context);
-                f_rewriter->RemoveText(SourceRange(paramRange.getEnd().getLocWithOffset(1),
-                                                   it->getBody()->getLocStart().getLocWithOffset(-1)));
+                //f_rewriter->InsertTextAfterToken(it->getBody()->getLocStart(), initFunCall);
+                //SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>(*it), f_context);
+                //f_rewriter->RemoveText(SourceRange(paramRange.getEnd().getLocWithOffset(1),
+                //                                   it->getBody()->getLocStart().getLocWithOffset(-1)));
+
                 //SourceLocation paramEnd = getParamRange(dyn_cast<FunctionDecl>(recordDecl), f_context).getEnd();
                 //SourceLocation bodyBegin = (*(it->init_rbegin()))->getRParenLoc();
 
@@ -97,6 +102,22 @@ namespace cpp14regress {
             //         << endl << "------" << endl;
             //}
 
+        }
+        CXXRecordDecl::method_iterator last;
+        for (auto it = recordDecl->method_begin(); it != recordDecl->method_end(); it++)
+            if (it->isUserProvided())
+                last = it;
+        SourceLocation initFunInsert = last->getLocEnd();
+        cout << toSting(*last, f_context) << endl;
+        for (auto ctor : targetCtros) {
+            SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>(ctor), f_context);
+            string initFunCallParam(sm.getCharacterData(paramRange.getBegin()),
+                                    sm.getCharacterData(paramRange.getEnd()) + 1);
+            string initFunCall("\n" +
+                               initFunNameGenerator(ctor->getNameAsString()).toString() +
+                               initFunCallParam + " " + toSting(ctor->getBody(), f_context));
+            //f_rewriter->InsertTextAfter(initFunInsert, initFunCall);
+            initFunInsert = initFunInsert.getLocWithOffset(initFunCall.size());
         }
         return true;
     }
