@@ -66,7 +66,7 @@ namespace cpp14regress {
     public:
         explicit LambdaFunctionReplacer(clang::ASTContext *context, cpp14features_stat *stat);
 
-        virtual void EndFileAction() { f_rewriter->overwriteChangedFiles(); } //TODO add check
+        virtual void EndFileAction() {}
 
         virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
     };

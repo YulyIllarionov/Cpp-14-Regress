@@ -59,8 +59,6 @@ namespace cpp14regress {
                                   context->getLangOpts());
     }
 
-
-
     //TODO generic
     //TODO incapture initialization
     bool LambdaFunctionReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
@@ -72,7 +70,7 @@ namespace cpp14regress {
 
         stringstream header;
         header << "//Lambda at:"
-               << lambda->getLocStart().printToString(f_context->getSourceManager())<<  endl;
+               << lambda->getLocStart().printToString(f_context->getSourceManager()) << endl;
 
         Indent indent;
 
@@ -89,8 +87,8 @@ namespace cpp14regress {
         for (auto it = lambda->captures().begin(); it != lambda->captures().end(); it++) {
             VarDecl *captured_var = it->getCapturedVar();
             header << indent << ((lambda->isMutable()) ? "mutable " : "")
-                 << clangCaptures[captured_var]->getType().getAsString() << " "
-                 << captured_var->getNameAsString() << ";" << endl; //TODO add f_
+                   << clangCaptures[captured_var]->getType().getAsString() << " "
+                   << captured_var->getNameAsString() << ";" << endl; //TODO add f_
         }
         header << "public:" << endl;
         //Lambda class constructor
@@ -98,15 +96,15 @@ namespace cpp14regress {
         for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
             VarDecl *captured_var = it->getCapturedVar();
             header << clangCaptures[captured_var]->getType().getAsString() << " "
-                 << captured_var->getNameAsString() << "_"
-                 << ((++it != lambda->capture_end()) ? ", " : ") : ");
+                   << captured_var->getNameAsString() << "_"
+                   << ((++it != lambda->capture_end()) ? ", " : ") : ");
         }
         //Lambda class constructor body
         for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
             VarDecl *captured_var = it->getCapturedVar();
             header << captured_var->getNameAsString() //TODO add f_
-                 << "(" << captured_var->getNameAsString() << "_" << ")"
-                 << ((++it != lambda->capture_end()) ? ", " : "");
+                   << "(" << captured_var->getNameAsString() << "_" << ")"
+                   << ((++it != lambda->capture_end()) ? ", " : "");
         }
         header << " {}" << endl;
         //Lambda class operator()1111
@@ -119,19 +117,19 @@ namespace cpp14regress {
             for (size_t i = 0; i < generics->size();) {
                 typeNames.push_back(gtg.generate());
                 header << "typename " << typeNames.back()
-                     << ((++i != generics->size()) ? ", " : ">");
+                       << ((++i != generics->size()) ? ", " : ">");
             }
             header << endl;
         }
         header << indent << QualType::getAsString(lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
-             << " operator() (";
+               << " operator() (";
         auto tn = typeNames.begin();
         for (size_t i = 0; i != lambdaFunction->param_size();) {
             ParmVarDecl *parameter = lambdaFunction->getParamDecl(i);
             header << ((isa<TemplateTypeParmType>(*parameter->getType())) ? *tn++ :
-                     parameter->getType().getAsString()) << " "
-                 << parameter->getQualifiedNameAsString()
-                 << ((++i != lambdaFunction->param_size()) ? ", " : "");
+                       parameter->getType().getAsString()) << " "
+                   << parameter->getQualifiedNameAsString()
+                   << ((++i != lambdaFunction->param_size()) ? ", " : "");
         }
         header << ") const ";
         //Lambda class operator() body
@@ -139,20 +137,20 @@ namespace cpp14regress {
         header << "};" << endl;
         header << endl;
         //header.flush();
-        ofstream header_file;
-        static bool first = true;
-        if (first) {
-            header_file.open(f_header_path);
-            first = false;
-        }
-        else
-            header_file.open(f_header_path, fstream::app);
-        if (!header_file.is_open()) {
-            cerr << "Can not open " << f_header_path << " file" << endl;
-            return false;
-        }
-        header_file << header.str();
-        header_file.close();
+        //ofstream header_file;
+        //static bool first = true;
+        //if (first) {
+        //    header_file.open(f_header_path);
+        //    first = false;
+        //}
+        //else
+        //    header_file.open(f_header_path, fstream::app);
+        //if (!header_file.is_open()) {
+        //    cerr << "Can not open " << f_header_path << " file" << endl;
+        //    return false;
+        //}
+        cout << console_hline('-') << endl << header.str() << console_hline('-') << endl;
+        //header_file.close();
         return true;
     }
 

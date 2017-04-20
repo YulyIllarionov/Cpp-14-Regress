@@ -69,10 +69,9 @@ namespace cpp14regress {
         for (auto declaration = recordDecl->ctor_begin();
              declaration != recordDecl->ctor_end(); declaration++) {
 
-            const FunctionDecl *fd;
+            const FunctionDecl *fd = nullptr;
             declaration->isDefined(fd);
             const CXXConstructorDecl *definition = dyn_cast_or_null<CXXConstructorDecl>(fd);
-
 
             if (definition) {
                 //if (definition->isUserProvided()) {

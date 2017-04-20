@@ -85,7 +85,7 @@ int main(int argc, const char **argv) {
         cout << console_hline() << endl;
         cout << "Press enter to continue";
         getchar();
-        Cpp14RegressFrontendActionFactory<ConstructorDelegationReplacer> factory(&stat, &dg);
+        Cpp14RegressFrontendActionFactory<LambdaFunctionReplacer> factory(&stat, &dg);
         result = Tool.run(&factory);
     } else {
         cout << "Running tool from compilation database" << endl;
@@ -101,7 +101,7 @@ int main(int argc, const char **argv) {
         cout << console_hline() << endl;
         cout << "Press enter to continue" << endl;
         getchar();
-        Cpp14RegressFrontendActionFactory<ConstructorDelegationReplacer> factory(&stat, &dg);
+        Cpp14RegressFrontendActionFactory<LambdaFunctionReplacer> factory(&stat, &dg);
         result = Tool.run(&factory);
     }
 
