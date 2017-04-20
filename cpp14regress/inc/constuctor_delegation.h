@@ -18,6 +18,7 @@
 
 #include "base_types.h"
 
+#include <iostream>
 #include <string>
 
 namespace cpp14regress {
@@ -27,25 +28,22 @@ namespace cpp14regress {
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
         cpp14features_stat *f_stat;
-        const std::string f_init_name = "Init";
+        DirectoryGenerator *f_dg;
+        const std::string f_seed = "Init";
+
+        std::string initFunName(const clang::CXXConstructorDecl *ctr);
+
+        std::string initFunCall(const clang::CXXConstructorDecl *delegating);
 
     public:
-        explicit ConstructorDelegationReplacer(clang::ASTContext *context, cpp14features_stat *stat);
+        explicit ConstructorDelegationReplacer(clang::ASTContext *context,
+                                               cpp14features_stat *stat, DirectoryGenerator *dg);
 
-        virtual void EndFileAction() { f_rewriter->overwriteChangedFiles(); }
+        virtual void EndFileAction();
 
         virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
     };
 
-    class initFunNameGenerator {
-    public:
-        initFunNameGenerator (std::string name) { f_name = name + "Init"; }
-        inline std::string toString() {
-            return f_name;
-        }
-    private:
-        std::string f_name;
-    };
 }
 
 #endif /*CPP14REGRESS_CONSTRUCTOR_DELEGATION_H*/

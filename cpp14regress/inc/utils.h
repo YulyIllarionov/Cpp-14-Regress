@@ -19,8 +19,12 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 namespace cpp14regress {
+
+    std::string console_hline(char c = '*');
 
     class StringGenerator {
     public:

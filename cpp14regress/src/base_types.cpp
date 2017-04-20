@@ -21,6 +21,25 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
+    DirectoryGenerator::DirectoryGenerator(string path, string extension) {
+        //SmallVector<char,100> tmp(path.begin(), path.end()); //TODO FIX!!!!!!
+        //sys::fs::make_absolute(tmp);
+        //path = string(tmp.begin());
+        f_extension = extension;
+        if (path.back() == '/')
+            path.pop_back();
+        f_directory = path;
+        sys::fs::create_directory(f_directory + f_extension);
+        //cout << "Created dir" << f_directory + f_extension << endl;
+    }
+
+    string DirectoryGenerator::getFile(string file) {
+        if (file.substr(0, f_directory.size()) != f_directory)
+            return string();
+        file.insert(f_directory.size(), f_extension);
+        return file;
+    }
+
     string cpp14features_stat::toString(cpp14features f) {
         static const char *features[size()] = {
                 "auto keyword",

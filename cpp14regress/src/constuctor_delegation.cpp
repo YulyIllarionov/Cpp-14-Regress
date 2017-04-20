@@ -25,10 +25,37 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    ConstructorDelegationReplacer::ConstructorDelegationReplacer(ASTContext *context, cpp14features_stat *stat)
-            : f_context(context), f_stat(stat) {
+    string ConstructorDelegationReplacer::initFunName(const CXXConstructorDecl *ctr) {
+        return (ctr->getNameAsString() + f_seed);
+    }
+
+    string ConstructorDelegationReplacer::initFunCall(const CXXConstructorDecl *delegating) {
+        string call;
+        const SourceManager &sm = f_context->getSourceManager();
+        SourceLocation b((*(delegating->init_begin()))->getLParenLoc());
+        SourceLocation e((*(delegating->init_begin()))->getRParenLoc().getLocWithOffset(1));
+        string params(sm.getCharacterData(b), sm.getCharacterData(e));
+        return string(initFunName(delegating) + params + ";");
+    }
+
+    ConstructorDelegationReplacer::ConstructorDelegationReplacer(ASTContext *context,
+                                                                 cpp14features_stat *stat, DirectoryGenerator *dg)
+            : f_context(context), f_stat(stat), f_dg(dg) {
         f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
                                   context->getLangOpts());
+    }
+
+    void ConstructorDelegationReplacer::EndFileAction() {
+        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
+            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
+            string file = f_dg->getFile(entry->getName());
+            std::error_code ec;
+            sys::fs::remove(Twine(file));
+            raw_fd_ostream rfo(StringRef(file), ec, sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
+            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
+            i->second.write(rfo);
+        }
+        //f_rewriter->overwriteChangedFiles();
     }
 
     bool ConstructorDelegationReplacer::VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl) {
@@ -36,88 +63,89 @@ namespace cpp14regress {
             return true;
         if (recordDecl->ctor_begin() == recordDecl->ctor_end())
             return true;
-        vector<CXXConstructorDecl *> targetCtros;
+        vector<CXXConstructorDecl *> targetCtors;
         const SourceManager &sm = f_context->getSourceManager();
-        for (auto it = recordDecl->ctor_begin(); it != recordDecl->ctor_end(); it++) {
-            //cout << toSting(*it, f_context) << " -- " << f_context->getSourceManager().getFileEntryForID(
-            //        f_context->getSourceManager().getFileID(it->getLocation()))->getName() << endl << endl;
-            if (it->isDelegatingConstructor()) {
-                auto targetCtor = it->getTargetConstructor();
-                size_t pos = find(targetCtros.begin(), targetCtros.end(), targetCtor) -
-                             targetCtros.begin(); //TODO fix duplicates check
-                if (pos == (targetCtros.size() - 1)) {
-                    targetCtros.push_back(targetCtor);
-                }
-                //TODO getDefinition
-                //const FunctionDecl *fDef;
-                //it->isDefined(fDef);
-                //const CXXConstructorDecl *ctrDef = const_cast<CXXConstructorDecl*>(fDef);
+        const LangOptions &lo = f_context->getLangOpts();
+        for (auto declaration = recordDecl->ctor_begin();
+             declaration != recordDecl->ctor_end(); declaration++) {
+
+            const FunctionDecl *fd;
+            declaration->isDefined(fd);
+            const CXXConstructorDecl *definition = dyn_cast_or_null<CXXConstructorDecl>(fd);
 
 
-                string initFunCallParam(sm.getCharacterData((*(it->init_begin()))->getLParenLoc()),
-                                        sm.getCharacterData((*(it->init_begin()))->getRParenLoc()) + 1);
-                string initFunCall("\n" +
-                                   initFunNameGenerator(it->getNameAsString()).toString() +
-                                   initFunCallParam + ";");
-                //f_rewriter->InsertTextAfterToken(it->getBody()->getLocStart(), initFunCall);
-                //SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>(*it), f_context);
-                //f_rewriter->RemoveText(SourceRange(paramRange.getEnd().getLocWithOffset(1),
-                //                                   it->getBody()->getLocStart().getLocWithOffset(-1)));
-
-                //SourceLocation paramEnd = getParamRange(dyn_cast<FunctionDecl>(recordDecl), f_context).getEnd();
-                //SourceLocation bodyBegin = (*(it->init_rbegin()))->getRParenLoc();
-
-                //SourceLocation paramsEnd = it->getLocation();
-                //SourceLocation initEnd = (*(it->init_rbegin()))->getRParenLoc();
-                //int l = sm.getCharacterData(initEnd) - sm.getCharacterData(it->getLocStart());
-                //int i = 1;
-                //for (; i < l; i++) {
-                //    paramsEnd = Lexer::findLocationAfterToken(
-                //            paramsEnd, tok::TokenKind::r_paren,
-                //            f_context->getSourceManager(),
-                //            f_context->getLangOpts(), false);
-                //    if (paramsEnd.isValid())
-                //        break;
-                //    else
-                //        paramsEnd = it->getLocation().getLocWithOffset(i);
+            if (definition) {
+                //if (definition->isUserProvided()) {
+                //    cout << console_hline('-') << endl
+                //         << toSting(*declaration, f_context) << " -- "
+                //         << toSting(definition, f_context) << endl
+                //         << console_hline('-') << endl;
+                //    cout << *declaration << " -- " << definition << endl;
                 //}
-                //cout << it->getLocation().printToString(sm) << " -- "
-                //     << l << " - " << i << " -- " << paramsEnd.printToString(sm) << endl;
+
+                if (definition->isDelegatingConstructor()) {
+
+                    auto targetCtor = definition->getTargetConstructor();
+                    auto pos = find(targetCtors.begin(), targetCtors.end(), targetCtor); //TODO fix duplicates check
+                    if (pos == targetCtors.end()) {
+                        targetCtors.push_back(targetCtor);
+                    }
+                    //TODO check multiple init
+                    SourceLocation bodyStart = Lexer::getLocForEndOfToken(
+                            definition->getBody()->getLocStart(), 0, sm, lo);
+                    string call("\n" + initFunCall(definition));
+                    f_rewriter->InsertText(bodyStart, call, true, true);
+                    SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>(definition), f_context);
+                    f_rewriter->RemoveText(SourceRange(paramRange.getEnd().getLocWithOffset(1),
+                                                       definition->getBody()->getLocStart().getLocWithOffset(-1)));
+                }
             }
-
-            //SourceLocation paramsEnd = Lexer::findLocationAfterToken(
-            //        dt->getUnderlyingExpr()->getLocEnd(), tok::TokenKind::r_paren,
-            //        f_context->getSourceManager(),
-            //        f_context->getLangOpts(), false);
-            //
-            //for (auto cit = targets.begin(); cit != targets.end(); cit++) {
-            //    for (auto iit = (*cit)->init_begin(); iit != (*cit)->init_end(); iit++) {
-            //        cout << std::string(
-            //                f_context->getSourceManager().getCharacterData((*iit)->getSourceRange().getBegin()),
-            //                f_context->getSourceManager().getCharacterData((*iit)->getSourceRange().getEnd()) -
-            //                f_context->getSourceManager().getCharacterData((*iit)->getSourceRange().getBegin()))
-            //             << " -- ";
-            //    }
-            //    cout << "------" << endl << toSting(*(cit), f_context)
-            //         << endl << "------" << endl;
-            //}
-
         }
         CXXRecordDecl::method_iterator last;
         for (auto it = recordDecl->method_begin(); it != recordDecl->method_end(); it++)
             if (it->isUserProvided())
                 last = it;
-        SourceLocation initFunInsert = last->getLocEnd();
-        cout << toSting(*last, f_context) << endl;
-        for (auto ctor : targetCtros) {
-            SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>(ctor), f_context);
-            string initFunCallParam(sm.getCharacterData(paramRange.getBegin()),
-                                    sm.getCharacterData(paramRange.getEnd()) + 1);
-            string initFunCall("\n" +
-                               initFunNameGenerator(ctor->getNameAsString()).toString() +
-                               initFunCallParam + " " + toSting(ctor->getBody(), f_context));
-            //f_rewriter->InsertTextAfter(initFunInsert, initFunCall);
-            initFunInsert = initFunInsert.getLocWithOffset(initFunCall.size());
+        SourceLocation initFunInsert = recordDecl->getRBraceLoc();
+        if (!targetCtors.empty()) {
+            f_rewriter->InsertText(initFunInsert, "\nprivate:");
+        }
+        for (auto declaration = targetCtors.rbegin();
+             declaration != targetCtors.rend(); declaration++) {
+            const FunctionDecl *fd;
+            (*declaration)->isDefined(fd);
+            const CXXConstructorDecl *definition = dyn_cast_or_null<CXXConstructorDecl>(fd);
+
+            if (definition) {
+                SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>((*declaration)), f_context);
+                string initFunParams(sm.getCharacterData(paramRange.getBegin()),
+                                     sm.getCharacterData(paramRange.getEnd()) + 1);
+                string initFunBody = "{";
+                int size = 0;
+                for (auto it = definition->init_begin(); it != definition->init_end(); it++) {
+                    size++;
+                    string init("\n");
+                    if ((*it)->isDelegatingInitializer()) {
+                        init += initFunCall(definition);
+                    } else {
+                        init += (*it)->getMember()->getNameAsString();
+                        init += " = ";
+                        const char *b = sm.getCharacterData((*it)->getLParenLoc()) + 1;
+                        const char *e = sm.getCharacterData((*it)->getRParenLoc());
+                        init += string(b, e - b);
+                        init += ";";
+                    }
+                    initFunBody += init;
+                }
+                SourceLocation bodyStart = Lexer::getLocForEndOfToken(
+                        definition->getBody()->getLocStart(), 0, sm, lo);
+                initFunBody += string(sm.getCharacterData(bodyStart),
+                                      sm.getCharacterData(definition->getBody()->getLocEnd()) -
+                                      sm.getCharacterData(bodyStart));
+                initFunBody += "}";
+                string initFunDefinition(" \n" + initFunName(definition) +
+                                         initFunParams + " " + initFunBody + "\n");
+                f_rewriter->InsertText(initFunInsert, initFunDefinition, true, true);
+            }
         }
         return true;
     }

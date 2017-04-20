@@ -16,8 +16,22 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
+#include <iostream>
 
 namespace cpp14regress {
+
+    class DirectoryGenerator {
+
+    public:
+        DirectoryGenerator(std::string path, std::string extension);
+
+        //bool createDir(std::string extension);
+        std::string getFile(std::string file);
+
+    private:
+        std::string f_directory;
+        std::string f_extension = "_regressed";
+    };
 
     enum class cpp14features {
         begin,
@@ -79,8 +93,8 @@ namespace cpp14regress {
     template<typename VisitorType>
     class Cpp14RegressASTConsumer : public clang::ASTConsumer {
     public:
-        explicit Cpp14RegressASTConsumer(clang::ASTContext *context, cpp14features_stat *stat)
-                : visitor(new VisitorType(context, stat)) {}
+        explicit Cpp14RegressASTConsumer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg)
+                : visitor(new VisitorType(context, stat, dg)) {}
 
         virtual void HandleTranslationUnit(clang::ASTContext &context) {
             visitor->TraverseDecl(context.getTranslationUnitDecl());
@@ -95,11 +109,12 @@ namespace cpp14regress {
     template<typename VisitorType>
     class Cpp14RegressFrontendAction : public clang::ASTFrontendAction {
     public:
-        Cpp14RegressFrontendAction(cpp14features_stat *stat) : f_stat(stat) {}
+        Cpp14RegressFrontendAction(cpp14features_stat *stat, DirectoryGenerator *dg) :
+                f_stat(stat), f_dg(dg) {}
 
         virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
                                                                       llvm::StringRef file) {
-            f_consumer = new Cpp14RegressASTConsumer<VisitorType>(&CI.getASTContext(), f_stat);
+            f_consumer = new Cpp14RegressASTConsumer<VisitorType>(&CI.getASTContext(), f_stat, f_dg);
             return std::unique_ptr<clang::ASTConsumer>(f_consumer);
         }
 
@@ -108,17 +123,22 @@ namespace cpp14regress {
     private:
         Cpp14RegressASTConsumer<VisitorType> *f_consumer;
         cpp14features_stat *f_stat;
+        DirectoryGenerator *f_dg;
     };
 
     template<typename VisitorType>
     class Cpp14RegressFrontendActionFactory : public clang::tooling::FrontendActionFactory {
     public:
-        Cpp14RegressFrontendActionFactory(cpp14features_stat *stat) : f_stat(stat) {}
+        Cpp14RegressFrontendActionFactory(cpp14features_stat *stat, DirectoryGenerator *dg) :
+                f_stat(stat), f_dg(dg) {}
 
-        clang::FrontendAction *create() { return new Cpp14RegressFrontendAction<VisitorType>(f_stat); }
+        clang::FrontendAction *create() {
+            return new Cpp14RegressFrontendAction<VisitorType>(f_stat, f_dg);
+        }
 
     private:
         cpp14features_stat *f_stat;
+        DirectoryGenerator *f_dg;
     };
 
     template<typename VisitorType>

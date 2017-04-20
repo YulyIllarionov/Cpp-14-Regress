@@ -24,6 +24,12 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
+    string console_hline(char c) {
+        struct winsize w;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        return string(w.ws_col, c);
+    }
+
     bool RecursiveVariableReplacer::VisitDeclRefExpr(DeclRefExpr *dre) {
         if (dre->getDecl()->getNameAsString() == f_variable->getNameAsString()) {
             f_rewriter->ReplaceText(SourceRange(dre->getLocStart(),

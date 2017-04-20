@@ -19,10 +19,9 @@
 #include <string>
 #include <vector>
 #include <cstdarg>
-#include <sys/ioctl.h>
-#include <unistd.h>
 
 #include "base_types.h"
+#include "utils.h"
 #include "cpp14_scanner.h"
 #include "default.h"
 #include "auto.h"
@@ -37,19 +36,13 @@ using namespace clang::tooling;
 using namespace llvm;
 using namespace cpp14regress;
 
-std::string console_hline() {
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    return string(w.ws_col, '*');
-}
-
 static cl::OptionCategory MyToolCategory("");
 
 //TODO спросить про отображние стека вызовов
 
 int main(int argc, const char **argv) {
 
-    if (argc != 2) {
+    if (argc < 2) {
         cerr << "error: wrong argument number" << endl;
         return 1;
     }
@@ -61,7 +54,6 @@ int main(int argc, const char **argv) {
     }
 
     cpp14features_stat stat;
-    Cpp14RegressFrontendActionFactory<ConstructorDelegationReplacer> factory(&stat);
     int result;
 
     string em;
@@ -88,20 +80,28 @@ int main(int argc, const char **argv) {
             std::strcpy(argv_mod[i], argv_tmp[i].c_str());
         }
         CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
+        DirectoryGenerator dg(srcDir.str(), "_regressed");
         ClangTool Tool(op.getCompilations(), op.getSourcePathList());
         cout << console_hline() << endl;
         cout << "Press enter to continue";
         getchar();
+        Cpp14RegressFrontendActionFactory<ConstructorDelegationReplacer> factory(&stat, &dg);
         result = Tool.run(&factory);
     } else {
         cout << "Running tool from compilation database" << endl;
+        if (argc != 3) {
+            cerr << "Save folder doesn't specified" << endl;
+            return 2;
+        }
         cout << console_hline() << endl;
         for (auto file: cb->getAllFiles())
             cout << file << endl;
+        DirectoryGenerator dg(argv[2], "_regressed");
         ClangTool Tool(*cb, cb->getAllFiles());
         cout << console_hline() << endl;
         cout << "Press enter to continue" << endl;
         getchar();
+        Cpp14RegressFrontendActionFactory<ConstructorDelegationReplacer> factory(&stat, &dg);
         result = Tool.run(&factory);
     }
 
