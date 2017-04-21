@@ -37,21 +37,21 @@ namespace cpp14regress {
 
     enum class cpp14features {
         begin,
-        auto_keyword = begin, //found //cured
-        decltype_keyword, //found //cured
+        auto_keyword = begin, //found   cured?
+        decltype_keyword, //found   cured?
         constexpr_keyword, //found
         extern_template, //?
-        default_keyword, //found
+        default_keyword, //found    cured
         delete_keyword, //found
         override_specifier, //found
         final_specifier, //found
         explicit_specifier, //found
         initializer_list, //?
         uniform_initialization, //?
-        range_based_for, //found
-        lambda_function, //found
+        range_based_for, //found    cured
+        lambda_function, //found    cured
         alternative_function_syntax, //found
-        constuctor_delegation, //found
+        constuctor_delegation, //found  cured
         null_pointer_constant, //found
         enum_class, //found
         right_angle_bracket, //?
@@ -59,7 +59,7 @@ namespace cpp14regress {
         alias_type, //found
         unrestricted_unions, //found //boost::variant или placement-new
         variadic_templates, //found
-        raw_string_literals, //found
+        raw_string_literals, //found    cured
         unicode_string_literals, //found
         user_defined_literals, //found
         long_long_int, //found //TODO literals spec like 12345LL
