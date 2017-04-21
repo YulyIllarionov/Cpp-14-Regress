@@ -28,6 +28,7 @@
 #include "decltype.h"
 #include "lambda.h"
 #include "constuctor_delegation.h"
+#include "raw_string.h"
 
 using namespace std;
 using namespace clang;
@@ -85,7 +86,7 @@ int main(int argc, const char **argv) {
         cout << console_hline() << endl;
         cout << "Press enter to continue";
         getchar();
-        Cpp14RegressFrontendActionFactory<LambdaFunctionReplacer> factory(&stat, &dg);
+        Cpp14RegressFrontendActionFactory<RawStringReplacer> factory(&stat, &dg);
         result = Tool.run(&factory);
     } else {
         cout << "Running tool from compilation database" << endl;
@@ -101,7 +102,7 @@ int main(int argc, const char **argv) {
         cout << console_hline() << endl;
         cout << "Press enter to continue" << endl;
         getchar();
-        Cpp14RegressFrontendActionFactory<LambdaFunctionReplacer> factory(&stat, &dg);
+        Cpp14RegressFrontendActionFactory<RawStringReplacer> factory(&stat, &dg);
         result = Tool.run(&factory);
     }
 

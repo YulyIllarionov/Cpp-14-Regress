@@ -372,11 +372,11 @@ namespace cpp14regress {
         if (!inProcessedFile(fieldDecl, f_context))
             return true;
         if (fieldDecl->getInClassInitStyle() == InClassInitStyle::ICIS_ListInit) {
-            cout << "In class list init: " << toSting(fieldDecl, f_context) << " -- "
-                 << fieldDecl->getInClassInitializer()->getStmtClassName() << endl;
+            //cout << "In class list init: " << toSting(fieldDecl, f_context) << " -- "
+            //     << fieldDecl->getInClassInitializer()->getStmtClassName() << endl;
         } else if (fieldDecl->getInClassInitStyle() == InClassInitStyle::ICIS_CopyInit) {
-            cout << "In class copy init: " << toSting(fieldDecl, f_context) << " -- "
-                 << fieldDecl->getInClassInitializer()->getStmtClassName() << endl;
+            //cout << "In class copy init: " << toSting(fieldDecl, f_context) << " -- "
+            //     << fieldDecl->getInClassInitializer()->getStmtClassName() << endl;
         }
         return true;
     }

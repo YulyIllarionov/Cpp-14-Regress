@@ -18,6 +18,8 @@
 
 #include <iostream>
 
+#include "utils.h"
+
 namespace cpp14regress {
 
     class DirectoryGenerator {

@@ -86,37 +86,39 @@ namespace cpp14regress {
 
         //alias_template //TODO
         //alias_typedef //TODO
-        virtual bool VisitTypeAliasDecl(clang::TypeAliasDecl* aliasTypeDecl);
+        virtual bool VisitTypeAliasDecl(clang::TypeAliasDecl *aliasTypeDecl);
 
         //sizeof...
-        virtual bool VisitSizeOfPackExpr(clang::SizeOfPackExpr* sizeofPackExpr);
+        virtual bool VisitSizeOfPackExpr(clang::SizeOfPackExpr *sizeofPackExpr);
 
         //implict_sizeof //TODO
         //alignof_operator //TODO
-        virtual bool VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr* sizeofOrAlignof);
+        virtual bool VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *sizeofOrAlignof);
 
         //variadic_templates //TODO
-        virtual bool VisitRedeclarableTemplateDecl(clang::RedeclarableTemplateDecl* templateDecl);
+        virtual bool VisitRedeclarableTemplateDecl(clang::RedeclarableTemplateDecl *templateDecl);
 
         //long_long_int //TODO
-        virtual bool VisitVarDecl(clang::VarDecl* varDecl);
+        virtual bool VisitVarDecl(clang::VarDecl *varDecl);
 
         //long_long_int //TODO
-        virtual bool VisitCStyleCastExpr(clang::CStyleCastExpr* castExpr);
+        virtual bool VisitCStyleCastExpr(clang::CStyleCastExpr *castExpr);
 
         //long_long_int //TODO
-        virtual bool VisitCXXFunctionalCastExpr(clang::CXXFunctionalCastExpr* castExpr);
+        virtual bool VisitCXXFunctionalCastExpr(clang::CXXFunctionalCastExpr *castExpr);
 
         //variable_templates //TODO
-        virtual bool VisitVarTemplateDecl(clang::VarTemplateDecl* varTemplate);
+        virtual bool VisitVarTemplateDecl(clang::VarTemplateDecl *varTemplate);
 
         //user_defined_literals //TODO
         //virtual bool VisitUserDefinedLiteral (clang::UserDefinedLiteral* userDefinedLiteral);
 
         //virtual bool VisitAttr(clang::Attr* a);
-        virtual bool VisitValueDecl(clang::ValueDecl* valueDecl);
+        virtual bool VisitValueDecl(clang::ValueDecl *valueDecl);
 
-        virtual bool VisitFieldDecl(clang::FieldDecl* fieldDecl);
+        virtual bool VisitFieldDecl(clang::FieldDecl *fieldDecl);
+
+
 
     };
 

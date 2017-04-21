@@ -53,10 +53,17 @@ namespace cpp14regress {
         return toString();
     }
 
-    LambdaFunctionReplacer::LambdaFunctionReplacer(ASTContext *context, cpp14features_stat *stat)
-            : f_context(context), f_stat(stat) {
+    LambdaFunctionReplacer::LambdaFunctionReplacer(ASTContext *context, cpp14features_stat *stat,
+                                                   DirectoryGenerator *dg)
+            : f_context(context), f_stat(stat), f_dg(dg) {
         f_rewriter = new Rewriter(context->getSourceManager(),
                                   context->getLangOpts());
+        SourceManager &sm = f_context->getSourceManager();
+        cout << console_hline('+') << endl;
+        for (auto it = sm.fileinfo_begin(); it != sm.fileinfo_end(); it++) {
+            cout << it->first->getName() << endl;
+        }
+        cout << console_hline('+') << endl;
     }
 
     //TODO generic
@@ -135,7 +142,6 @@ namespace cpp14regress {
         //Lambda class operator() body
         header << toSting(lambda->getBody(), f_context) << endl;
         header << "};" << endl;
-        header << endl;
         //header.flush();
         //ofstream header_file;
         //static bool first = true;
@@ -149,7 +155,19 @@ namespace cpp14regress {
         //    cerr << "Can not open " << f_header_path << " file" << endl;
         //    return false;
         //}
-        cout << console_hline('-') << endl << header.str() << console_hline('-') << endl;
+        //cout << console_hline('-') << endl << header.str() << console_hline('.') << endl;
+//
+        //for (auto it = lambda->capture_init_begin(); it != lambda->capture_init_end(); it++) {
+        //    cout << toSting(*it, f_context) << endl;
+        //}
+//
+        //cout << console_hline('.') << endl;
+//
+        //for (auto it = lambda->capture_begin(); it != lambda->capture_end(); it++) {
+        //    cout << it->getCapturedVar()->getNameAsString() << " -- "
+        //         << lambda->isInitCapture(it) << endl;
+        //}
+        //cout << console_hline('-') << endl;
         //header_file.close();
         return true;
     }

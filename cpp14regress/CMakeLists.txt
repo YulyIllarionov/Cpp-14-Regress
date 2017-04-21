@@ -23,6 +23,7 @@ add_clang_library(Cpp14Regress
         ./src/decltype.cpp
         ./src/default.cpp
         ./src/constuctor_delegation.cpp
+        ./src/raw_string.cpp
 
         LINK_LIBS
         clangAST
