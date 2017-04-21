@@ -140,7 +140,7 @@ namespace cpp14regress {
         }
         header << ") const ";
         //Lambda class operator() body
-        header << toSting(lambda->getBody(), f_context) << endl;
+        header << toString(lambda->getBody(), f_context) << endl;
         header << "};" << endl;
         //header.flush();
         //ofstream header_file;
@@ -158,7 +158,7 @@ namespace cpp14regress {
         //cout << console_hline('-') << endl << header.str() << console_hline('.') << endl;
 //
         //for (auto it = lambda->capture_init_begin(); it != lambda->capture_init_end(); it++) {
-        //    cout << toSting(*it, f_context) << endl;
+        //    cout << toString(*it, f_context) << endl;
         //}
 //
         //cout << console_hline('.') << endl;

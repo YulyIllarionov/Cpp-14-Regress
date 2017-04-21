@@ -76,8 +76,8 @@ namespace cpp14regress {
             if (definition) {
                 //if (definition->isUserProvided()) {
                 //    cout << console_hline('-') << endl
-                //         << toSting(*declaration, f_context) << " -- "
-                //         << toSting(definition, f_context) << endl
+                //         << toString(*declaration, f_context) << " -- "
+                //         << toString(definition, f_context) << endl
                 //         << console_hline('-') << endl;
                 //    cout << *declaration << " -- " << definition << endl;
                 //}

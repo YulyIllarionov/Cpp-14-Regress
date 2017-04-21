@@ -101,10 +101,10 @@ namespace cpp14regress {
         }
         else if (Expr* expr = dyn_cast<Expr>(stmt)) {
             inf.push_back(expr->getType().getAsString());
-            inf.push_back(node_inf_record(string_to_label(toSting<>(expr, f_context))));
+            inf.push_back(node_inf_record(string_to_label(toString<>(expr, f_context))));
         }
         else
-            inf.push_back(node_inf_record(string_to_label(toSting<>(stmt, f_context))));
+            inf.push_back(node_inf_record(string_to_label(toString<>(stmt, f_context))));
 
         return inf;
     }

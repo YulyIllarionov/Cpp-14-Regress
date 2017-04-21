@@ -47,6 +47,7 @@ set(HEADER_FILES
         ${CPP14REGRESS_INCLUDE_DIR}/constuctor_delegation.h
         ${CPP14REGRESS_INCLUDE_DIR}/raw_string.h
         ${CPP14REGRESS_INCLUDE_DIR}/implict_sizeof.h
+        ${CPP14REGRESS_INCLUDE_DIR}/digit_separators.h
         )
 
 set(SOURCE_FILES
@@ -63,6 +64,7 @@ set(SOURCE_FILES
         ${CPP14REGRESS_SOURCE_DIR}/constuctor_delegation.cpp
         ${CPP14REGRESS_SOURCE_DIR}/raw_string.cpp
         ${CPP14REGRESS_SOURCE_DIR}/implict_sizeof.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/digit_separators.cpp
         #tool main.cpp
         ./cpp14regress/tool/main.cpp
         #clang sources

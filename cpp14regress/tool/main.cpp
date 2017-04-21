@@ -30,7 +30,7 @@
 #include "constuctor_delegation.h"
 #include "raw_string.h"
 #include "implict_sizeof.h"
-
+#include "digit_separators.h"
 
 using namespace std;
 using namespace clang;
@@ -88,7 +88,7 @@ int main(int argc, const char **argv) {
         cout << console_hline() << endl;
         cout << "Press enter to continue";
         getchar();
-        Cpp14RegressFrontendActionFactory<ImplictSizeofReplacer> factory(&stat, &dg);
+        Cpp14RegressFrontendActionFactory<DigitSeparatorReplacer> factory(&stat, &dg);
         result = Tool.run(&factory);
     } else {
         cout << "Running tool from compilation database" << endl;
@@ -104,7 +104,7 @@ int main(int argc, const char **argv) {
         cout << console_hline() << endl;
         cout << "Press enter to continue" << endl;
         getchar();
-        Cpp14RegressFrontendActionFactory<ImplictSizeofReplacer> factory(&stat, &dg);
+        Cpp14RegressFrontendActionFactory<DigitSeparatorReplacer> factory(&stat, &dg);
         result = Tool.run(&factory);
     }
 

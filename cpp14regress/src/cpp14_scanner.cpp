@@ -61,7 +61,7 @@ namespace cpp14regress {
         if (functionDecl->isConstexpr())
             f_stat->push(cpp14features::constexpr_keyword, functionDecl->getLocStart());
         if (functionDecl->getNameAsString().find("\"\"") != string::npos) { //TODO fix
-            //cout << "User-defined literal: " << toSting(functionDecl, f_context) << endl;
+            //cout << "User-defined literal: " << toString(functionDecl, f_context) << endl;
             f_stat->push(cpp14features::user_defined_literals, functionDecl->getLocStart());
         }
         if (functionDecl->getType().getAsString().find("->") != string::npos) //TODO need fix
@@ -75,7 +75,7 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl) {
         if (!inProcessedFile(methodDecl, f_context))
             return true;
-        string methodString = toSting(methodDecl, f_context);
+        string methodString = toString(methodDecl, f_context);
         if (methodDecl->isExplicitlyDefaulted())
             f_stat->push(cpp14features::default_keyword, methodDecl->getLocStart());
         if (methodDecl->isDeleted())
@@ -108,7 +108,7 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitCXXNullPtrLiteralExpr(clang::CXXNullPtrLiteralExpr *nullPtrExpr) {
         if (!inProcessedFile(nullPtrExpr, f_context))
             return true;
-        //cout << "Nullptr: " << toSting(nullPtrExpr, f_context) << " -- "
+        //cout << "Nullptr: " << toString(nullPtrExpr, f_context) << " -- "
         //     << nullPtrExpr->getLocStart().printToString(f_context->getSourceManager()) << endl;
         f_stat->push(cpp14features::null_pointer_constant, nullPtrExpr->getLocStart());
         return true;
@@ -126,12 +126,12 @@ namespace cpp14regress {
         if (!inProcessedFile(recordDecl, f_context))
             return true;
         //cout << "Record decl" << endl << "---------" << endl
-        //     << toSting(recordDecl, f_context) << "---------" << endl;
+        //     << toString(recordDecl, f_context) << "---------" << endl;
         if (recordDecl->isUnion()) {
-            //cout << "Union: " << toSting(recordDecl, f_context) << endl;
+            //cout << "Union: " << toString(recordDecl, f_context) << endl;
             for (auto it = recordDecl->field_begin(); it != recordDecl->field_end(); it++) {
                 if (!((*it)->getType().isCXX98PODType(*f_context))) {
-                    //cout << "Unrestricted union: " << toSting(recordDecl, f_context) << endl;
+                    //cout << "Unrestricted union: " << toString(recordDecl, f_context) << endl;
                     f_stat->push(cpp14features::unrestricted_unions, recordDecl->getLocStart());
                     break;
                 }
@@ -139,7 +139,7 @@ namespace cpp14regress {
         }
         for (auto it = recordDecl->attr_begin(); it != recordDecl->attr_end(); it++) {
             if ((*it)->getKind() == attr::Kind::Aligned) {
-                //cout << "Attr: " << toSting(recordDecl, f_context) << endl;
+                //cout << "Attr: " << toString(recordDecl, f_context) << endl;
                 f_stat->push(cpp14features::alignas_specifier, recordDecl->getLocStart());
             }
         }
@@ -149,9 +149,9 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitStringLiteral(clang::StringLiteral *literal) {
         if (!inProcessedFile(literal, f_context))
             return true;
-        string s = toSting(literal, f_context);
+        string s = toString(literal, f_context);
         if (s[max(int(s.find('\"')) - 1, 0)] == 'R') { //TODO need fix
-            //cout << "Raw string literal: " << toSting(literal, f_context) << endl;
+            //cout << "Raw string literal: " << toString(literal, f_context) << endl;
             f_stat->push(cpp14features::raw_string_literals, literal->getLocStart());
         }
         if ((literal->isUTF8()) ||
@@ -165,7 +165,7 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitIntegerLiteral(clang::IntegerLiteral *literal) {
         if (!inProcessedFile(literal, f_context))
             return true;
-        string i = toSting(literal, f_context);
+        string i = toString(literal, f_context);
         //cout << "Integer literal: " << i << endl;
         if (i.find('\'') != string::npos) { //TODO need fix
             f_stat->push(cpp14features::digit_separators, literal->getLocStart());
@@ -178,7 +178,7 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitFloatingLiteral(clang::FloatingLiteral *literal) {
         if (!inProcessedFile(literal, f_context))
             return true;
-        string f = toSting(literal, f_context);
+        string f = toString(literal, f_context);
         if (f.find('\'') != string::npos) { //TODO need fix
             f_stat->push(cpp14features::digit_separators, literal->getLocStart());
             //cout << "Float with separators: " << f << endl;
@@ -197,7 +197,7 @@ namespace cpp14regress {
         if (!inProcessedFile(aliasTemplateDecl, f_context))
             return true;
         f_stat->push(cpp14features::alias_template, aliasTemplateDecl->getLocStart()); //TODO
-        //cout << "alias template: " << toSting(aliasTemplateDecl, f_context) << endl;
+        //cout << "alias template: " << toString(aliasTemplateDecl, f_context) << endl;
         return true;
     }
 
@@ -206,10 +206,10 @@ namespace cpp14regress {
             return true;
         if (isa<TypeAliasTemplateDecl>(aliasTypeDecl)) {
             f_stat->push(cpp14features::alias_template, aliasTypeDecl->getLocStart()); //TODO
-            //cout << "alias template: " << toSting(aliasTypeDecl, f_context) << endl;
+            //cout << "alias template: " << toString(aliasTypeDecl, f_context) << endl;
         } else {
             f_stat->push(cpp14features::alias_type, aliasTypeDecl->getLocStart());
-            //cout << "alias type: " << toSting(aliasTypeDecl, f_context) << endl;
+            //cout << "alias type: " << toString(aliasTypeDecl, f_context) << endl;
         }
         return true;
     }
@@ -220,7 +220,7 @@ namespace cpp14regress {
     VisitSizeOfPackExpr(clang::SizeOfPackExpr *sizeofPackExpr) {
         if (!inProcessedFile(sizeofPackExpr, f_context))
             return true;
-        cout << "Found sizeof...: " << toSting(sizeofPackExpr, f_context) << endl;
+        cout << "Found sizeof...: " << toString(sizeofPackExpr, f_context) << endl;
         return true;
     }
 
@@ -240,7 +240,7 @@ namespace cpp14regress {
                              clang::NestedNameSpecifier::SpecifierKind::TypeSpec) ||
                             (dre->getQualifier()->getKind() ==
                              clang::NestedNameSpecifier::SpecifierKind::TypeSpecWithTemplate)) {
-                            //cout << "sizeof: " << toSting(sizeofOrAlignof->getArgumentExpr(), f_context)
+                            //cout << "sizeof: " << toString(sizeofOrAlignof->getArgumentExpr(), f_context)
                             //     << " is implict" << endl;
                             f_stat->push(cpp14features::implict_sizeof, sizeofOrAlignof->getLocStart());
                         }
@@ -249,7 +249,7 @@ namespace cpp14regress {
             }
         } else if (sizeofOrAlignof->getKind() == UnaryExprOrTypeTrait::UETT_AlignOf) {
             f_stat->push(cpp14features::alignof_operator, sizeofOrAlignof->getLocStart());
-            //cout << "alignof: " << toSting(sizeofOrAlignof, f_context) << endl;
+            //cout << "alignof: " << toString(sizeofOrAlignof, f_context) << endl;
         }
         return true;
     }
@@ -261,7 +261,7 @@ namespace cpp14regress {
         for (auto it = tps->begin(); it != tps->end(); it++) {
             if (auto tp = dyn_cast_or_null<TemplateTypeParmDecl>(*it)) {
                 if (tp->isParameterPack()) {
-                    //cout << "Variadic template: " << toSting(templateDecl, f_context) << endl;
+                    //cout << "Variadic template: " << toString(templateDecl, f_context) << endl;
                     f_stat->push(cpp14features::variadic_templates, templateDecl->getLocStart());
                     break;
                 }
@@ -278,34 +278,34 @@ namespace cpp14regress {
         if (auto *bt = dyn_cast<BuiltinType>(varDecl->getType())) {
             if ((bt->getKind() == BuiltinType::LongLong) ||
                 (bt->getKind() == BuiltinType::ULongLong)) {
-                //cout << "Long long int: " << toSting(varDecl, f_context) << " -- "
+                //cout << "Long long int: " << toString(varDecl, f_context) << " -- "
                 //     << varDecl->getLocStart().printToString(f_context->getSourceManager()) << endl;
                 f_stat->push(cpp14features::long_long_int, varDecl->getLocStart());
             }
         }
         //if (varDecl->getInitStyle() == VarDecl::InitializationStyle::ListInit) {
-        //    //cout << "Uniform init: " << toSting(varDecl, f_context) << endl;
+        //    //cout << "Uniform init: " << toString(varDecl, f_context) << endl;
         //    f_stat->push(cpp14features::uniform_initialization, varDecl->getLocStart());
         //}
         if (varDecl->hasInit()) {
             if (isa<InitListExpr>(varDecl->getInit())) {
                 switch (varDecl->getInitStyle()) {
                     case VarDecl::InitializationStyle::CInit : {
-                        cout << "CInit: " << toSting(varDecl, f_context) << endl;
+                        cout << "CInit: " << toString(varDecl, f_context) << endl;
                         break;
                     }
                     case VarDecl::InitializationStyle::CallInit : {
-                        cout << "CallInit: " << toSting(varDecl, f_context) << endl;
+                        cout << "CallInit: " << toString(varDecl, f_context) << endl;
                         break;
                     }
                     case VarDecl::InitializationStyle::ListInit : {
-                        cout << "ListInit: " << toSting(varDecl, f_context) << endl;
+                        cout << "ListInit: " << toString(varDecl, f_context) << endl;
                         break;
                     }
                 }
 
                 //if (varDecl->getInitStyle() == VarDecl::InitializationStyle::CInit) {
-                //    cout << "Uniform init: " << toSting(varDecl, f_context) << endl;
+                //    cout << "Uniform init: " << toString(varDecl, f_context) << endl;
                 //    f_stat->push(cpp14features::uniform_initialization, varDecl->getLocStart());
                 //}
             }
@@ -342,7 +342,7 @@ namespace cpp14regress {
         while (auto parenExpr = dyn_cast<ParenExpr>(arg))
             arg = parenExpr->getSubExpr();
         if (isa<InitListExpr>(arg)) {
-            cout << "Uniform cast: " << toSting(castExpr, f_context) << endl;
+            cout << "Uniform cast: " << toString(castExpr, f_context) << endl;
             f_stat->push(cpp14features::uniform_initialization, castExpr->getSubExpr()->getLocStart());
         }
         return true;
@@ -352,7 +352,7 @@ namespace cpp14regress {
         if (!inProcessedFile(varTemplate, f_context))
             return true;
         f_stat->push(cpp14features::variable_templates, varTemplate->getLocStart());
-        //cout << "Variable template: " << toSting(varTemplate, f_context) << endl;
+        //cout << "Variable template: " << toString(varTemplate, f_context) << endl;
         return true;
     }
 
@@ -361,7 +361,7 @@ namespace cpp14regress {
             return true;
         for (auto it = valueDecl->attr_begin(); it != valueDecl->attr_end(); it++) {
             if ((*it)->getKind() == attr::Kind::Aligned) {
-                //cout << "Attr: " << toSting(valueDecl, f_context) << endl;
+                //cout << "Attr: " << toString(valueDecl, f_context) << endl;
                 f_stat->push(cpp14features::alignas_specifier, valueDecl->getLocStart());
             }
         }
@@ -372,10 +372,10 @@ namespace cpp14regress {
         if (!inProcessedFile(fieldDecl, f_context))
             return true;
         if (fieldDecl->getInClassInitStyle() == InClassInitStyle::ICIS_ListInit) {
-            //cout << "In class list init: " << toSting(fieldDecl, f_context) << " -- "
+            //cout << "In class list init: " << toString(fieldDecl, f_context) << " -- "
             //     << fieldDecl->getInClassInitializer()->getStmtClassName() << endl;
         } else if (fieldDecl->getInClassInitStyle() == InClassInitStyle::ICIS_CopyInit) {
-            //cout << "In class copy init: " << toSting(fieldDecl, f_context) << " -- "
+            //cout << "In class copy init: " << toString(fieldDecl, f_context) << " -- "
             //     << fieldDecl->getInClassInitializer()->getStmtClassName() << endl;
         }
         return true;
@@ -384,7 +384,7 @@ namespace cpp14regress {
     //bool Cpp14scanner::VisitUserDefinedLiteral(clang::UserDefinedLiteral *userDefinedLiteral) {
     //    if (!inProcessedFile(userDefinedLiteral, f_context))
     //        return true;
-    //    //cout << "User-defined literal: " << toSting(userDefinedLiteral, f_context) << endl;
+    //    //cout << "User-defined literal: " << toString(userDefinedLiteral, f_context) << endl;
     //    //if (FunctionDecl *func = userDefinedLiteral->getDirectCallee())
     //    //    cout << func->getNameAsString() << endl;
     //    return true;

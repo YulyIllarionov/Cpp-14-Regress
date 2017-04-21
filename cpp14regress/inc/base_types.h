@@ -63,7 +63,7 @@ namespace cpp14regress {
         unicode_string_literals, //found
         user_defined_literals, //found
         long_long_int, //found //TODO literals spec like 12345LL
-        implict_sizeof, //found //TODO sizeof... ?
+        implict_sizeof, //found     cured
         noexcept_keyword, //found
         alignof_operator, //found
         alignas_specifier, //found

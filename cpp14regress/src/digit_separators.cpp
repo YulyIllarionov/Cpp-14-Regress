@@ -15,7 +15,7 @@
 #include "clang/AST/ParentMap.h"
 #include "llvm/ADT/DenseMap.h"
 
-#include "raw_string.h"
+#include "digit_separators.h"
 #include "utils.h"
 
 #include <vector>
@@ -26,13 +26,14 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    RawStringReplacer::RawStringReplacer(ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg)
+    DigitSeparatorReplacer::DigitSeparatorReplacer(ASTContext *context, cpp14features_stat *stat,
+                                                   DirectoryGenerator *dg)
             : f_context(context), f_stat(stat), f_dg(dg) {
         f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
                                   context->getLangOpts());
     }
 
-    void RawStringReplacer::EndFileAction() {
+    void DigitSeparatorReplacer::EndFileAction() {
         for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
             const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
             string file = f_dg->getFile(entry->getName());
@@ -44,44 +45,37 @@ namespace cpp14regress {
         }
     }
 
-    bool RawStringReplacer::VisitStringLiteral(clang::StringLiteral *literal) {
+    bool DigitSeparatorReplacer::VisitIntegerLiteral(IntegerLiteral *literal) {
         if (!inProcessedFile(literal, f_context))
             return true;
-
-        string sl = toString(literal, f_context);
-        string::size_type pos = sl.find('\"');
-        if ((pos != 0) && (pos != string::npos)) {
-            if (sl[--pos] == 'R') {
-                string raw = string(literal->getBytes());
-                for (size_t i = 0; i < raw.size(); i++) {
-                    string s;
-                    if (escapeCharToString(raw[i], s)) {
-                        raw.replace(i, 1, s);
-                        //cout << "Ecape at " << i << " is " << s << endl;
-                        i++;
-                    }
-                }
-                cout << raw << endl;
-            }
+        string i = toString(literal, f_context);
+        if (removeSeparators(i)) {
+            //cout << toString(literal, f_context) << endl;
+            f_rewriter->ReplaceText(literal->getSourceRange(), i);
         }
         return true;
     }
 
-    bool RawStringReplacer::escapeCharToString(char c, string& s) {
-        switch (c) {
-            case '\'' : { s = "\\\'"; break; }
-            case '\"' : { s = "\\\""; break; }
-            case '\?' : { s = "\\?"; break; }
-            case '\\' : { s = "\\\\"; break; }
-            case '\a' : { s = "\\a"; break; }
-            case '\b' : { s = "\\b"; break; }
-            case '\f' : { s = "\\f"; break; }
-            case '\n' : { s = "\\n"; break; }
-            case '\r' : { s = "\\r"; break; }
-            case '\t' : { s = "\\t"; break; }
-            case '\v' : { s = "\\v"; break; }
-            default : return false;
+    bool DigitSeparatorReplacer::VisitFloatingLiteral(clang::FloatingLiteral *literal) {
+        if (!inProcessedFile(literal, f_context))
+            return true;
+        string f = toString(literal, f_context);
+        if (removeSeparators(f)) {
+            //cout << toString(literal, f_context) << endl;
+            f_rewriter->ReplaceText(literal->getSourceRange(), f);
         }
         return true;
     }
+
+    bool DigitSeparatorReplacer::removeSeparators(std::string &literal) {
+        bool found = false;
+        string::size_type pos = literal.find('\'');
+        while (pos != string::npos) {
+            literal.erase(pos, 1);
+            pos = literal.find('\'', pos);
+            if (!found) found = true;
+        }
+        return found;
+    }
+
 }

@@ -45,17 +45,17 @@ namespace cpp14regress {
 
         if (methodDecl->isExplicitlyDefaulted()) {
             SourceLocation defaultBegin = methodDecl->getLocStart().getLocWithOffset(
-                    toSting(methodDecl, f_context).find_last_of(')') + 1); //TODO fix
+                    toString(methodDecl, f_context).find_last_of(')') + 1); //TODO fix
             SourceLocation defaultEnd = methodDecl->getLocEnd();
             string defaultBody;
             CXXRecordDecl *baseClass = methodDecl->getParent();
 
             if (auto constructorDecl = dyn_cast<CXXConstructorDecl>(methodDecl)) {
                 if (constructorDecl->isDefaultConstructor()) {
-                    //cout << "Defaulted default constructor: " << toSting(constructorDecl, f_context) << endl << "---------" << endl;
+                    //cout << "Defaulted default constructor: " << toString(constructorDecl, f_context) << endl << "---------" << endl;
                     defaultBody = " {}";
                 } else if (constructorDecl->isCopyConstructor()) {
-                    //cout << "Defaulted copy constructor: " << toSting(constructorDecl, f_context) << endl << "---------"<< endl;
+                    //cout << "Defaulted copy constructor: " << toString(constructorDecl, f_context) << endl << "---------"<< endl;
                     defaultBody = " {\n";
                     for (auto it = baseClass->field_begin(); it != baseClass->field_end(); it++) {
                         string fieldCopy = "this->" + (*it)->getNameAsString() + " = " +
@@ -65,15 +65,15 @@ namespace cpp14regress {
                     }
                     defaultBody += "}\n";
                 } else if (constructorDecl->isMoveConstructor()) {
-                    //cout << "Defaulted move constructor: " << toSting(constructorDecl, f_context) << endl << "---------" << endl;
+                    //cout << "Defaulted move constructor: " << toString(constructorDecl, f_context) << endl << "---------" << endl;
                     //TODO
                 }
             } else if (isa<CXXDestructorDecl>(methodDecl)) {
-                //cout << "Defaulted destructor: " << toSting(destructorDecl, f_context) << endl << "---------" << endl;
+                //cout << "Defaulted destructor: " << toString(destructorDecl, f_context) << endl << "---------" << endl;
                 defaultBody = " {}";
             } else {
                 if (methodDecl->isCopyAssignmentOperator()) {
-                    //cout << "Defaulted copy operator: " << toSting(methodDecl, f_context) << endl << "---------" << endl;
+                    //cout << "Defaulted copy operator: " << toString(methodDecl, f_context) << endl << "---------" << endl;
                     defaultBody = " {\n"; //TODO unnecessary duplication
                     for (auto it = baseClass->field_begin(); it != baseClass->field_end(); it++) {
                         string fieldCopy = "this->" + (*it)->getNameAsString() + " = " +
@@ -83,7 +83,7 @@ namespace cpp14regress {
                     }
                     defaultBody += "}\n";
                 } else if (methodDecl->isMoveAssignmentOperator()) {
-                    //cout << "Defaulted move operator: " << toSting(methodDecl, f_context) << endl << "---------" << endl;
+                    //cout << "Defaulted move operator: " << toString(methodDecl, f_context) << endl << "---------" << endl;
                     //TODO
                 }
             }

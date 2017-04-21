@@ -25,6 +25,7 @@ add_clang_library(Cpp14Regress
         ./src/constuctor_delegation.cpp
         ./src/raw_string.cpp
         ./src/implict_sizeof.cpp
+        ./src/digit_separators.cpp
 
         LINK_LIBS
         clangAST

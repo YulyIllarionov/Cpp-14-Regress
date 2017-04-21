@@ -46,7 +46,7 @@ namespace cpp14regress {
     };
 
     template<typename T>
-    std::string toSting(T *source, clang::ASTContext *context) { //TODO fix name
+    std::string toString(T *source, clang::ASTContext *context) { //TODO fix name
         const clang::SourceManager &sm = context->getSourceManager();
         const clang::LangOptions &lo = context->getLangOpts();
         clang::SourceLocation b(source->getLocStart()), _e(source->getLocEnd());
