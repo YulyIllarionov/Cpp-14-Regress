@@ -49,6 +49,7 @@ set(HEADER_FILES
         ${CPP14REGRESS_INCLUDE_DIR}/implict_sizeof.h
         ${CPP14REGRESS_INCLUDE_DIR}/digit_separators.h
         ${CPP14REGRESS_INCLUDE_DIR}/alias_type.h
+        ${CPP14REGRESS_INCLUDE_DIR}/uniform_initialization.h
         )
 
 set(SOURCE_FILES
@@ -67,6 +68,7 @@ set(SOURCE_FILES
         ${CPP14REGRESS_SOURCE_DIR}/implict_sizeof.cpp
         ${CPP14REGRESS_SOURCE_DIR}/digit_separators.cpp
         ${CPP14REGRESS_SOURCE_DIR}/alias_type.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/uniform_initialization.cpp
         #tool main.cpp
         ./cpp14regress/tool/main.cpp
         #clang sources

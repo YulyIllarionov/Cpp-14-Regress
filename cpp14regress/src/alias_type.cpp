@@ -67,7 +67,6 @@ namespace cpp14regress {
             } else {
                 oldTypedef += toString(aliasTypeDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange(),
                                        f_context);
-                cout << oldTypedef << endl;
                 oldTypedef += " ";
                 oldTypedef += synonym;
             }

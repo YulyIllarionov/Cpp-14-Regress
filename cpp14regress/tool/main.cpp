@@ -32,6 +32,7 @@
 #include "implict_sizeof.h"
 #include "digit_separators.h"
 #include "alias_type.h"
+#include "uniform_initialization.h"
 
 using namespace std;
 using namespace clang;
@@ -44,7 +45,7 @@ static cl::OptionCategory MyToolCategory("");
 
 //TODO спросить про отображние стека вызовов
 
-typedef AliasTypeReplacer ToolType;
+typedef UniformInitReplacer ToolType;
 
 int main(int argc, const char **argv) {
 

@@ -15,6 +15,7 @@ add_clang_library(Cpp14scanner
         )
 
 add_clang_library(Cpp14Regress
+        ./src/ast_to_dot.cpp
         ./src/base_types.cpp
         ./src/utils.cpp
         ./src/range_based_for.cpp
@@ -27,6 +28,7 @@ add_clang_library(Cpp14Regress
         ./src/implict_sizeof.cpp
         ./src/digit_separators.cpp
         ./src/alias_type.cpp
+        ./src/uniform_initialization.cpp
 
         LINK_LIBS
         clangAST
