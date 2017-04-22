@@ -51,9 +51,10 @@ namespace cpp14regress {
         const clang::LangOptions &lo = context->getLangOpts();
         clang::SourceLocation b(source->getLocStart()), _e(source->getLocEnd());
         clang::SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, sm, lo));
-        return std::string(sm.getCharacterData(b),
-                           sm.getCharacterData(e) - sm.getCharacterData(b));
+        return std::string(sm.getCharacterData(b), sm.getCharacterData(e)); //TODO check
     }
+
+    std::string toString(clang::SourceRange sr, clang::ASTContext *context);
 
     template<typename T>
     inline bool inProcessedFile(T *source, clang::ASTContext *context) {

@@ -26,6 +26,7 @@ add_clang_library(Cpp14Regress
         ./src/raw_string.cpp
         ./src/implict_sizeof.cpp
         ./src/digit_separators.cpp
+        ./src/alias_type.cpp
 
         LINK_LIBS
         clangAST

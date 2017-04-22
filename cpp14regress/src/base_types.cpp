@@ -74,7 +74,8 @@ namespace cpp14regress {
                 "alignas specifier",
                 "attributes",
                 "variable templates",
-                "digit separators"
+                "digit separators",
+                "binary literals"
         };
         return string(features[(size_t) f - (size_t) cpp14features::begin]);
     }

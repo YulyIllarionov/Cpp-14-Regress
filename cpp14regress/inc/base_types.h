@@ -56,7 +56,7 @@ namespace cpp14regress {
         enum_class, //found
         right_angle_bracket, //?
         alias_template, //found
-        alias_type, //found
+        alias_type, //found     cured
         unrestricted_unions, //found //boost::variant или placement-new
         variadic_templates, //found
         raw_string_literals, //found    cured
@@ -69,7 +69,8 @@ namespace cpp14regress {
         alignas_specifier, //found
         attributes, //?
         variable_templates, //found
-        digit_separators, //found
+        digit_separators, //found   cured
+        binary_literals,
         end
     };
 

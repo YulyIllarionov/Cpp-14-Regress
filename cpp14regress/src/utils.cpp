@@ -30,6 +30,15 @@ namespace cpp14regress {
         return string(w.ws_col, c);
     }
 
+    string toString(SourceRange sr, ASTContext *context) {
+        const SourceManager &sm = context->getSourceManager();
+        const LangOptions &lo = context->getLangOpts();
+        const char *b = sm.getCharacterData(sr.getBegin());
+        const char *e = sm.getCharacterData(
+                Lexer::getLocForEndOfToken(sr.getEnd(), 0, sm, lo));
+        return std::string(b, e);
+    }
+
     bool RecursiveVariableReplacer::VisitDeclRefExpr(DeclRefExpr *dre) {
         if (dre->getDecl()->getNameAsString() == f_variable->getNameAsString()) {
             f_rewriter->ReplaceText(SourceRange(dre->getLocStart(),

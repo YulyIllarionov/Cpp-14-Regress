@@ -31,6 +31,7 @@
 #include "raw_string.h"
 #include "implict_sizeof.h"
 #include "digit_separators.h"
+#include "alias_type.h"
 
 using namespace std;
 using namespace clang;
@@ -42,6 +43,8 @@ using namespace cpp14regress;
 static cl::OptionCategory MyToolCategory("");
 
 //TODO спросить про отображние стека вызовов
+
+typedef AliasTypeReplacer ToolType;
 
 int main(int argc, const char **argv) {
 
@@ -88,7 +91,7 @@ int main(int argc, const char **argv) {
         cout << console_hline() << endl;
         cout << "Press enter to continue";
         getchar();
-        Cpp14RegressFrontendActionFactory<DigitSeparatorReplacer> factory(&stat, &dg);
+        Cpp14RegressFrontendActionFactory<ToolType> factory(&stat, &dg);
         result = Tool.run(&factory);
     } else {
         cout << "Running tool from compilation database" << endl;
@@ -104,7 +107,7 @@ int main(int argc, const char **argv) {
         cout << console_hline() << endl;
         cout << "Press enter to continue" << endl;
         getchar();
-        Cpp14RegressFrontendActionFactory<DigitSeparatorReplacer> factory(&stat, &dg);
+        Cpp14RegressFrontendActionFactory<ToolType> factory(&stat, &dg);
         result = Tool.run(&factory);
     }
 

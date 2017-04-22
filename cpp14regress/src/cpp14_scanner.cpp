@@ -98,7 +98,7 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitCXXConstructorDecl(clang::CXXConstructorDecl *constructorDecl) {
         if (!inProcessedFile(constructorDecl, f_context))
             return true;
-        if (constructorDecl->isExplicitSpecified())
+        if (constructorDecl->isExplicitSpecified()) //TODO remove from constructor
             f_stat->push(cpp14features::explicit_specifier, constructorDecl->getLocStart());
         if (constructorDecl->isDelegatingConstructor())
             f_stat->push(cpp14features::constuctor_delegation, constructorDecl->getLocStart());
