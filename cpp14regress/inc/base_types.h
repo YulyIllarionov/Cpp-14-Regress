@@ -47,7 +47,7 @@ namespace cpp14regress {
         final_specifier, //found
         explicit_specifier, //found
         initializer_list, //?
-        uniform_initialization, //?
+        uniform_initialization, //found     cured
         range_based_for, //found    cured
         lambda_function, //found    cured
         alternative_function_syntax, //found
@@ -70,7 +70,8 @@ namespace cpp14regress {
         attributes, //?
         variable_templates, //found
         digit_separators, //found   cured
-        binary_literals,
+        binary_literals, //found
+        inclass_init, //found   //cured
         end
     };
 

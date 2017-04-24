@@ -33,6 +33,8 @@
 #include "digit_separators.h"
 #include "alias_type.h"
 #include "uniform_initialization.h"
+#include "explicit_conversion.h"
+#include "in_class_init.h"
 
 using namespace std;
 using namespace clang;
@@ -43,9 +45,7 @@ using namespace cpp14regress;
 
 static cl::OptionCategory MyToolCategory("");
 
-//TODO спросить про отображние стека вызовов
-
-typedef UniformInitReplacer ToolType;
+typedef MemberInitReplacer ToolType;
 
 int main(int argc, const char **argv) {
 

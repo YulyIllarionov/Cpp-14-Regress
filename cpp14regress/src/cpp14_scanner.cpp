@@ -98,8 +98,6 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitCXXConstructorDecl(clang::CXXConstructorDecl *constructorDecl) {
         if (!inProcessedFile(constructorDecl, f_context))
             return true;
-        if (constructorDecl->isExplicitSpecified()) //TODO remove from constructor
-            f_stat->push(cpp14features::explicit_specifier, constructorDecl->getLocStart());
         if (constructorDecl->isDelegatingConstructor())
             f_stat->push(cpp14features::constuctor_delegation, constructorDecl->getLocStart());
         return true;
@@ -170,6 +168,13 @@ namespace cpp14regress {
         if (i.find('\'') != string::npos) { //TODO need fix
             f_stat->push(cpp14features::digit_separators, literal->getLocStart());
             //cout << "Integer with separators: " << i << endl;
+        }
+        if (i.size() > 2) {  //TODO change to NumericLiteralParser
+            if ((i[1] == 'b') || (i[1] == 'B')) {
+                f_stat->push(cpp14features::binary_literals, literal->getLocStart());
+                cout << "Binary literal: " << i << " -- "
+                     << literal->getLocation().printToString(f_context->getSourceManager()) << endl;
+            }
         }
         return true;
     }

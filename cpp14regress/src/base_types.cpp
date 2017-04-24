@@ -75,7 +75,8 @@ namespace cpp14regress {
                 "attributes",
                 "variable templates",
                 "digit separators",
-                "binary literals"
+                "binary literals",
+                "inclass init"
         };
         return string(features[(size_t) f - (size_t) cpp14features::begin]);
     }

@@ -29,11 +29,7 @@ namespace cpp14regress {
         clang::Rewriter *f_rewriter;
         cpp14features_stat *f_stat;
         DirectoryGenerator *f_dg;
-
-        std::string initFunName(const clang::CXXConstructorDecl *ctr);
-
-        std::string initFunCall(const clang::CXXConstructorDecl *delegating);
-
+        
     public:
         explicit UniformInitReplacer(clang::ASTContext *context,
                                      cpp14features_stat *stat, DirectoryGenerator *dg);
@@ -45,15 +41,37 @@ namespace cpp14regress {
 
 
     class StdListInitSearcher : public clang::RecursiveASTVisitor<StdListInitSearcher> {
+    private:
+
+        bool f_found = false;
+
     public:
-        bool found = false;
 
         StdListInitSearcher() {}
 
         virtual bool VisitCXXStdInitializerListExpr(clang::CXXStdInitializerListExpr *list) {
-            found = true;
+            f_found = true;
             return false;
         }
+
+        bool found() { return f_found; }
+    };
+
+    class ListInitSearcher : public clang::RecursiveASTVisitor<ListInitSearcher> {
+    private:
+
+        bool f_found = false;
+
+    public:
+
+        ListInitSearcher() {}
+
+        virtual bool VisitInitListExpr(clang::InitListExpr *list) {
+            f_found = true;
+            return false;
+        }
+
+        bool found() { return f_found; }
     };
 }
 

@@ -26,11 +26,12 @@ namespace cpp14regress {
     private:
         clang::ASTContext *f_context;
         cpp14features_stat *f_stat;
+        DirectoryGenerator *f_dg;
 
     public:
 
-        Cpp14scanner(clang::ASTContext *context, cpp14features_stat *stat)
-                : f_context(context), f_stat(stat) {}
+        Cpp14scanner(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg)
+                : f_context(context), f_stat(stat), f_dg(dg) {}
 
         virtual void EndFileAction() {};
 
@@ -117,7 +118,6 @@ namespace cpp14regress {
         virtual bool VisitValueDecl(clang::ValueDecl *valueDecl);
 
         virtual bool VisitFieldDecl(clang::FieldDecl *fieldDecl);
-
 
 
     };

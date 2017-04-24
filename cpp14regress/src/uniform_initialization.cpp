@@ -51,10 +51,9 @@ namespace cpp14regress {
             return true;
         if (varDecl->hasInit()) {
             if (varDecl->getInitStyle() == VarDecl::InitializationStyle::ListInit) {
-
                 StdListInitSearcher *searcher = new StdListInitSearcher();
                 searcher->TraverseStmt(varDecl->getInit());
-                if (!(searcher->found)) {
+                if (!(searcher->found())) {
                     Expr *init = varDecl->getInit();
                     SourceRange braceRange;
                     if (auto ce = dyn_cast<CXXConstructExpr>(init)) {
@@ -74,6 +73,19 @@ namespace cpp14regress {
                     //static int i = 0;
                     //ast_graph ag(varDecl->getInit(), f_context);
                     //ag.to_dot_file(path + string(varDecl->getInit()->getStmtClassName()) + to_string(i++));
+                }
+            } else {
+                StdListInitSearcher *stdSearcher = new StdListInitSearcher();
+                stdSearcher->TraverseStmt(varDecl->getInit());
+                ListInitSearcher *searcher = new ListInitSearcher();
+                searcher->TraverseStmt(varDecl->getInit());
+                if ((searcher->found()) && !(stdSearcher->found())) {
+                    cout << "Non list init: " << toString(varDecl, f_context) << " -- "
+                         << varDecl->getLocation().printToString(f_context->getSourceManager())
+                         << endl << console_hline('_') << endl;
+                    static string path = "/home/yury/llvm-clang/test/dot/";
+                    ast_graph ag(varDecl->getInit(), f_context);
+                    ag.to_dot_file(path + toString(varDecl, f_context).substr(0, 50));
                 }
             }
         }

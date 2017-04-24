@@ -29,6 +29,8 @@ add_clang_library(Cpp14Regress
         ./src/digit_separators.cpp
         ./src/alias_type.cpp
         ./src/uniform_initialization.cpp
+        ./src/explicit_conversion.cpp
+        ./src/in_class_init.cpp
 
         LINK_LIBS
         clangAST
