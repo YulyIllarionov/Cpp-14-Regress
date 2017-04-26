@@ -23,10 +23,23 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    AutoReplacer::AutoReplacer(ASTContext *context, cpp14features_stat *stat)
-            : f_context(context), f_stat(stat) {
+    AutoReplacer::AutoReplacer(ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg)
+            : f_context(context), f_stat(stat), f_dg(dg) {
         f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
                                   context->getLangOpts());
+    }
+
+    void AutoReplacer::EndFileAction() {
+        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
+            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
+            string file = f_dg->getFile(entry->getName());
+            std::error_code ec;
+            sys::fs::remove(Twine(file));
+            raw_fd_ostream rfo(StringRef(file), ec, sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
+            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
+            i->second.write(rfo);
+        }
+        //f_rewriter->overwriteChangedFiles();
     }
 
     bool AutoReplacer::VisitDeclaratorDecl(DeclaratorDecl *declaratorDecl) {

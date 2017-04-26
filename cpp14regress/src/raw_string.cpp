@@ -61,7 +61,10 @@ namespace cpp14regress {
                         i++;
                     }
                 }
-                cout << raw << endl;
+                //cout << raw << endl;
+                raw.insert(0,"\"");
+                raw += "\"";
+                f_rewriter->ReplaceText(literal->getSourceRange(), raw);
             }
         }
         return true;

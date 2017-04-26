@@ -17,35 +17,51 @@
 #include "clang/AST/ParentMap.h"
 
 #include "utils.h"
+#include "base_types.h"
 #include <string>
 
 namespace cpp14regress {
 
-    class VariableToPointer : public StringGenerator{
+    class VariableToPointer : public StringGenerator {
     private:
-        clang::ValueDecl* f_variable;
+        clang::ValueDecl *f_variable;
     public:
-        VariableToPointer(clang::ValueDecl* variable_) : f_variable(variable_) {}
+        VariableToPointer(clang::ValueDecl *variable_)
+                : f_variable(variable_) {}
+
         virtual std::string toString();
     };
 
-    class VariableToArrayElement : public StringGenerator{
+    class VariableToArrayElement : public StringGenerator {
     private:
-        clang::ValueDecl* f_variable;
-        clang::ValueDecl* f_array;
+        clang::ValueDecl *f_variable;
+        clang::ValueDecl *f_array;
     public:
-        VariableToArrayElement(clang::ValueDecl* variable_, clang::ValueDecl* array_) :
+        VariableToArrayElement(clang::ValueDecl *variable_,
+                               clang::ValueDecl *array_) :
                 f_variable(variable_), f_array(array_) {}
+
         virtual std::string toString();
     };
 
-    class RangeBasedForReplacer: public clang::RecursiveASTVisitor<RangeBasedForReplacer> {
+    class RangeBasedForReplacer
+            : public clang::RecursiveASTVisitor<RangeBasedForReplacer> {
     private:
+        clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
+        cpp14features_stat *f_stat;
+        DirectoryGenerator *f_dg;
 
     public:
-        explicit RangeBasedForReplacer(clang::ASTContext *context);
-        virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *for_loop);
+        explicit RangeBasedForReplacer(
+                clang::ASTContext *context,
+                cpp14features_stat *stat,
+                DirectoryGenerator *dg);
+
+        virtual void EndFileAction();
+
+        virtual bool VisitCXXForRangeStmt(
+                clang::CXXForRangeStmt *for_loop);
     };
 }
 

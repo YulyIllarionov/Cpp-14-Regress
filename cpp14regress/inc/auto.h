@@ -26,11 +26,12 @@ namespace cpp14regress {
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
         cpp14features_stat *f_stat;
+        DirectoryGenerator *f_dg;
 
     public:
-        explicit AutoReplacer(clang::ASTContext *context, cpp14features_stat *stat);
+        explicit AutoReplacer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg);
 
-        virtual void EndFileAction() { f_rewriter->overwriteChangedFiles(); } //TODO add check
+        virtual void EndFileAction();
 
         virtual bool VisitDeclaratorDecl(clang::DeclaratorDecl *declaratorDecl);
         //TODO Structured binding declaration

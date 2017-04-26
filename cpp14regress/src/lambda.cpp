@@ -142,19 +142,22 @@ namespace cpp14regress {
         //Lambda class operator() body
         header << toString(lambda->getBody(), f_context) << endl;
         header << "};" << endl;
-        //header.flush();
-        //ofstream header_file;
-        //static bool first = true;
-        //if (first) {
-        //    header_file.open(f_header_path);
-        //    first = false;
-        //}
-        //else
-        //    header_file.open(f_header_path, fstream::app);
-        //if (!header_file.is_open()) {
-        //    cerr << "Can not open " << f_header_path << " file" << endl;
-        //    return false;
-        //}
+        header.flush();
+        ofstream header_file;
+        static bool first = true;
+        if (first) {
+            header_file.open(f_header_path);
+            first = false;
+        }
+        else
+            header_file.open(f_header_path, fstream::app);
+        if (!header_file.is_open()) {
+            cerr << "Can not open " << f_header_path << " file" << endl;
+            return false;
+        }
+        header_file << header.str() << endl;
+        header_file.close();
+
         //cout << console_hline('-') << endl << header.str() << console_hline('.') << endl;
 //
         //for (auto it = lambda->capture_init_begin(); it != lambda->capture_init_end(); it++) {

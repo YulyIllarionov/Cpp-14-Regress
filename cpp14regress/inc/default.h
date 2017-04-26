@@ -24,11 +24,11 @@ namespace cpp14regress {
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
         cpp14features_stat *f_stat;
+        DirectoryGenerator *f_dg;
+public:
+        explicit DefaultKeywordReplacer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg);
 
-    public:
-        explicit DefaultKeywordReplacer(clang::ASTContext *context, cpp14features_stat *stat);
-
-        virtual void EndFileAction() { f_rewriter->overwriteChangedFiles(); }
+        virtual void EndFileAction();
 
         virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl);
     };

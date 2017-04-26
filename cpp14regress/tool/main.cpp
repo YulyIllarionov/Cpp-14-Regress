@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 #include <cstdarg>
+#include <clang/Sema/Ownership.h>
 
 #include "base_types.h"
 #include "utils.h"
@@ -35,6 +36,7 @@
 #include "uniform_initialization.h"
 #include "explicit_conversion.h"
 #include "in_class_init.h"
+#include "range_based_for.h"
 
 using namespace std;
 using namespace clang;
@@ -45,7 +47,7 @@ using namespace cpp14regress;
 
 static cl::OptionCategory MyToolCategory("");
 
-typedef MemberInitReplacer ToolType;
+typedef ImplictSizeofReplacer ToolType;
 
 int main(int argc, const char **argv) {
 

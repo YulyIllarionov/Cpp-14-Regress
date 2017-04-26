@@ -22,6 +22,7 @@ namespace cpp14regress {
 
     using namespace std;
     using namespace clang;
+    using namespace llvm;
 
     string VariableToPointer::toString() {
         return string("(*" + f_variable->getNameAsString() + ")");
@@ -31,9 +32,23 @@ namespace cpp14regress {
         return string(f_array->getNameAsString() + "[" + f_variable->getNameAsString() + "]");
     }
 
-    RangeBasedForReplacer::RangeBasedForReplacer(ASTContext *context) {
-        f_rewriter = new Rewriter(context->getSourceManager(),
+    RangeBasedForReplacer::RangeBasedForReplacer(ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg)
+            : f_context(context), f_stat(stat), f_dg(dg) {
+        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
                                   context->getLangOpts());
+    }
+
+    void RangeBasedForReplacer::EndFileAction() {
+        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
+            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
+            string file = f_dg->getFile(entry->getName());
+            std::error_code ec;
+            sys::fs::remove(Twine(file));
+            raw_fd_ostream rfo(StringRef(file), ec, sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
+            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
+            i->second.write(rfo);
+        }
+        //f_rewriter->overwriteChangedFiles();
     }
 
     bool RangeBasedForReplacer::VisitCXXForRangeStmt(CXXForRangeStmt *for_loop) {
@@ -59,7 +74,6 @@ namespace cpp14regress {
 
         RecursiveVariableReplacer *replacer = new RecursiveVariableReplacer(itVar, sg, f_rewriter);
         replacer->TraverseStmt(for_loop->getBody());
-        f_rewriter->overwriteChangedFiles(); //TODO после обработки всех циклов
         return true;
     }
 

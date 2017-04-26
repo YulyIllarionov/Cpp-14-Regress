@@ -45,7 +45,7 @@ namespace cpp14regress {
         delete_keyword, //found
         override_specifier, //found
         final_specifier, //found
-        explicit_specifier, //found
+        explicit_specifier, //found     cured
         initializer_list, //?
         uniform_initialization, //found     cured
         range_based_for, //found    cured
