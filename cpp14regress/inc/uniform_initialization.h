@@ -37,6 +37,8 @@ namespace cpp14regress {
         virtual void EndFileAction();
 
         virtual bool VisitVarDecl(clang::VarDecl *varDecl);
+
+        virtual bool VisitCXXConstructExpr(clang::CXXConstructExpr *constructExpr);
     };
 
 

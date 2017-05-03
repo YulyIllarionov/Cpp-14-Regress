@@ -1,5 +1,5 @@
-#ifndef CPP14REGRESS_AUTO_H
-#define CPP14REGRESS_AUTO_H
+#ifndef CPP14REGRESS_USER_LITERALS_H
+#define CPP14REGRESS_USER_LITERALS_H
 
 #include "clang/Driver/Options.h"
 #include "clang/AST/AST.h"
@@ -17,11 +17,13 @@
 #include "clang/AST/ParentMap.h"
 
 #include "base_types.h"
-#include "utils.h"
+
+#include <iostream>
+#include <string>
 
 namespace cpp14regress {
 
-    class AutoReplacer : public clang::RecursiveASTVisitor<AutoReplacer> {
+    class UserLiteralReplacer : public clang::RecursiveASTVisitor<UserLiteralReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -29,17 +31,16 @@ namespace cpp14regress {
         DirectoryGenerator *f_dg;
 
     public:
-        explicit AutoReplacer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg);
+        explicit UserLiteralReplacer(clang::ASTContext *context,
+                                     cpp14features_stat *stat, DirectoryGenerator *dg);
 
         virtual void EndFileAction();
 
-        virtual bool VisitVarDecl(clang::VarDecl *declaratorDecl);
+        virtual bool VisitFunctionDecl(clang::FunctionDecl *funcDecl);
 
-        virtual bool VisitFunctionDecl(clang::FunctionDecl *fun);
-        //TODO Structured binding declaration
-        //TODO template parameter
-        //TODO nested-name-specifie
+        virtual bool VisitUserDefinedLiteral(clang::UserDefinedLiteral *literal);
     };
+
 }
 
-#endif /*CPP14REGRESS_AUTO_H*/
+#endif /*CPP14REGRESS_USER_LITERALS_H*/

@@ -66,7 +66,9 @@ namespace cpp14regress {
         }
         if (functionDecl->getType().getAsString().find("->") != string::npos) //TODO need fix
         {
-            //cout << "Alternate syntax: " << functionDecl->getLocStart().printToString(f_context->getSourceManager()) << endl;
+            cout << "Alternate syntax: "
+                 << functionDecl->getLocStart().printToString(f_context->getSourceManager())
+                 << " -- " << functionDecl->getType()->getTypeClassName() << endl;
             f_stat->push(cpp14features::alternative_function_syntax, functionDecl->getLocStart());
         }
         return true;
@@ -229,7 +231,8 @@ namespace cpp14regress {
         return true;
     }
 
-    bool Cpp14scanner::VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *sizeofOrAlignof) {
+    bool
+    Cpp14scanner::VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *sizeofOrAlignof) {
         if (!inProcessedFile(sizeofOrAlignof, f_context))
             return true;
         if (sizeofOrAlignof->getKind() == UnaryExprOrTypeTrait::UETT_SizeOf) {
@@ -247,7 +250,8 @@ namespace cpp14regress {
                              clang::NestedNameSpecifier::SpecifierKind::TypeSpecWithTemplate)) {
                             //cout << "sizeof: " << toString(sizeofOrAlignof->getArgumentExpr(), f_context)
                             //     << " is implict" << endl;
-                            f_stat->push(cpp14features::implict_sizeof, sizeofOrAlignof->getLocStart());
+                            f_stat->push(cpp14features::implict_sizeof,
+                                         sizeofOrAlignof->getLocStart());
                         }
                     }
                 }
@@ -259,7 +263,8 @@ namespace cpp14regress {
         return true;
     }
 
-    bool Cpp14scanner::VisitRedeclarableTemplateDecl(clang::RedeclarableTemplateDecl *templateDecl) {
+    bool
+    Cpp14scanner::VisitRedeclarableTemplateDecl(clang::RedeclarableTemplateDecl *templateDecl) {
         if (!inProcessedFile(templateDecl, f_context))
             return true;
         TemplateParameterList *tps = templateDecl->getTemplateParameters();
@@ -348,7 +353,8 @@ namespace cpp14regress {
             arg = parenExpr->getSubExpr();
         if (isa<InitListExpr>(arg)) {
             cout << "Uniform cast: " << toString(castExpr, f_context) << endl;
-            f_stat->push(cpp14features::uniform_initialization, castExpr->getSubExpr()->getLocStart());
+            f_stat->push(cpp14features::uniform_initialization,
+                         castExpr->getSubExpr()->getLocStart());
         }
         return true;
     }

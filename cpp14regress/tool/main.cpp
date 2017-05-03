@@ -37,6 +37,8 @@
 #include "explicit_conversion.h"
 #include "in_class_init.h"
 #include "range_based_for.h"
+#include "strongly_typed_enum.h"
+#include "user_literals.h"
 
 using namespace std;
 using namespace clang;
@@ -47,7 +49,7 @@ using namespace cpp14regress;
 
 static cl::OptionCategory MyToolCategory("");
 
-typedef ImplictSizeofReplacer ToolType;
+typedef UniformInitReplacer ToolType;
 
 int main(int argc, const char **argv) {
 

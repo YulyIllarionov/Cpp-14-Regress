@@ -91,4 +91,12 @@ namespace cpp14regress {
         }
         return true;
     }
+
+    bool UniformInitReplacer::VisitCXXConstructExpr(clang::CXXConstructExpr *constructExpr) {
+        if (!inProcessedFile(constructExpr, f_context))
+            return true;
+        if (constructExpr->isListInitialization())
+            cout << "List constructor: " << toString(constructExpr, f_context) << endl;
+        return true;
+    }
 }
