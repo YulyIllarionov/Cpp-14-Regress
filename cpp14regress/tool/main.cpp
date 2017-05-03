@@ -39,6 +39,7 @@
 #include "range_based_for.h"
 #include "strongly_typed_enum.h"
 #include "user_literals.h"
+#include "final.h"
 
 using namespace std;
 using namespace clang;
@@ -49,7 +50,7 @@ using namespace cpp14regress;
 
 static cl::OptionCategory MyToolCategory("");
 
-typedef UniformInitReplacer ToolType;
+typedef FinalReplacer ToolType;
 
 int main(int argc, const char **argv) {
 

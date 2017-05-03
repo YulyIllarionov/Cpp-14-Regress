@@ -368,12 +368,12 @@ namespace cpp14regress {
     }
 
     bool Cpp14scanner::VisitValueDecl(clang::ValueDecl *valueDecl) {
-        if (!inProcessedFile(valueDecl, f_context))
-            return true;
+        //if (!inProcessedFile(valueDecl, f_context))
+        //    return true;
         for (auto it = valueDecl->attr_begin(); it != valueDecl->attr_end(); it++) {
             if ((*it)->getKind() == attr::Kind::Aligned) {
-                //cout << "Attr: " << toString(valueDecl, f_context) << endl;
-                f_stat->push(cpp14features::alignas_specifier, valueDecl->getLocStart());
+                cout << "Attr: " << toString(valueDecl, f_context) << endl;
+                //f_stat->push(cpp14features::alignas_specifier, valueDecl->getLocStart());
             }
         }
         return true;
@@ -401,24 +401,14 @@ namespace cpp14regress {
     //    return true;
     //}
 
-    //bool Cpp14scanner::VisitAttr(clang::Attr *attr) {
-    //    if (attr->getLocation().isValid())
-    //        if (f_context->getSourceManager().getFileCharacteristic(attr->getLocation()) !=
-    //            clang::SrcMgr::CharacteristicKind::C_User)
-    //            return true;
-//
-    //    if (attr->getKind() == attr::Kind::Aligned)
-    //        cout << "Attr: "
-    //             << std::string(f_context->getSourceManager().getCharacterData(attr->getRange().getBegin()),
-    //                            f_context->getSourceManager().getCharacterData(
-    //                                    SourceLocation(Lexer::getLocForEndOfToken(
-    //                                            attr->getRange().getEnd(), 0, f_context->getSourceManager(),
-    //                                            f_context->getLangOpts()))) -
-    //                            f_context->getSourceManager().getCharacterData(attr->getRange().getBegin()))
-    //             << endl;
-//
-//
-    //    return true;
-    //}
+    bool Cpp14scanner::VisitAttr(clang::Attr *attr) {
+        if (attr->getRange().isValid()) {
+            if (f_context->getSourceManager().getFileCharacteristic(attr->getLocation()) !=
+                clang::SrcMgr::CharacteristicKind::C_User)
+                return true;
+            cout << "Attribute: " << toString(attr->getRange(), f_context) << endl;
+        }
+        return true;
+    }
 
 }

@@ -33,6 +33,7 @@ add_clang_library(Cpp14Regress
         ./src/in_class_init.cpp
         ./src/strongly_typed_enum.cpp
         ./src/user_literals.cpp
+        ./src/final.cpp
 
         LINK_LIBS
         clangAST

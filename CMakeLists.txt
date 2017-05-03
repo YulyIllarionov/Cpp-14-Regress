@@ -54,6 +54,7 @@ set(HEADER_FILES
         ${CPP14REGRESS_INCLUDE_DIR}/in_class_init.h
         ${CPP14REGRESS_INCLUDE_DIR}/strongly_typed_enum.h
         ${CPP14REGRESS_INCLUDE_DIR}/user_literals.h
+        ${CPP14REGRESS_INCLUDE_DIR}/final.h
         )
 
 set(SOURCE_FILES
@@ -77,6 +78,7 @@ set(SOURCE_FILES
         ${CPP14REGRESS_SOURCE_DIR}/in_class_init.cpp
         ${CPP14REGRESS_SOURCE_DIR}/strongly_typed_enum.cpp
         ${CPP14REGRESS_SOURCE_DIR}/user_literals.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/final.cpp
         #tool main.cpp
         ./cpp14regress/tool/main.cpp
         #clang sources

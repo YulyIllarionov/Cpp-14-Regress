@@ -114,7 +114,8 @@ namespace cpp14regress {
         //user_defined_literals //TODO
         //virtual bool VisitUserDefinedLiteral (clang::UserDefinedLiteral* userDefinedLiteral);
 
-        //virtual bool VisitAttr(clang::Attr* a);
+        virtual bool VisitAttr(clang::Attr* a);
+
         virtual bool VisitValueDecl(clang::ValueDecl *valueDecl);
 
         virtual bool VisitFieldDecl(clang::FieldDecl *fieldDecl);

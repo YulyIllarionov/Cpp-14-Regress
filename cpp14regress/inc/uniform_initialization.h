@@ -39,6 +39,10 @@ namespace cpp14regress {
         virtual bool VisitVarDecl(clang::VarDecl *varDecl);
 
         virtual bool VisitCXXConstructExpr(clang::CXXConstructExpr *constructExpr);
+
+        virtual bool VisitCXXScalarValueInitExpr(clang::CXXScalarValueInitExpr *scalarInitExpr);
+
+        virtual bool VisitInitListExpr(clang::InitListExpr *initListExpr);
     };
 
 
