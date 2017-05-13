@@ -40,6 +40,7 @@
 #include "strongly_typed_enum.h"
 #include "user_literals.h"
 #include "final.h"
+#include "file_preparator.h"
 
 using namespace std;
 using namespace clang;
@@ -50,7 +51,7 @@ using namespace cpp14regress;
 
 static cl::OptionCategory MyToolCategory("");
 
-typedef FinalReplacer ToolType;
+typedef FilesPreparator ToolType;
 
 int main(int argc, const char **argv) {
 

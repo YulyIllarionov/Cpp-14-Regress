@@ -14,6 +14,7 @@
 #include "clang/AST/ParentMap.h"
 
 #include "base_types.h"
+#include <iostream>
 
 namespace cpp14regress {
 
@@ -80,5 +81,23 @@ namespace cpp14regress {
         };
         return string(features[(size_t) f - (size_t) cpp14features::begin]);
     }
+
+    FeatureReplacer::FeatureReplacer(ASTContext *context, cpp14features_stat *stat,
+                               DirectoryGenerator *dg)
+            : f_context(context), f_stat(stat), f_dg(dg) {
+        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
+                                  context->getLangOpts());
+    }
+
+
+    bool VarReplacer::VisitVarDecl(VarDecl *varDecl) {
+        if (!inProcessedFile(varDecl, f_context))
+            return true;
+        cout << toString(varDecl, f_context) << endl;
+        return true;
+    }
+
+
+
 
 }

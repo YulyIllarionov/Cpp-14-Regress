@@ -16,7 +16,7 @@ include_directories(
         ${CPP14REGRESS_IDE_CLANG_INCLUDE_DIR}
         ${CPP14REGRESS_IDE_LLVM_INCLUDE_DIR}
         ${CPP14REGRESS_INCLUDE_DIR}
-        )
+)
 
 set(HEADER_FILES
         #clang includes
@@ -55,6 +55,7 @@ set(HEADER_FILES
         ${CPP14REGRESS_INCLUDE_DIR}/strongly_typed_enum.h
         ${CPP14REGRESS_INCLUDE_DIR}/user_literals.h
         ${CPP14REGRESS_INCLUDE_DIR}/final.h
+        ${CPP14REGRESS_INCLUDE_DIR}/file_preparator.h
         )
 
 set(SOURCE_FILES
@@ -79,6 +80,7 @@ set(SOURCE_FILES
         ${CPP14REGRESS_SOURCE_DIR}/strongly_typed_enum.cpp
         ${CPP14REGRESS_SOURCE_DIR}/user_literals.cpp
         ${CPP14REGRESS_SOURCE_DIR}/final.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/file_preparator.cpp
         #tool main.cpp
         ./cpp14regress/tool/main.cpp
         #clang sources

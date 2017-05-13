@@ -153,6 +153,30 @@ namespace cpp14regress {
         }
     };
 
+    class FeatureReplacer : public clang::RecursiveASTVisitor<FeatureReplacer> {
+    protected:
+        clang::ASTContext *f_context;
+        clang::Rewriter *f_rewriter;
+        cpp14features_stat *f_stat;
+        DirectoryGenerator *f_dg;
+
+    public:
+        FeatureReplacer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg);
+
+        virtual void EndFileAction() {}
+
+        virtual bool VisitVarDecl(clang::VarDecl *declaratorDecl) = 0;
+    };
+
+    class VarReplacer : public FeatureReplacer {
+    public:
+
+        VarReplacer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg) :
+                FeatureReplacer(context, stat, dg) {}
+
+        virtual bool VisitVarDecl(clang::VarDecl *declaratorDecl);
+    };
+
 }
 
 #endif /*CPP14REGRESS_BASE_TYPES_H*/

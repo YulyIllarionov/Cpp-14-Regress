@@ -73,7 +73,7 @@ namespace cpp14regress {
             oldTypedef += ";";
             SourceRange sr = aliasTypeDecl->getSourceRange();
             sr.setEnd(Lexer::getLocForEndOfToken(sr.getEnd(), 0,
-                                                 f_context->getSourceManager(), f_context->getLangOpts()));
+                                                 sm, f_context->getLangOpts()));
             f_rewriter->ReplaceText(sr, oldTypedef);
         }
         //else {
