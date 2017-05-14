@@ -30,9 +30,9 @@ namespace cpp14regress {
         return string(w.ws_col, c);
     }
 
-    string toString(SourceRange sr, ASTContext *context) {
-        const SourceManager &sm = context->getSourceManager();
-        const LangOptions &lo = context->getLangOpts();
+    string toString(SourceRange sr, const ASTContext& context) {
+        const SourceManager &sm = context.getSourceManager();
+        const LangOptions &lo = context.getLangOpts();
         const char *b = sm.getCharacterData(sr.getBegin());
         const char *e = sm.getCharacterData(
                 Lexer::getLocForEndOfToken(sr.getEnd(), 0, sm, lo));
@@ -149,5 +149,56 @@ namespace cpp14regress {
         }
         range.setEnd(sl.getLocWithOffset(-1));
         return range;
+    }
+
+    vector<string> pathToVector(std::string path) {
+        vector<string> pathVector;
+        if (path.empty())
+            return pathVector;
+        if (path.front() == '/')
+            path.erase(0, 1);
+        if (path.back() == '/')
+            path.pop_back();
+        if (path.empty())
+            return pathVector;
+        string::size_type begin = 0;
+        bool next = true;
+        while (next) {
+            string::size_type end = path.find('/', begin);
+            if (end == string::npos) {
+                next = false;
+                end = path.size();
+            }
+            pathVector.push_back(path.substr(begin, end - begin));
+            begin = ++end;
+        }
+        return pathVector;
+    }
+
+    std::string pathPopBack(std::string &path) {
+        if (path.empty())
+            return string();
+        auto last = path.end();
+        if (path.back() == '/')
+            last--;
+        auto pos = find(path.begin(), last, '/');
+        if (pos == last)
+            return string();
+        string file(last + 1, path.end());
+        path.erase(last, path.end());
+        return file;
+    }
+
+    std::string removeExtension(const std::string &path) {
+        return string(path.begin(), find(path.begin(), path.end(), '.'));
+    }
+
+    std::string asFolder(const std::string &path) {
+        if (path.empty())
+            return string();
+        string folder(path);
+        if (folder.back() != '/')
+            folder += '/';
+        return folder;
     }
 }

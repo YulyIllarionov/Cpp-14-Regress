@@ -16,11 +16,19 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
-#include <iostream>
-
 #include "utils.h"
+#include <iostream>
+#include <string>
 
 namespace cpp14regress {
+
+    //class Сommentator {
+    //public :
+//
+    //    static std::string lineComment(const std::string &text);
+//
+    //    static std::string blockComment(const std::string &text);
+    //};
 
     class DirectoryGenerator {
 
@@ -87,17 +95,99 @@ namespace cpp14regress {
 
         size_t size(cpp14features i) { return f_features[(int) i].size(); }
 
-        std::vector<clang::SourceLocation> &operator[](cpp14features f) { return f_features[(int) f]; }
+        std::vector<clang::SourceLocation> &
+        operator[](cpp14features f) { return f_features[(int) f]; }
 
         void push(cpp14features f, clang::SourceLocation sl) { f_features[(int) f].push_back(sl); }
 
         static std::string toString(cpp14features f);
     };
 
+
+    class FeatureReplacer : public clang::RecursiveASTVisitor<FeatureReplacer> {
+    private:
+        virtual void EndSourceFileAction();
+
+        virtual void BeginSourceFileAction();
+
+    protected:
+        clang::CompilerInstance *f_compilerInstance;
+        clang::Rewriter *f_rewriter;
+
+        inline clang::CompilerInstance *compilerInstance() { return f_compilerInstance; }
+
+        inline clang::Rewriter *rewriter() { return f_rewriter; }
+
+        inline clang::ASTContext &astContext() { return f_compilerInstance->getASTContext(); }
+
+        inline clang::SourceManager &sourceManager() {
+            return f_compilerInstance->getSourceManager();
+        }
+
+        inline clang::LangOptions &langOptions() {
+            return f_compilerInstance->getLangOpts();
+        }
+
+        virtual void endSourceFileAction() {}
+
+        virtual void beginSourceFileAction() {}
+
+    public:
+        FeatureReplacer(clang::CompilerInstance *ci);
+
+        virtual cpp14features type() = 0;
+
+        virtual bool VisitVarDecl(clang::VarDecl *declaratorDecl) = 0;
+
+        virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda) = 0;
+    };
+
+    template<typename VisitorType>
+    class FeatureReplacerASTConsumer : public clang::ASTConsumer {
+    public:
+        explicit FeatureReplacerASTConsumer(clang::CompilerInstance *ci)
+                : f_visitor(new VisitorType(ci)) {}
+
+        virtual void HandleTranslationUnit(clang::ASTContext &context) {
+            f_visitor->TraverseDecl(context.getTranslationUnitDecl());
+        }
+
+        virtual void EndSourceFileAction() { f_visitor->EndSourceFileAction(); }
+
+        virtual void BeginSourceFileAction() { f_visitor->BeginSourceFileAction(); }
+
+    private:
+        VisitorType *f_visitor;
+    };
+
+    template<typename VisitorType>
+    class FeatureReplacerFrontendAction : public clang::ASTFrontendAction {
+    public:
+
+        virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
+                                                                      llvm::StringRef file) {
+            f_consumer = new FeatureReplacerASTConsumer<VisitorType>(&CI.getASTContext());
+            return std::unique_ptr<clang::ASTConsumer>(f_consumer);
+        }
+
+        //TODO private
+        virtual void EndSourceFileAction() { f_consumer->EndSourceFileAction(); }
+
+        virtual bool BeginSourceFileAction(clang::CompilerInstance &CI, llvm::StringRef Filename) {
+            f_consumer->BeginSourceFileAction();
+            return true;
+        }
+
+    private:
+        FeatureReplacerASTConsumer<VisitorType> *f_consumer;
+    };
+
+
     template<typename VisitorType>
     class Cpp14RegressASTConsumer : public clang::ASTConsumer {
     public:
-        explicit Cpp14RegressASTConsumer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg)
+        explicit Cpp14RegressASTConsumer(clang::ASTContext *context, cpp14features_stat *stat,
+                                         DirectoryGenerator *dg)
                 : visitor(new VisitorType(context, stat, dg)) {}
 
         virtual void HandleTranslationUnit(clang::ASTContext &context) {
@@ -118,7 +208,8 @@ namespace cpp14regress {
 
         virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
                                                                       llvm::StringRef file) {
-            f_consumer = new Cpp14RegressASTConsumer<VisitorType>(&CI.getASTContext(), f_stat, f_dg);
+            f_consumer = new Cpp14RegressASTConsumer<VisitorType>(&CI.getASTContext(), f_stat,
+                                                                  f_dg);
             return std::unique_ptr<clang::ASTConsumer>(f_consumer);
         }
 
@@ -153,26 +244,12 @@ namespace cpp14regress {
         }
     };
 
-    class FeatureReplacer : public clang::RecursiveASTVisitor<FeatureReplacer> {
-    protected:
-        clang::ASTContext *f_context;
-        clang::Rewriter *f_rewriter;
-        cpp14features_stat *f_stat;
-        DirectoryGenerator *f_dg;
-
-    public:
-        FeatureReplacer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg);
-
-        virtual void EndFileAction() {}
-
-        virtual bool VisitVarDecl(clang::VarDecl *declaratorDecl) = 0;
-    };
 
     class VarReplacer : public FeatureReplacer {
     public:
 
-        VarReplacer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg) :
-                FeatureReplacer(context, stat, dg) {}
+        VarReplacer(clang::CompilerInstance *ci) :
+                FeatureReplacer(ci) {}
 
         virtual bool VisitVarDecl(clang::VarDecl *declaratorDecl);
     };

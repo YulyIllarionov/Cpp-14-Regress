@@ -28,32 +28,102 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    const string LambaClassNameGenerator::f_name = "__cpp14regress_lambda_";
-    int LambaClassNameGenerator::f_count = -1;
+    //TODO check Types
+    bool LambdaReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
+        if (fromSystemFile(lambda, astContext()))
+            return true;
 
-    string LambaClassNameGenerator::toString() {
-        return string(f_name + to_string(f_count));
+        f_header << "//Lambda at:"
+                 << lambda->getLocStart().printToString(astContext().getSourceManager()) << endl;
+
+        CXXRecordDecl *lambdaClass = lambda->getLambdaClass();
+        DenseMap<const VarDecl *, FieldDecl *> clangCaptures;
+        FieldDecl *thisField;
+        lambdaClass->getCaptureFields(clangCaptures, thisField);
+
+        //Lambda Class
+        f_header << "class " << f_lcng.generate() << " {" << endl;
+        if (lambda->capture_begin() != lambda->capture_end())
+            f_header << "private:" << endl;
+
+        //Lambda class fields
+        for (auto it = lambda->captures().begin(); it != lambda->captures().end(); it++) {
+            VarDecl *captured_var = it->getCapturedVar();
+            f_header << ((lambda->isMutable()) ? "mutable " : "")
+                     << clangCaptures[captured_var]->getType().getAsString() << " "
+                     << VariableToField(captured_var->getNameAsString()) << ";" << endl;
+        }
+
+        f_header << "public:" << endl;
+        //Lambda class constructor
+        f_header << f_lcng.toString() << " (";
+        for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
+            VarDecl *captured_var = it->getCapturedVar();
+            f_header << clangCaptures[captured_var]->getType().getAsString() << " "
+                     << captured_var->getNameAsString()
+                     << ((++it != lambda->capture_end()) ? ", " : ") : ");
+        }
+        //Lambda class constructor body
+        for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
+            VarDecl *captured_var = it->getCapturedVar();
+            f_header << VariableToField(captured_var->getNameAsString())
+                     << "(" << captured_var->getNameAsString() << ")"
+                     << ((++it != lambda->capture_end()) ? ", " : "");
+        }
+        f_header << " {}" << endl;
+
+        //Lambda class operator()
+        FunctionDecl *lambdaFunction = lambda->getCallOperator();
+        GenericTypeGenerator gtg;
+        std::vector<string> typeNames;
+        auto generics = lambda->getTemplateParameterList();
+        if (generics) {
+            f_header << "template <";
+            for (size_t i = 0; i < generics->size();) {
+                typeNames.push_back(gtg.generate());
+                f_header << "typename " << typeNames.back()
+                         << ((++i != generics->size()) ? ", " : ">");
+            }
+            f_header << endl;
+        }
+        f_header << lambdaFunction->getReturnType().getAsString(PrintingPolicy(langOptions()))
+                 << " operator() (";
+        auto tn = typeNames.begin();
+        for (size_t i = 0; i != lambdaFunction->param_size();) {
+            ParmVarDecl *parameter = lambdaFunction->getParamDecl(i);
+            f_header << ((isa<TemplateTypeParmType>(*parameter->getType())) ? *tn++ :
+                         parameter->getType().getAsString()) << " "
+                     << parameter->getQualifiedNameAsString()
+                     << ((++i != lambdaFunction->param_size()) ? ", " : "");
+        }
+        f_header << ") const ";
+        //Lambda class operator() body
+        f_header << toString(lambda->getBody(), astContext()) << endl;
+        f_header << "};" << endl;
+
+
+        return true;
     }
 
-    string LambaClassNameGenerator::generate() {
-        f_count++;
-        return toString();
+    virtual void LambdaReplacer::endSourceFileAction() {
+        string folder = asFolder(sourceManager().getFileEntryForID(
+                sourceManager().getMainFileID())->getDir()->getName());
+        std::error_code ec;
+        ofstream header(folder + f_lhng.generate());
+        if (!header.is_open()) {
+            cerr << "Can not create header \"" << folder + f_lhng.generate()
+                 << "\" for lambda" << endl;
+            return;
+        }
+        header << "#ifndef " << f_lhgg.generate() << endl
+               << "#define " << f_lhgg.toString() << endl
+               << f_header.rdbuf() << endl
+               << "#endif" << endl;
+        header.close();
     }
 
-    string LambaClassFieldNameGenerator::toString() {
-        return string("f_" + f_variable->getNameAsString());
-    }
 
-    string GenericTypeGenerator::toString() {
-        return std::string("type" + to_string(f_count));
-    }
-
-    string GenericTypeGenerator::generate() {
-        f_count++;
-        return toString();
-    }
-
-    LambdaFunctionReplacer::LambdaFunctionReplacer(ASTContext *context, cpp14features_stat *stat,
+    /*LambdaFunctionReplacer::LambdaFunctionReplacer(ASTContext *context, cpp14features_stat *stat,
                                                    DirectoryGenerator *dg)
             : f_context(context), f_stat(stat), f_dg(dg) {
         f_rewriter = new Rewriter(context->getSourceManager(),
@@ -128,7 +198,8 @@ namespace cpp14regress {
             }
             header << endl;
         }
-        header << indent << QualType::getAsString(lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
+        header << indent << QualType::getAsString(
+                lambdaFunction->getReturnType().getSplitDesugaredType())//XXX
                << " operator() (";
         auto tn = typeNames.begin();
         for (size_t i = 0; i != lambdaFunction->param_size();) {
@@ -148,8 +219,7 @@ namespace cpp14regress {
         if (first) {
             header_file.open(f_header_path);
             first = false;
-        }
-        else
+        } else
             header_file.open(f_header_path, fstream::app);
         if (!header_file.is_open()) {
             cerr << "Can not open " << f_header_path << " file" << endl;
@@ -173,6 +243,7 @@ namespace cpp14regress {
         //cout << console_hline('-') << endl;
         //header_file.close();
         return true;
-    }
+    }*/
+
 
 }

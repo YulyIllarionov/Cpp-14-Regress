@@ -20,42 +20,56 @@
 #include "utils.h"
 
 #include <string>
+#include <sstream>
 
 namespace cpp14regress {
 
-    class LambaClassNameGenerator {
-    private:
-        static const std::string f_name;
-        static int f_count;
+    class LambdaClassNameGenerator : public NameGenerator {
     public:
-        LambaClassNameGenerator() {}
-
-        static std::string toString();
-
-        static std::string generate();
+        virtual std::string toString() {
+            return std::string("__cpp14regressLambda" + std::to_string(f_count));
+        }
     };
 
-    class LambaClassFieldNameGenerator : public StringGenerator {
-    private:
-        clang::ValueDecl *f_variable;
+    class LambdaHeaderNameGenerator : public NameGenerator {
     public:
-        LambaClassFieldNameGenerator(clang::ValueDecl *variable_) : f_variable(variable_) {}
-
-        virtual std::string toString();
+        virtual std::string toString() {
+            return std::string("cpp14regress_lambda_" + std::to_string(f_count) + ".h");
+        }
     };
 
-    class GenericTypeGenerator : public StringGenerator {
-    private:
-        int f_count;
+    class LambdaHeaderGuardGenerator : public NameGenerator {
     public:
-        GenericTypeGenerator() : f_count(-1) {}
-
-        virtual std::string toString();
-
-        virtual std::string generate();
+        virtual std::string toString() {
+            return std::string("CPP14REGRESS_LAMBDA_" + std::to_string(f_count) + "_H");
+        }
     };
 
-    class LambdaFunctionReplacer : public clang::RecursiveASTVisitor<LambdaFunctionReplacer> {
+    class GenericTypeGenerator : public NameGenerator {
+    public:
+        virtual std::string toString() {
+            return std::string("type" + std::to_string(f_count));
+        }
+    };
+
+    class LambdaReplacer : public FeatureReplacer {
+    private:
+        std::stringstream f_header;
+        static LambdaClassNameGenerator f_lcng;
+        static LambdaHeaderNameGenerator f_lhng;
+        static LambdaHeaderGuardGenerator f_lhgg;
+
+        virtual void endSourceFileAction();
+
+    public:
+
+        LambdaReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
+
+    };
+
+    /*class LambdaFunctionReplacer : public clang::RecursiveASTVisitor<LambdaFunctionReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -65,13 +79,14 @@ namespace cpp14regress {
         std::string f_code;
 
     public:
-        explicit LambdaFunctionReplacer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg);
+        explicit LambdaFunctionReplacer(clang::ASTContext *context, cpp14features_stat *stat,
+                                        DirectoryGenerator *dg);
 
         virtual void EndFileAction() {}
 
         virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
 
-    };
+    };*/
 }
 
 #endif //CPP14REGRESS_LAMBDA_FUNCTION_H

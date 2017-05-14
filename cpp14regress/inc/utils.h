@@ -45,16 +45,35 @@ namespace cpp14regress {
         virtual bool VisitDeclRefExpr(clang::DeclRefExpr *dre);
     };
 
+
+    std::string toString(clang::SourceRange sr, const clang::ASTContext &context);
+
     template<typename T>
-    std::string toString(T *source, clang::ASTContext *context) { //TODO fix name
-        const clang::SourceManager &sm = context->getSourceManager();
-        const clang::LangOptions &lo = context->getLangOpts();
-        clang::SourceLocation b(source->getLocStart()), _e(source->getLocEnd());
-        clang::SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, sm, lo));
-        return std::string(sm.getCharacterData(b), sm.getCharacterData(e)); //TODO check
+    std::string toString(T *source, const clang::ASTContext &context) { //TODO fix name
+        clang::SourceRange sr(source->getLocStart(), source->getLocEnd());
+        return toString(sr, context);
     }
 
-    std::string toString(clang::SourceRange sr, clang::ASTContext *context);
+    template<typename T>
+    std::string toString(T *source, const clang::ASTContext *context) { //TODO fix name
+        std::cerr << "This toString() is deprecated" << std::endl;
+        return std::string();
+    }
+
+    std::string toString(clang::SourceRange sr, const clang::ASTContext *context) { //TODO fix name
+        std::cerr << "This toString() is deprecated" << std::endl;
+        return std::string();
+    }
+
+    template<typename T>
+    inline bool fromSystemFile(T *source, const clang::ASTContext &context) {
+        clang::SourceLocation sl = source->getLocStart();
+        if (sl.isValid())
+            if (context.getSourceManager().getFileCharacteristic(sl) !=
+                clang::SrcMgr::CharacteristicKind::C_User)
+                return true;
+        return false;
+    }
 
     template<typename T>
     inline bool inProcessedFile(T *source, clang::ASTContext *context) {
@@ -95,7 +114,36 @@ namespace cpp14regress {
 
     bool isCppSourceFile(std::string filename);
 
-    clang::SourceRange getParamRange(const clang::FunctionDecl *func, const clang::ASTContext *context); //TODO improve
+    clang::SourceRange
+    getParamRange(const clang::FunctionDecl *func, const clang::ASTContext *context); //TODO improve
+
+    std::vector<std::string> pathToVector(std::string path);
+
+    std::string pathPopBack(std::string &path);
+
+    std::string removeExtension(const std::string &path);
+
+    std::string asFolder(const std::string &path);
+
+    inline std::string VariableToField(const std::string &var) {
+        return std::string("f_" + var);
+    }
+
+    class NameGenerator {
+    protected:
+        unsigned f_count = 0;
+        bool f_first = true;
+    public:
+
+        virtual std::string toString() { return std::string(); };
+
+        std::string generate();
+
+        void reset() {
+            f_count = 0;
+            f_first = true;
+        }
+    };
 
 }
 

@@ -16,23 +16,51 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
-#include "base_types.h"
+#include "utils.h"
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace cpp14regress {
 
-    class FilesPreparator : public clang::RecursiveASTVisitor<FilesPreparator> {
-    private:
-        clang::ASTContext *f_context;
-        const clang::SourceManager &f_sm;
-    public:
-        FilesPreparator(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg) :
-                f_context(context), f_sm(f_context->getSourceManager()) {}
+    typedef std::vector<std::string> FilesList;
 
-        virtual void EndFileAction();
+    class FilesPreparator : public clang::ASTFrontendAction {
+    public:
+        class FilesPreparatorConsumer : public clang::ASTConsumer {
+        public:
+            FilesPreparatorConsumer() {}
+        };
+
+        explicit FilesPreparator(const std::string &folder, FilesList *files) :
+                f_folder(asFolder(folder)), f_files(files) {}
+
+        virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
+                                                                      llvm::StringRef file) {
+            FilesPreparatorConsumer *consumer = new FilesPreparatorConsumer();
+            return std::unique_ptr<clang::ASTConsumer>(consumer);
+        }
+
+        virtual bool BeginSourceFileAction(clang::CompilerInstance &CI, llvm::StringRef Filename);
+
+    private:
+        std::string f_folder;
+        FilesList *f_files;
+    };
+
+    class FilesPreparatorFactory : public clang::tooling::FrontendActionFactory {
+    public:
+        explicit FilesPreparatorFactory(const std::string &folder, FilesList *files) :
+                f_folder(folder), f_files(files) {}
+
+        clang::FrontendAction *create() {
+            return new FilesPreparator(f_folder, f_files);
+        }
+
+    private:
+        std::string f_folder;
+        FilesList *f_files;
     };
 }
-
 #endif /*CPP14REGRESS_FILE_PREPARATOR_H*/

@@ -17,7 +17,8 @@
 
 #include "file_preparator.h"
 #include "utils.h"
-#include <set>
+#include <iostream>
+#include <string>
 
 namespace cpp14regress {
 
@@ -25,31 +26,40 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    void FilesPreparator::EndFileAction() {
+    bool FilesPreparator::BeginSourceFileAction(CompilerInstance &CI, StringRef Filename) {
+        const ASTContext &context = CI.getASTContext();
+        SourceManager &sm = CI.getASTContext().getSourceManager();
+        const LangOptions &lo = CI.getASTContext().getLangOpts();
+        Rewriter rewriter(sm, lo);
         std::set<FileID> fileIds;
-        for (auto it = f_sm.fileinfo_begin(); it != f_sm.fileinfo_end(); it++) {
-            fileIds.insert(f_sm.translateFile(it->first));
+        const FileEntry *mainEntry;
+        for (auto it = sm.fileinfo_begin(); it != sm.fileinfo_end(); it++) {
+            FileID id = sm.translateFile(it->first);
+            if (id == sm.getMainFileID())
+                mainEntry = it->first;
+            else
+                fileIds.insert(id);
         }
+        string filename = pathPopBack(string(mainEntry->getName()));
+        string folder = f_folder + removeExtension(filename) + '/';
 
         for (auto fileId : fileIds) {
             if (fileId.isValid()) {
-                if (f_sm.getFileCharacteristic(f_sm.getLocForStartOfFile(fileId)) ==
+                if (sm.getFileCharacteristic(sm.getLocForStartOfFile(fileId)) ==
                     clang::SrcMgr::CharacteristicKind::C_User) {
-                    if (fileId == f_sm.getMainFileID())
-                        cout << " \t";
-                    cout << f_sm.getFileEntryForID(fileId)->getName();
-                    SourceLocation includeBeginLoc = f_sm.getIncludeLoc(fileId);
+                    SourceLocation includeBeginLoc = sm.getIncludeLoc(fileId);
                     if (includeBeginLoc.isValid()) {
                         SourceLocation includeEndLoc = Lexer::getLocForEndOfToken(
-                                includeBeginLoc, 0, f_sm, f_context->getLangOpts());
-                        cout << " -- " << toString(SourceRange(includeBeginLoc, includeEndLoc),
-                                                   f_context);
+                                includeBeginLoc, 0, sm, context.getLangOpts());
+                        string inc("\"" + pathPopBack(sm.getFileEntryForID(fileId)->getName()) +
+                                   "\"");
+                        rewriter.ReplaceText(SourceRange(includeBeginLoc, includeEndLoc), inc);
                     }
-                    cout << endl;
+                    for (auto it = rewriter.buffer_begin(); it != rewriter.buffer_end(); it++) {
+                        sys::fs::copy_file(sm.getFileEntryForID(it->first), folder);
+                    }
                 }
             }
         }
-        cout << console_hline() << endl;
     }
-
 }

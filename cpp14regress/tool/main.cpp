@@ -51,7 +51,7 @@ using namespace cpp14regress;
 
 static cl::OptionCategory MyToolCategory("");
 
-typedef FilesPreparator ToolType;
+//typedef FilesPreparator ToolType;
 
 int main(int argc, const char **argv) {
 
@@ -98,7 +98,9 @@ int main(int argc, const char **argv) {
         cout << console_hline() << endl;
         cout << "Press enter to continue";
         getchar();
-        Cpp14RegressFrontendActionFactory<ToolType> factory(&stat, &dg);
+        vector<string> files;
+        FilesPreparatorFactory factory("/home/yury/llvm-clang/test/mine_regressed", &files);
+        //Cpp14RegressFrontendActionFactory<ToolType> factory(&stat, &dg);
         result = Tool.run(&factory);
     } else {
         cout << "Running tool from compilation database" << endl;
@@ -114,8 +116,8 @@ int main(int argc, const char **argv) {
         cout << console_hline() << endl;
         cout << "Press enter to continue" << endl;
         getchar();
-        Cpp14RegressFrontendActionFactory<ToolType> factory(&stat, &dg);
-        result = Tool.run(&factory);
+        //Cpp14RegressFrontendActionFactory<ToolType> factory(&stat, &dg);
+        //result = Tool.run(&factory);
     }
 
     cout << console_hline() << endl;
