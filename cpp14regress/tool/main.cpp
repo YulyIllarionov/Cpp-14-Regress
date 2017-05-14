@@ -55,35 +55,45 @@ static cl::OptionCategory MyToolCategory("");
 
 int main(int argc, const char **argv) {
 
-    if (argc < 2) {
-        cerr << "error: wrong argument number" << endl;
+    if (argc != 3) {
+        cerr << "error: wrong argument number, need 2" << endl;
         return 1;
     }
 
-    Twine srcDir(argv[1]);
-    if (!sys::fs::is_directory(argv[1])) {
-        cerr << "error: second argument is not a folder" << endl;
+    Twine dstDir(argv[2]);
+    if (!sys::fs::is_directory(argv[2])) {
+        cerr << "error: second argument \"" << argv[2] << "\" is not a folder" << endl;
         return 2;
     }
 
-    cpp14features_stat stat;
-    int result;
-
     string em;
-    unique_ptr<CompilationDatabase> cb =
-            CompilationDatabase::loadFromDirectory(srcDir.str(), em);
+    unique_ptr<CompilationDatabase> cb;
+    Twine srcPath(argv[1]);
+    string srcDir = srcPath.str();
+    if (!sys::fs::is_directory(srcPath.str()))
+        pathPopBack(srcDir);
+
+    cb = CompilationDatabase::loadFromDirectory(srcDir, em);
+
+    vector<string> sourceFiles;
+    FilesPreparatorFactory preparatorFactory(dstDir.str(), &sourceFiles);
+
     if (!cb) {
         std::error_code ec;
         vector<string> argv_tmp{argv[0]};
-        for (sys::fs::recursive_directory_iterator i(srcDir, ec), e; i != e; i.increment(ec)) {
-            if (isCppSourceFile(i->path()))
-                argv_tmp.push_back(i->path());
+        if (sys::fs::is_directory(srcPath.str())) {
+            for (sys::fs::recursive_directory_iterator i(srcPath, ec), e; i != e; i.increment(ec)) {
+                if (isCppSourceFile(i->path()))
+                    argv_tmp.push_back(i->path());
+            }
+        } else {
+            if (isCppSourceFile(srcPath.str()))
+                argv_tmp.push_back(srcPath.str());
         }
         cout << "Running tool from source files" << endl;
-        cout << console_hline() << endl;
-        for (auto it = argv_tmp.begin() + 1; it != argv_tmp.end(); it++)
-            cout << *it << endl;
-
+        //cout << console_hline() << endl;
+        //for (auto it = argv_tmp.begin() + 1; it != argv_tmp.end(); it++)
+        //    cout << *it << endl;
         argv_tmp.push_back("--");
         argv_tmp.push_back("-std=c++14");
         int argc_mod = argv_tmp.size();
@@ -93,39 +103,33 @@ int main(int argc, const char **argv) {
             std::strcpy(argv_mod[i], argv_tmp[i].c_str());
         }
         CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
-        DirectoryGenerator dg(srcDir.str(), "_regressed");
-        ClangTool Tool(op.getCompilations(), op.getSourcePathList());
-        cout << console_hline() << endl;
+        cb.reset(&op.getCompilations());
+        ClangTool Tool(*cb, op.getSourcePathList());
+        //cout << console_hline() << endl;
         cout << "Press enter to continue";
         getchar();
-        vector<string> files;
-        FilesPreparatorFactory factory("/home/yury/llvm-clang/test/mine_regressed", &files);
-        //Cpp14RegressFrontendActionFactory<ToolType> factory(&stat, &dg);
-        result = Tool.run(&factory);
+        Tool.run(&preparatorFactory); //TODO check result
     } else {
         cout << "Running tool from compilation database" << endl;
-        if (argc != 3) {
-            cerr << "Save folder doesn't specified" << endl;
-            return 2;
-        }
-        cout << console_hline() << endl;
-        for (auto file: cb->getAllFiles())
-            cout << file << endl;
-        DirectoryGenerator dg(argv[2], "_regressed");
+        //cout << console_hline() << endl;
+        //for (auto file: cb->getAllFiles())
+        //    cout << file << endl;
         ClangTool Tool(*cb, cb->getAllFiles());
-        cout << console_hline() << endl;
+        //cout << console_hline() << endl;
         cout << "Press enter to continue" << endl;
         getchar();
-        //Cpp14RegressFrontendActionFactory<ToolType> factory(&stat, &dg);
-        //result = Tool.run(&factory);
+        Tool.run(&preparatorFactory); //TODO check result
     }
 
-    cout << console_hline() << endl;
-    for (int i = (int) cpp14features::begin; i < (int) cpp14features::end; i++)
-        if (stat.size((cpp14features) i) != 0)
-            cout << stat.toString((cpp14features) i) << " -- "
-                 << stat.size((cpp14features) i) << endl;
-    cout << console_hline() << endl;
+    //ClangTool Tool(*cb, sourceFiles);
+    //Tool.run(newFrontendActionFactory<FeatureReplacerFrontendAction<LambdaReplacer>>().get());
 
-    return result;
+    //cout << console_hline() << endl;
+    //for (int i = (int) cpp14features::begin; i < (int) cpp14features::end; i++)
+    //    if (stat.size((cpp14features) i) != 0)
+    //        cout << stat.toString((cpp14features) i) << " -- "
+    //             << stat.size((cpp14features) i) << endl;
+    //cout << console_hline() << endl;
+
+    return 0;
 }

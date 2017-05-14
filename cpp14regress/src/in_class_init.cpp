@@ -90,7 +90,7 @@ namespace cpp14regress {
                 vector<string> inits;
                 for (auto init = definition->init_begin(); init != definition->init_end(); init++) {
                     if ((*init)->isWritten()) {
-                        inits.push_back(toString((*init)->getSourceRange(), f_context));
+                        //inits.push_back(toString((*init)->getSourceRange(), f_context)); //TODO fix toString
                     } else if ((*init)->isInClassMemberInitializer()) {
                         if (auto field = (*init)->getMember()) {
                             string init(field->getNameAsString() + "(" + //TODO fix: only value

@@ -30,7 +30,7 @@ namespace cpp14regress {
         return string(w.ws_col, c);
     }
 
-    string toString(SourceRange sr, const ASTContext& context) {
+    string toString(SourceRange sr, const ASTContext &context) {
         const SourceManager &sm = context.getSourceManager();
         const LangOptions &lo = context.getLangOpts();
         const char *b = sm.getCharacterData(sr.getBegin());
@@ -178,14 +178,13 @@ namespace cpp14regress {
     std::string pathPopBack(std::string &path) {
         if (path.empty())
             return string();
-        auto last = path.end();
         if (path.back() == '/')
-            last--;
-        auto pos = find(path.begin(), last, '/');
-        if (pos == last)
+            path.pop_back();
+        string::size_type pos = path.find_last_of('/');
+        if ((pos == string::npos) || (pos == (path.size() - 1)))
             return string();
-        string file(last + 1, path.end());
-        path.erase(last, path.end());
+        string file(path.substr(++pos));
+        path.erase(pos);
         return file;
     }
 
@@ -200,5 +199,18 @@ namespace cpp14regress {
         if (folder.back() != '/')
             folder += '/';
         return folder;
+    }
+
+    std::string NameGenerator::generate() {
+        if (f_first)
+            f_first = false;
+        else
+            f_count++;
+        return toString();
+    }
+
+    void NameGenerator::reset() {
+        f_count = 0;
+        f_first = true;
     }
 }

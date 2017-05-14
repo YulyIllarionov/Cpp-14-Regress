@@ -26,25 +26,35 @@ namespace cpp14regress {
 
     typedef std::vector<std::string> FilesList;
 
-    class FilesPreparator : public clang::ASTFrontendAction {
+    class FilesPreparatorConsumer : public clang::ASTConsumer {
     public:
-        class FilesPreparatorConsumer : public clang::ASTConsumer {
-        public:
-            FilesPreparatorConsumer() {}
-        };
+        FilesPreparatorConsumer(clang::CompilerInstance &ci, const std::string &folder,
+                                FilesList *files) : f_ci(ci), f_folder(folder), f_files(files) {}
 
-        explicit FilesPreparator(const std::string &folder, FilesList *files) :
-                f_folder(asFolder(folder)), f_files(files) {}
-
-        virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
-                                                                      llvm::StringRef file) {
-            FilesPreparatorConsumer *consumer = new FilesPreparatorConsumer();
-            return std::unique_ptr<clang::ASTConsumer>(consumer);
-        }
-
-        virtual bool BeginSourceFileAction(clang::CompilerInstance &CI, llvm::StringRef Filename);
+        void EndSourceFileAction();
 
     private:
+        clang::CompilerInstance &f_ci;
+        std::string f_folder;
+        FilesList *f_files;
+    };
+
+    class FilesPreparator : public clang::ASTFrontendAction {
+    public:
+
+        FilesPreparator(const std::string &folder, FilesList *files) :
+                f_folder(asFolder(folder)), f_files(files) {}
+
+        virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &ci,
+                                                                      llvm::StringRef file) {
+            f_consumer = new FilesPreparatorConsumer(ci, f_folder, f_files);
+            return std::unique_ptr<clang::ASTConsumer>(f_consumer);
+        }
+
+        virtual void EndSourceFileAction() { f_consumer->EndSourceFileAction(); }
+
+    private:
+        FilesPreparatorConsumer *f_consumer;
         std::string f_folder;
         FilesList *f_files;
     };

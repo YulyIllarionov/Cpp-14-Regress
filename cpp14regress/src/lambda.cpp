@@ -105,7 +105,7 @@ namespace cpp14regress {
         return true;
     }
 
-    virtual void LambdaReplacer::endSourceFileAction() {
+    void LambdaReplacer::endSourceFileAction() {
         string folder = asFolder(sourceManager().getFileEntryForID(
                 sourceManager().getMainFileID())->getDir()->getName());
         std::error_code ec;

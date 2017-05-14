@@ -38,7 +38,8 @@ namespace cpp14regress {
             string file = f_dg->getFile(entry->getName());
             std::error_code ec;
             sys::fs::remove(Twine(file));
-            raw_fd_ostream rfo(StringRef(file), ec, sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
+            raw_fd_ostream rfo(StringRef(file), ec,
+                               sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
             //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
             i->second.write(rfo);
         }
@@ -65,8 +66,8 @@ namespace cpp14regress {
                 type.insert(pos + 2, synonym);
                 oldTypedef += type;
             } else {
-                oldTypedef += toString(aliasTypeDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange(),
-                                       f_context);
+                //oldTypedef += toString(aliasTypeDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange(),
+                //                       f_context); //TODO fix toString
                 oldTypedef += " ";
                 oldTypedef += synonym;
             }

@@ -114,10 +114,4 @@ namespace cpp14regress {
         f_rewriter = new Rewriter(sourceManager(), langOptions());
     }
 
-
-    bool VarReplacer::VisitVarDecl(VarDecl *varDecl) {
-        return true;
-    }
-
-
 }

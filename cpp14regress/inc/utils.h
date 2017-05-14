@@ -49,18 +49,18 @@ namespace cpp14regress {
     std::string toString(clang::SourceRange sr, const clang::ASTContext &context);
 
     template<typename T>
-    std::string toString(T *source, const clang::ASTContext &context) { //TODO fix name
+    std::string toString(T *source, const clang::ASTContext &context) {
         clang::SourceRange sr(source->getLocStart(), source->getLocEnd());
         return toString(sr, context);
     }
 
-    template<typename T>
-    std::string toString(T *source, const clang::ASTContext *context) { //TODO fix name
-        std::cerr << "This toString() is deprecated" << std::endl;
-        return std::string();
-    }
+    //std::string toString(clang::SourceRange sr, const clang::ASTContext *context) {
+    //    std::cerr << "This toString() is deprecated" << std::endl;
+    //    return std::string();
+    //}
 
-    std::string toString(clang::SourceRange sr, const clang::ASTContext *context) { //TODO fix name
+    template<typename T>
+    std::string toString(T *source, const clang::ASTContext *context) {
         std::cerr << "This toString() is deprecated" << std::endl;
         return std::string();
     }
@@ -139,10 +139,7 @@ namespace cpp14regress {
 
         std::string generate();
 
-        void reset() {
-            f_count = 0;
-            f_first = true;
-        }
+        void reset();
     };
 
 }

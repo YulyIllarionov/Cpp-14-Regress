@@ -406,7 +406,7 @@ namespace cpp14regress {
             if (f_context->getSourceManager().getFileCharacteristic(attr->getLocation()) !=
                 clang::SrcMgr::CharacteristicKind::C_User)
                 return true;
-            cout << "Attribute: " << toString(attr->getRange(), f_context) << endl;
+            //cout << "Attribute: " << toString(attr->getRange(), f_context) << endl;
         }
         return true;
     }

@@ -55,9 +55,9 @@ namespace cpp14regress {
     class LambdaReplacer : public FeatureReplacer {
     private:
         std::stringstream f_header;
-        static LambdaClassNameGenerator f_lcng;
-        static LambdaHeaderNameGenerator f_lhng;
-        static LambdaHeaderGuardGenerator f_lhgg;
+        LambdaClassNameGenerator f_lcng;
+        LambdaHeaderNameGenerator f_lhng;
+        LambdaHeaderGuardGenerator f_lhgg;
 
         virtual void endSourceFileAction();
 
