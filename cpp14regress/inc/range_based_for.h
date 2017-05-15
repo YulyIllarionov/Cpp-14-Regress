@@ -44,24 +44,12 @@ namespace cpp14regress {
         virtual std::string toString();
     };
 
-    class RangeBasedForReplacer
-            : public clang::RecursiveASTVisitor<RangeBasedForReplacer> {
-    private:
-        clang::ASTContext *f_context;
-        clang::Rewriter *f_rewriter;
-        cpp14features_stat *f_stat;
-        DirectoryGenerator *f_dg;
-
+    class RangeBasedForReplacer : public FeatureReplacer {
     public:
-        explicit RangeBasedForReplacer(
-                clang::ASTContext *context,
-                cpp14features_stat *stat,
-                DirectoryGenerator *dg);
 
-        virtual void EndFileAction();
+        RangeBasedForReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual bool VisitCXXForRangeStmt(
-                clang::CXXForRangeStmt *for_loop);
+        virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *for_loop);
     };
 }
 

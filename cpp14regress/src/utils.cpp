@@ -17,6 +17,7 @@
 
 #include "utils.h"
 #include <vector>
+#include <set>
 
 namespace cpp14regress {
 
@@ -212,5 +213,49 @@ namespace cpp14regress {
     void NameGenerator::reset() {
         f_count = 0;
         f_first = true;
+    }
+
+    SourceLocation getIncludeLocation(FileID fileID, SourceManager &sm, unsigned carriages) {
+        set<unsigned> lines;
+        if (fileID.isInvalid())
+            return SourceLocation();
+        for (auto it = sm.fileinfo_begin(); it != sm.fileinfo_end(); it++) {
+            SourceLocation includeLoc = sm.getIncludeLoc(sm.translateFile(it->first));
+            if (includeLoc.isValid() && sm.isInFileID(includeLoc, fileID)) {
+                lines.insert(sm.getSpellingLineNumber(includeLoc));
+            }
+        }
+        unsigned pos(0);
+        if (!lines.empty()) {
+            bool first = true;
+            for (unsigned line :lines) {
+                if (first)
+                    first = false;
+                else if ((line - pos) > carriages)
+                    break;
+                pos = line;
+                //cout << "Include line:" << pos << endl;
+            }
+            //cout << console_hline('-') << endl;
+        }
+        cout << sm.getFileEntryForID(fileID)->getName() << endl;
+        return sm.translateFileLineCol(sm.getFileEntryForID(fileID), ++pos, 1);
+    }
+
+    vector<string> getIncludes(FileID fileID, const ASTContext &context) {
+        const SourceManager &sm = context.getSourceManager();
+        const LangOptions &lo = context.getLangOpts();
+        vector<string> includes;
+        for (auto it = sm.fileinfo_begin(); it != sm.fileinfo_end(); it++) {
+            SourceLocation includeBegin = sm.getIncludeLoc(sm.translateFile(it->first));
+            if (includeBegin.isValid() && sm.isInFileID(includeBegin, fileID)) {
+                SourceLocation includeEnd = Lexer::getLocForEndOfToken(includeBegin, 0, sm, lo);
+                includeEnd = Lexer::getLocForEndOfToken(includeEnd, 0, sm, lo); //TODO fix
+                string include = toString(SourceRange(includeBegin, includeEnd), context);
+                if (find(includes.begin(), includes.end(), include) == includes.end())
+                    includes.push_back(include);
+            }
+        }
+        return includes;
     }
 }

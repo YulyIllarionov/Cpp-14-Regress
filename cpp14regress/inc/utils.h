@@ -142,6 +142,10 @@ namespace cpp14regress {
         void reset();
     };
 
+    clang::SourceLocation getIncludeLocation(clang::FileID fileID, clang::SourceManager &sm,
+                                             unsigned carriages = 5);
+
+    std::vector<std::string> getIncludes(clang::FileID fileID, const clang::ASTContext &context);
 }
 
 #endif /*CPP14REGRESS_UTILS_H*/

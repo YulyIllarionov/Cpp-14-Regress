@@ -133,13 +133,15 @@ namespace cpp14regress {
 
         virtual void EndSourceFileAction();
 
-        //virtual void BeginSourceFileAction();
+        virtual void BeginSourceFileAction();
 
         virtual cpp14features type() { return cpp14features::unknown; }
 
         virtual bool VisitVarDecl(clang::VarDecl *declaratorDecl) { return true; }
 
         virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda) { return true; }
+
+        virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *for_loop) { return true; }
     };
 
     template<typename VisitorType>
@@ -154,7 +156,7 @@ namespace cpp14regress {
 
         virtual void EndSourceFileAction() { f_visitor->EndSourceFileAction(); }
 
-        //virtual void BeginSourceFileAction() { f_visitor->BeginSourceFileAction(); }
+        virtual void BeginSourceFileAction() { f_visitor->BeginSourceFileAction(); }
 
     private:
         VisitorType *f_visitor;

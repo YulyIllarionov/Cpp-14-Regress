@@ -29,6 +29,7 @@ namespace cpp14regress {
     using namespace llvm;
 
     //TODO check Types
+    //TODO capture this
     bool LambdaReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
         if (fromSystemFile(lambda, astContext()))
             return true;
@@ -61,8 +62,11 @@ namespace cpp14regress {
             VarDecl *captured_var = it->getCapturedVar();
             f_header << clangCaptures[captured_var]->getType().getAsString() << " "
                      << captured_var->getNameAsString()
-                     << ((++it != lambda->capture_end()) ? ", " : ") : ");
+                     << ((++it != lambda->capture_end()) ? ", " : "");
         }
+        f_header << ") ";
+        if (lambda->capture_begin() != lambda->capture_end())
+            f_header << ": ";
         //Lambda class constructor body
         for (auto it = lambda->capture_begin(); it != lambda->capture_end();) {
             VarDecl *captured_var = it->getCapturedVar();
@@ -101,23 +105,51 @@ namespace cpp14regress {
         f_header << toString(lambda->getBody(), astContext()) << endl;
         f_header << "};" << endl;
 
+        //Lambda class call
+        string call(f_lcng.toString() + "(");
+        for (auto it = lambda->capture_init_begin(); it != lambda->capture_init_end();) {
+            auto capture = *it;
+            if (!capture) {
+                //TODO
+                return false;
+            }
+            call += toString(capture, astContext());
+            call += ((++it != lambda->capture_init_end()) ? ", " : "");
+        }
+        call += ")";
+        rewriter()->ReplaceText(lambda->getSourceRange(), call);
 
         return true;
     }
 
+    //TODO add include to all files;
     void LambdaReplacer::endSourceFileAction() {
-        string folder = asFolder(sourceManager().getFileEntryForID(
-                sourceManager().getMainFileID())->getDir()->getName());
+        FileID fileID = sourceManager().getMainFileID();
+        SourceLocation includeLoc = getIncludeLocation(fileID, sourceManager());
+        if (includeLoc.isInvalid()) {
+            //TODO
+            return;
+        }
+        string include("#include \"");
+        include += f_lhng.generate();
+        include += "\"\n";
+        rewriter()->InsertText(includeLoc, include);
+
+        string folder = asFolder(sourceManager().getFileEntryForID(fileID)->getDir()->getName());
         std::error_code ec;
-        ofstream header(folder + f_lhng.generate());
+        ofstream header(folder + f_lhng.toString());
         if (!header.is_open()) {
             cerr << "Can not create header \"" << folder + f_lhng.generate()
                  << "\" for lambda" << endl;
             return;
         }
         header << "#ifndef " << f_lhgg.generate() << endl
-               << "#define " << f_lhgg.toString() << endl
-               << f_header.rdbuf() << endl
+               << "#define " << f_lhgg.toString() << endl << endl;
+        //vector<string> includes = getIncludes(sourceManager().getMainFileID(), astContext());
+        //for (string include : includes)
+        //    header << "#include " << include << endl;
+        //header << endl;
+        header << f_header.rdbuf() << endl
                << "#endif" << endl;
         header.close();
     }
