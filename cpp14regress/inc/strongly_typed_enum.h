@@ -19,11 +19,11 @@
 #include "base_types.h"
 
 #include <iostream>
-#include <set>
+#include <vector>
 
 namespace cpp14regress {
 
-    class StronglyTypedEnumReplacer : public clang::RecursiveASTVisitor<StronglyTypedEnumReplacer> {
+    /*class StronglyTypedEnumReplacer : public clang::RecursiveASTVisitor<StronglyTypedEnumReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -40,8 +40,24 @@ namespace cpp14regress {
         virtual bool VisitValueDecl(clang::ValueDecl *varDecl);
 
         virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl);
-    };
+    };*/
 
+    class ImprovedEnumReplacer : public FeatureReplacer {
+    private:
+        std::vector<clang::EnumDecl*> f_enums;
+
+        std::string nameForReplace() { return "enumeration"; }
+
+    public:
+
+        ImprovedEnumReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl);
+
+        virtual bool VisitTypeLoc(clang::TypeLoc typeLoc);
+
+        virtual void endSourceFileAction();
+    };
 }
 
 #endif /*CPP14REGRESS_STRONGLY_TYPED_ENUM_H*/

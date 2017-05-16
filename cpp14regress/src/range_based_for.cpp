@@ -33,6 +33,8 @@ namespace cpp14regress {
     }
 
     bool RangeBasedForReplacer::VisitCXXForRangeStmt(CXXForRangeStmt *for_loop) {
+        if (fromSystemFile(for_loop, astContext()))
+            return true;
 
         ValueDecl *rangeVar = dyn_cast<DeclRefExpr>(for_loop->getRangeInit())->getDecl();
         ValueDecl *itVar = for_loop->getLoopVariable();

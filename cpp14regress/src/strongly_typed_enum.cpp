@@ -17,7 +17,6 @@
 
 #include "strongly_typed_enum.h"
 #include "utils.h"
-
 #include <vector>
 
 namespace cpp14regress {
@@ -26,32 +25,77 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    StronglyTypedEnumReplacer::StronglyTypedEnumReplacer(ASTContext *context,
-                                                         cpp14features_stat *stat,
-                                                         DirectoryGenerator *dg)
-            : f_context(context), f_stat(stat), f_dg(dg) {
-        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
-                                  context->getLangOpts());
+    bool ImprovedEnumReplacer::VisitEnumDecl(clang::EnumDecl *enumDecl) { //TODO fix
+        if (fromSystemFile(enumDecl, astContext()))
+            return true;
+
+        SourceRange typeRange = enumDecl->getIntegerTypeRange();
+        if (typeRange.isValid()) {
+            typeRange.setEnd(Lexer::getLocForEndOfToken(typeRange.getBegin(), 0,
+                                                        sourceManager(), langOptions()));
+            typeRange.setBegin(Lexer::getLocForEndOfToken(enumDecl->getLocation(), 0,
+                                                          sourceManager(), langOptions()));
+            typeRange.setBegin(findTokenLoc(typeRange, astContext(), tok::TokenKind::colon, 1));
+
+            if (typeRange.isValid()) { //TODO change for commentator class
+                //rewriter()->InsertText(typeRange.getBegin(), "/*");
+                //rewriter()->InsertText(typeRange.getEnd(), "*/");
+            }
+        }
+        return true;
     }
 
-    void StronglyTypedEnumReplacer::EndFileAction() {
-        for (auto enumDecl : f_enumDecls) {
-            cout << enumDecl << endl << toString(enumDecl, f_context) << endl;
+    bool ImprovedEnumReplacer::VisitTypeLoc(clang::TypeLoc typeLoc) {
+        if (fromSystemFile(&typeLoc, astContext()))
+            return true;
+        //if (typeLoc.getLocStart().isInvalid())
+        //    return true;
+        if (auto type = typeLoc.getTypePtr()) {
+            if (EnumDecl *enumDecl = dyn_cast_or_null<EnumDecl>(type->getAsTagDecl())) {
+                if (EnumDecl *enumDef = enumDecl->getDefinition()) {
+                    if (enumDef->isScopedUsingClassTag()) {
+                        //TODO fix type only for ones with definition?
+                        if (find(f_enums.begin(), f_enums.end(), enumDef) == f_enums.end()) {
+                            f_enums.push_back(enumDef);
+                        }
+                        //Change enum type
+                        SourceLocation insertLoc = Lexer::getLocForEndOfToken(typeLoc.getLocStart(),
+                                                                              0, sourceManager(),
+                                                                              langOptions());
+                        //TODO doesn't work
+                        if (Lexer::findLocationAfterToken(insertLoc, tok::TokenKind::coloncolon,
+                                                          sourceManager(),
+                                                          langOptions(), true).isInvalid()) {
+                            cout << insertLoc.printToString(sourceManager()) << endl;
+                            //rewriter()->InsertTextAfterToken(typeLoc.getLocStart(),
+                            //                                 string("::" + nameForReplace()));
+                        }
+                    }
+                }
+            }
         }
-        cout << console_hline('-') << endl;
+        return true;
+    }
 
-        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
-            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
-            string file = f_dg->getFile(entry->getName());
-            std::error_code ec;
-            sys::fs::remove(Twine(file));
-            raw_fd_ostream rfo(StringRef(file), ec,
-                               sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
-            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
-            i->second.write(rfo);
+    void ImprovedEnumReplacer::endSourceFileAction() {
+        for (EnumDecl *enumDef : f_enums) {
+            //Change enum definition
+            SourceRange nameRange(enumDef->getLocStart(),
+                                  Lexer::getLocForEndOfToken(enumDef->getLocation(), 0,
+                                                             sourceManager(), langOptions()));
+            if (nameRange.isInvalid()) {
+                //TODO handle error
+                return;
+            }
+            string newName("struct " + enumDef->getNameAsString() + " {\n");
+            newName += string("enum " + nameForReplace());
+            //rewriter()->ReplaceText(nameRange, newName);
+            //rewriter()->InsertText(enumDef->getRBraceLoc(), "};\n");
         }
     }
 
+
+    /*
     bool StronglyTypedEnumReplacer::VisitValueDecl(ValueDecl *varDecl) {
         if (!inProcessedFile(varDecl, f_context))
             return true;
@@ -105,4 +149,6 @@ namespace cpp14regress {
 
         return true;
     }
+
+     */
 }

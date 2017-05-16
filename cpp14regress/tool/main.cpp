@@ -51,8 +51,6 @@ using namespace cpp14regress;
 
 static cl::OptionCategory MyToolCategory("");
 
-typedef RangeBasedForReplacer ToolType;
-
 int main(int argc, const char **argv) {
 
     if (argc != 3) {
@@ -95,7 +93,7 @@ int main(int argc, const char **argv) {
     //cout << console_hline() << endl;
     cout << "Press enter to continue";
     getchar();
-    Tool.run(newFrontendActionFactory<FeatureReplacerFrontendAction<ToolType>>().get());
+    Tool.run(newFrontendActionFactory<FeatureReplacerFrontendAction<ImprovedEnumReplacer>>().get());
 
     /*string em;
     unique_ptr<CompilationDatabase> cb;

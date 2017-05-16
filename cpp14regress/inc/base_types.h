@@ -142,6 +142,10 @@ namespace cpp14regress {
         virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda) { return true; }
 
         virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *for_loop) { return true; }
+
+        virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl) { return true; }
+
+        virtual bool VisitTypeLoc(clang::TypeLoc typeLoc) { return true; }
     };
 
     template<typename VisitorType>

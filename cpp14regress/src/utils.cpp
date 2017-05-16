@@ -258,4 +258,22 @@ namespace cpp14regress {
         }
         return includes;
     }
+
+    SourceLocation findTokenLoc(SourceRange sr, const ASTContext &context,
+                                tok::TokenKind kind, unsigned size) {
+        if (sr.isInvalid())
+            return SourceLocation();
+        const SourceManager &sm = context.getSourceManager();
+        const LangOptions &lo = context.getLangOpts();
+
+        int l = sm.getCharacterData(sr.getEnd()) - sm.getCharacterData(sr.getBegin());
+        SourceLocation sl;
+        for (int i = 0; i < l; i++) { //TODO fix getLocationAfterToken
+            sl = sr.getBegin().getLocWithOffset(i);
+            sl = Lexer::findLocationAfterToken(sl, kind, sm, lo, false);
+            if (sl.isValid())
+                break;
+        }
+        return sl.getLocWithOffset(-size);
+    }
 }

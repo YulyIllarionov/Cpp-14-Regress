@@ -146,6 +146,9 @@ namespace cpp14regress {
                                              unsigned carriages = 5);
 
     std::vector<std::string> getIncludes(clang::FileID fileID, const clang::ASTContext &context);
+
+    clang::SourceLocation findTokenLoc(clang::SourceRange sr, const clang::ASTContext &context,
+                                      clang::tok::TokenKind kind, unsigned size);
 }
 
 #endif /*CPP14REGRESS_UTILS_H*/
