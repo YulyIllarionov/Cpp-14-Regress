@@ -19,11 +19,54 @@
 #include "base_types.h"
 
 #include <iostream>
-#include <string>
+#include <vector>
+#include <sstream>
 
 namespace cpp14regress {
 
-    class UserLiteralReplacer : public clang::RecursiveASTVisitor<UserLiteralReplacer> {
+    class UserLiteralReplacer : public FeatureReplacer {
+    private:
+
+        std::stringstream f_header;
+        std::vector<clang::FunctionDecl *> f_userLiterals;
+
+        std::string replaceName(std::string s) {
+            return std::string("cpp14regressUserLiteral" + s);
+        }
+
+    public:
+
+        UserLiteralReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {
+            f_userLiterals.clear();
+        }
+
+        virtual void endSourceFileAction();
+
+        virtual bool VisitFunctionDecl(clang::FunctionDecl *funcDecl);
+
+        virtual bool VisitUserDefinedLiteral(clang::UserDefinedLiteral *literal);
+    };
+
+    class StringLiteralMeter : public clang::RecursiveASTVisitor<StringLiteralMeter> {
+    private:
+        bool f_found = false;
+        unsigned f_size = 0;
+
+    public:
+        virtual bool VisitStringLiteral(clang::StringLiteral *stringLiteral) {
+            f_found = true;
+            f_size = stringLiteral->getLength();
+            return false;
+        }
+
+        bool found() { return f_found; }
+
+        unsigned size() { return f_size; }
+    };
+
+
+
+    /*class UserLiteralReplacer : public clang::RecursiveASTVisitor<UserLiteralReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -39,7 +82,7 @@ namespace cpp14regress {
         virtual bool VisitFunctionDecl(clang::FunctionDecl *funcDecl);
 
         virtual bool VisitUserDefinedLiteral(clang::UserDefinedLiteral *literal);
-    };
+    };*/
 
 }
 

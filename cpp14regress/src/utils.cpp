@@ -31,12 +31,14 @@ namespace cpp14regress {
         return string(w.ws_col, c);
     }
 
-    string toString(SourceRange sr, const ASTContext &context) {
+    string toString(SourceRange sr, const ASTContext &context, bool tokenEnd) {
         const SourceManager &sm = context.getSourceManager();
         const LangOptions &lo = context.getLangOpts();
         const char *b = sm.getCharacterData(sr.getBegin());
-        const char *e = sm.getCharacterData(
-                Lexer::getLocForEndOfToken(sr.getEnd(), 0, sm, lo));
+        SourceLocation end = sr.getEnd();
+        if (tokenEnd)
+            end = Lexer::getLocForEndOfToken(sr.getEnd(), 0, sm, lo);
+        const char *e = sm.getCharacterData(end);
         return std::string(b, e);
     }
 
@@ -113,14 +115,14 @@ namespace cpp14regress {
         return false;
     }
 
-    SourceRange getParamRange(const FunctionDecl *func, const ASTContext *context) {
+    SourceRange getParamRange(const FunctionDecl *func, const ASTContext &context) {
         SourceRange range;
-        if ((!func) || (!context))
+        if (!func)
             return range;
 
         SourceLocation sl = func->getLocation();
         SourceLocation bodyBegin;
-        const SourceManager &sm = context->getSourceManager();
+        const SourceManager &sm = context.getSourceManager();
         if (func->hasBody())
             bodyBegin = func->getBody()->getLocStart();
         else
@@ -130,8 +132,8 @@ namespace cpp14regress {
         for (; i < l; i++) { //TODO fix getLocationAfterToken
             sl = Lexer::findLocationAfterToken(
                     sl, tok::TokenKind::l_paren,
-                    context->getSourceManager(),
-                    context->getLangOpts(), false);
+                    context.getSourceManager(),
+                    context.getLangOpts(), false);
             if (sl.isValid())
                 break;
             else
@@ -141,8 +143,8 @@ namespace cpp14regress {
         for (; i < l; i++) {
             sl = Lexer::findLocationAfterToken(
                     sl, tok::TokenKind::r_paren,
-                    context->getSourceManager(),
-                    context->getLangOpts(), false);
+                    context.getSourceManager(),
+                    context.getLangOpts(), false);
             if (sl.isValid())
                 break;
             else

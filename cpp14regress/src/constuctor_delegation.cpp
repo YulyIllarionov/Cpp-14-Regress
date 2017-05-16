@@ -94,7 +94,7 @@ namespace cpp14regress {
                             definition->getBody()->getLocStart(), 0, sm, lo);
                     string call("\n" + initFunCall(definition));
                     f_rewriter->InsertText(bodyStart, call, true, true);
-                    SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>(definition), f_context);
+                    SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>(definition), *f_context);
                     f_rewriter->RemoveText(SourceRange(paramRange.getEnd().getLocWithOffset(1),
                                                        definition->getBody()->getLocStart().getLocWithOffset(-1)));
                 }
@@ -115,7 +115,7 @@ namespace cpp14regress {
             const CXXConstructorDecl *definition = dyn_cast_or_null<CXXConstructorDecl>(fd);
 
             if (definition) {
-                SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>((*declaration)), f_context);
+                SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>((*declaration)), *f_context);
                 string initFunParams(sm.getCharacterData(paramRange.getBegin()),
                                      sm.getCharacterData(paramRange.getEnd()) + 1);
                 string initFunBody = "{";

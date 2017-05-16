@@ -79,7 +79,7 @@ namespace cpp14regress {
             } else {
                 StdListInitSearcher *stdSearcher = new StdListInitSearcher();
                 stdSearcher->TraverseStmt(varDecl->getInit());
-                ListInitSearcher *searcher = new ListInitSearcher();
+                ListInitSearcher *searcher = new ListInitSearcher(); //TODO unnecessary new
                 searcher->TraverseStmt(varDecl->getInit());
                 if ((searcher->found()) && !(stdSearcher->found())) {
                     cout << "Non list init: " << toString(varDecl, f_context) << " -- "

@@ -93,7 +93,7 @@ int main(int argc, const char **argv) {
     //cout << console_hline() << endl;
     cout << "Press enter to continue";
     getchar();
-    Tool.run(newFrontendActionFactory<FeatureReplacerFrontendAction<ImprovedEnumReplacer>>().get());
+    Tool.run(newFrontendActionFactory<FeatureReplacerFrontendAction<UserLiteralReplacer>>().get());
 
     /*string em;
     unique_ptr<CompilationDatabase> cb;

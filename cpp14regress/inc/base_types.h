@@ -146,6 +146,10 @@ namespace cpp14regress {
         virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl) { return true; }
 
         virtual bool VisitTypeLoc(clang::TypeLoc typeLoc) { return true; }
+
+        virtual bool VisitUserDefinedLiteral(clang::UserDefinedLiteral *literal) { return true; }
+
+        virtual bool VisitFunctionDecl(clang::FunctionDecl *funcDecl) { return true; }
     };
 
     template<typename VisitorType>

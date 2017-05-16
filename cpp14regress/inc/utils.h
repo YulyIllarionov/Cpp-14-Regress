@@ -46,7 +46,8 @@ namespace cpp14regress {
     };
 
 
-    std::string toString(clang::SourceRange sr, const clang::ASTContext &context);
+    std::string toString(clang::SourceRange sr, const clang::ASTContext &context,
+                         bool tokenEnd = true);
 
     template<typename T>
     std::string toString(T *source, const clang::ASTContext &context) {
@@ -115,7 +116,7 @@ namespace cpp14regress {
     bool isCppSourceFile(std::string filename);
 
     clang::SourceRange
-    getParamRange(const clang::FunctionDecl *func, const clang::ASTContext *context); //TODO improve
+    getParamRange(const clang::FunctionDecl *func, const clang::ASTContext &context); //TODO improve
 
     std::vector<std::string> pathToVector(std::string path);
 
