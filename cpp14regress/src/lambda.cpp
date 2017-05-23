@@ -125,6 +125,8 @@ namespace cpp14regress {
     //TODO add include to all files;
     void LambdaReplacer::endSourceFileAction() {
         FileID fileID = sourceManager().getMainFileID();
+
+
         SourceLocation includeLoc = getIncludeLocation(fileID, sourceManager());
         if (includeLoc.isInvalid()) {
             //TODO

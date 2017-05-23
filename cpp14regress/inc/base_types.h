@@ -22,13 +22,25 @@
 
 namespace cpp14regress {
 
-    //class Сommentator {
-    //public :
-//
-    //    static std::string lineComment(const std::string &text);
-//
-    //    static std::string blockComment(const std::string &text);
-    //};
+    class Comment {
+    public :
+
+        //static std::string info() { return "cpp14regress"; }
+
+        static std::string line(const std::string &text);
+
+        struct line {
+            static std::string begin() { return "//"; }
+        };
+
+        static std::string block(const std::string &text);
+
+        struct block {
+            static std::string begin() { return "/*"; }
+
+            static std::string end() { return "*/"; }
+        };
+    };
 
     class DirectoryGenerator {
 

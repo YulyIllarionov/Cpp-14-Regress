@@ -88,6 +88,7 @@ namespace cpp14regress {
     }
 
     void UserLiteralReplacer::endSourceFileAction() {
+        cout << "End file" << endl;
         for (FunctionDecl *funcDecl : f_userLiterals) {
             for (auto it = funcDecl->redecls_begin();
                  it != funcDecl->redecls_end(); it++) { //TODO check

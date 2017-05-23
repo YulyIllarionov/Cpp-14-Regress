@@ -53,33 +53,49 @@ static cl::OptionCategory MyToolCategory("");
 
 int main(int argc, const char **argv) {
 
-    if (argc != 3) {
-        cerr << "error: wrong argument number, need 2" << endl;
+    if ((argc < 2) || (argc > 3)) {
+        cerr << "error: wrong argument number" << endl;
         return 1;
     }
 
-    Twine dstDir(argv[2]);
-    if (!sys::fs::is_directory(argv[2])) {
-        cerr << "error: second argument \"" << argv[2] << "\" is not a folder" << endl;
+    string sourceFile(argv[1]);
+    if (!sys::fs::is_regular_file(sourceFile)) {
+        cerr << "error: first argument is not a file" << endl;
         return 2;
     }
 
-    Twine srcPath(argv[1]);
-    std::error_code ec;
-    vector<string> argv_tmp{argv[0]};
-    if (sys::fs::is_directory(srcPath.str())) {
-        for (sys::fs::recursive_directory_iterator i(srcPath, ec), e; i != e; i.increment(ec)) {
-            if (isCppSourceFile(i->path()))
-                argv_tmp.push_back(i->path());
+    if (argc == 3) {
+        string sourceDir(argv[2]);
+        if (argc == 3) {
+            if (!sys::fs::is_directory(sourceDir)) {
+                cerr << "error: second argument is not a folder" << endl;
+                return 3;
+            }
+            string sourceFileOrig = sourceFile;
+            cout << sourceFileOrig << endl;
+            sourceFile = asFolder(sourceDir) + pathPopBack(sourceFile);
+            cout << sourceFile << endl;
+            error_code ec = sys::fs::copy_file(sourceFileOrig, sourceFile);
+            if (bool(ec)) {
+                cerr << "error: " << ec.message() << endl;
+                return 4;
+            }
         }
-    } else {
-        if (isCppSourceFile(srcPath.str()))
-            argv_tmp.push_back(srcPath.str());
     }
-    cout << "Running tool from source files" << endl;
-    //cout << console_hline() << endl;
-    //for (auto it = argv_tmp.begin() + 1; it != argv_tmp.end(); it++)
-    //    cout << *it << endl;
+
+    cout << "Running tool on: " << sourceFile << endl;
+
+    const char *argv_mod[] = {argv[0], sourceFile.data(), "--", "-std=c++14"};
+    int argc_mod = 4;
+    CommonOptionsParser op(argc_mod, argv_mod, MyToolCategory);
+    ClangTool Tool(op.getCompilations(), op.getSourcePathList());
+    int result = Tool.run(
+            newFrontendActionFactory<FeatureReplacerFrontendAction<LambdaReplacer>>().get());
+
+    return result;
+
+    /*vector<string> argv_tmp{argv[0]};
+    argv_tmp.push_back(sourceFile);
     argv_tmp.push_back("--");
     argv_tmp.push_back("-std=c++14");
     int argc_mod = argv_tmp.size();
@@ -88,12 +104,15 @@ int main(int argc, const char **argv) {
         argv_mod[i] = new char[argv_tmp[i].size() + 1];
         std::strcpy(argv_mod[i], argv_tmp[i].c_str());
     }
+
     CommonOptionsParser op(argc_mod, const_cast<const char **>(argv_mod), MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
-    //cout << console_hline() << endl;
-    cout << "Press enter to continue";
-    getchar();
-    Tool.run(newFrontendActionFactory<FeatureReplacerFrontendAction<UserLiteralReplacer>>().get());
+    int result = Tool.run(
+            newFrontendActionFactory<FeatureReplacerFrontendAction<UserLiteralReplacer>>().get());
+
+    cout << console_hline() << endl;
+
+    return result;*/
 
     /*string em;
     unique_ptr<CompilationDatabase> cb;

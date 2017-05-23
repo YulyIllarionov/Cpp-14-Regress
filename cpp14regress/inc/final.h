@@ -20,7 +20,16 @@
 
 namespace cpp14regress {
 
-    class FinalReplacer : public clang::RecursiveASTVisitor<FinalReplacer> {
+    class FinalReplacer : public FeatureReplacer {
+    public:
+
+        FinalReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl);
+
+    };
+
+    /*class FinalReplacer : public clang::RecursiveASTVisitor<FinalReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -34,7 +43,7 @@ namespace cpp14regress {
 
         virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *funcDecl);
 
-    };
+    };*/
 }
 
 #endif /*FINAL*/

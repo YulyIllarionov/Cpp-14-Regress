@@ -23,21 +23,21 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    //static string Сommentator::lineComment(const std::string &text) {
-    //    string commented(text);
-    //    commented.insert(0, "//");
-    //    for (string::size_type i = 0; i < commented.size(); i++) {
-    //        if (commented[i] == '\n') {
-    //            commented.insert(++i, "//");
-    //            i++;
-    //        }
-    //    }
-    //    return commented;
-    //}
-//
-    //static std::string blockComment(const std::string &text) {
-    //    return string("/*" + text + "*/");
-    //}
+    string Comment::line(const string &text) {
+        string commented(text);
+        commented.insert(0, "//");
+        for (string::size_type i = 0; i < commented.size(); i++) {
+            if (commented[i] == '\n') {
+                commented.insert(++i, "//");
+                i++;
+            }
+        }
+        return commented;
+    }
+
+    string Comment::block(const string &text) {
+        return string("/*" + text + "*/");
+    }
 
     DirectoryGenerator::DirectoryGenerator(string path, string extension) {
         //SmallVector<char,100> tmp(path.begin(), path.end()); //TODO FIX!!!!!!
