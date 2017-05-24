@@ -26,16 +26,16 @@ namespace cpp14regress {
     using namespace llvm;
 
     bool ImprovedEnumReplacer::VisitEnumDecl(clang::EnumDecl *enumDecl) { //TODO fix
-        if (fromSystemFile(enumDecl, astContext()))
+        if (!fromUserFile(enumDecl, f_sourceManager))
             return true;
 
         SourceRange typeRange = enumDecl->getIntegerTypeRange();
         if (typeRange.isValid()) {
             typeRange.setEnd(Lexer::getLocForEndOfToken(typeRange.getBegin(), 0,
-                                                        sourceManager(), langOptions()));
+                                                        *f_sourceManager, *f_langOptions));
             typeRange.setBegin(Lexer::getLocForEndOfToken(enumDecl->getLocation(), 0,
-                                                          sourceManager(), langOptions()));
-            typeRange.setBegin(findTokenLoc(typeRange, astContext(), tok::TokenKind::colon, 1));
+                                                          *f_sourceManager, *f_langOptions));
+            typeRange.setBegin(findTokenLoc(typeRange, *f_astContext, tok::TokenKind::colon, 1));
 
             if (typeRange.isValid()) { //TODO change for commentator class
                 //rewriter()->InsertText(typeRange.getBegin(), "/*");
@@ -46,7 +46,7 @@ namespace cpp14regress {
     }
 
     bool ImprovedEnumReplacer::VisitTypeLoc(clang::TypeLoc typeLoc) {
-        if (fromSystemFile(&typeLoc, astContext()))
+        if (!fromUserFile(&typeLoc, f_sourceManager))
             return true;
         //if (typeLoc.getLocStart().isInvalid())
         //    return true;
@@ -60,13 +60,13 @@ namespace cpp14regress {
                         }
                         //Change enum type
                         SourceLocation insertLoc = Lexer::getLocForEndOfToken(typeLoc.getLocStart(),
-                                                                              0, sourceManager(),
-                                                                              langOptions());
+                                                                              0, *f_sourceManager,
+                                                                              *f_langOptions);
                         //TODO doesn't work
                         if (Lexer::findLocationAfterToken(insertLoc, tok::TokenKind::coloncolon,
-                                                          sourceManager(),
-                                                          langOptions(), true).isInvalid()) {
-                            cout << insertLoc.printToString(sourceManager()) << endl;
+                                                          *f_sourceManager, *f_langOptions,
+                                                          true).isInvalid()) {
+                            cout << insertLoc.printToString(*f_sourceManager) << endl;
                             //rewriter()->InsertTextAfterToken(typeLoc.getLocStart(),
                             //                                 string("::" + nameForReplace()));
                         }
@@ -82,7 +82,7 @@ namespace cpp14regress {
             //Change enum definition
             SourceRange nameRange(enumDef->getLocStart(),
                                   Lexer::getLocForEndOfToken(enumDef->getLocation(), 0,
-                                                             sourceManager(), langOptions()));
+                                                             *f_sourceManager, *f_langOptions));
             if (nameRange.isInvalid()) {
                 //TODO handle error
                 return;
@@ -93,62 +93,4 @@ namespace cpp14regress {
             //rewriter()->InsertText(enumDef->getRBraceLoc(), "};\n");
         }
     }
-
-
-    /*
-    bool StronglyTypedEnumReplacer::VisitValueDecl(ValueDecl *varDecl) {
-        if (!inProcessedFile(varDecl, f_context))
-            return true;
-        if (auto enumType = dyn_cast_or_null<EnumType>(varDecl->getType().getTypePtr())) {
-            if (EnumDecl *enumDecl = enumType->getDecl()) {
-                cout << "Enum variable: " << toString(varDecl, f_context) << endl;
-                f_enumDecls.insert(enumDecl);
-            }
-        }
-        return true;
-    }
-
-    bool StronglyTypedEnumReplacer::VisitEnumDecl(EnumDecl *enumDecl) {
-        if (!inProcessedFile(enumDecl, f_context))
-            return true;
-
-        if (EnumDecl *enumDef = enumDecl->getDefinition()) {
-            const SourceManager &sm = f_context->getSourceManager();
-            const LangOptions &lo = f_context->getLangOpts();
-            //Remove enumeration type
-            SourceLocation typeEnd = enumDef->getIntegerTypeRange().getEnd();
-            if (typeEnd.isValid()) {
-                SourceLocation nameEnd = Lexer::getLocForEndOfToken(enumDef->getLocation(),
-                                                                    0, sm, lo);
-                //f_rewriter->RemoveText(SourceRange(nameEnd, typeEnd));
-            }
-            //Remove last comma
-            //if (enumDef->enumerator_begin() != enumDef->enumerator_end()) {
-            //    auto last = enumDef->enumerator_begin();
-            //    while (std::next(last) != enumDef->enumerator_end()) last++;
-            //    SourceLocation afterLast = last->getLocEnd(), commaBegin;
-            //    Token token;
-            //    do {
-            //        afterLast = Lexer::AdvanceToTokenCharacter(afterLast, 0, sm, lo);
-            //        cout << "End: " << afterLast.printToString(sm) << endl;
-            //        if (Lexer::getRawToken(afterLast, token, sm, lo)) {
-            //            //TODO not understand
-            //            cerr << "Strongly typed enum replacer error" << endl;
-            //            break;
-            //        }
-            //        if (token.is(tok::TokenKind::comma)) {
-            //            commaBegin = afterLast;
-            //            break;
-            //        }
-            //    } while (token.isNot(tok::TokenKind::r_brace));
-            //    if (commaBegin.isValid()) {
-            //        cout << "Last comma:" << commaBegin.printToString(sm) << endl;
-            //    }
-            //}
-        }
-
-        return true;
-    }
-
-     */
 }

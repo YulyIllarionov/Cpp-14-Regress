@@ -31,11 +31,11 @@ namespace cpp14regress {
     //TODO check Types
     //TODO capture this
     bool LambdaReplacer::VisitLambdaExpr(LambdaExpr *lambda) {
-        if (fromSystemFile(lambda, astContext()))
+        if (!fromUserFile(lambda, f_sourceManager))
             return true;
 
         f_header << "//Lambda at:"
-                 << lambda->getLocStart().printToString(astContext().getSourceManager()) << endl;
+                 << lambda->getLocStart().printToString(*f_sourceManager) << endl;
 
         CXXRecordDecl *lambdaClass = lambda->getLambdaClass();
         DenseMap<const VarDecl *, FieldDecl *> clangCaptures;
@@ -90,7 +90,7 @@ namespace cpp14regress {
             }
             f_header << endl;
         }
-        f_header << lambdaFunction->getReturnType().getAsString(PrintingPolicy(langOptions()))
+        f_header << lambdaFunction->getReturnType().getAsString(PrintingPolicy(*f_langOptions))
                  << " operator() (";
         auto tn = typeNames.begin();
         for (size_t i = 0; i != lambdaFunction->param_size();) {
@@ -102,7 +102,7 @@ namespace cpp14regress {
         }
         f_header << ") const ";
         //Lambda class operator() body
-        f_header << toString(lambda->getBody(), astContext()) << endl;
+        f_header << toString(lambda->getBody(), f_astContext) << endl;
         f_header << "};" << endl;
 
         //Lambda class call
@@ -113,21 +113,21 @@ namespace cpp14regress {
                 //TODO
                 return false;
             }
-            call += toString(capture, astContext());
+            call += toString(capture, f_astContext);
             call += ((++it != lambda->capture_init_end()) ? ", " : "");
         }
         call += ")";
-        rewriter()->ReplaceText(lambda->getSourceRange(), call);
+        f_rewriter->ReplaceText(lambda->getSourceRange(), call);
 
         return true;
     }
 
     //TODO add include to all files;
     void LambdaReplacer::endSourceFileAction() {
-        FileID fileID = sourceManager().getMainFileID();
+        FileID fileID = f_sourceManager->getMainFileID();
 
 
-        SourceLocation includeLoc = getIncludeLocation(fileID, sourceManager());
+        SourceLocation includeLoc = getIncludeLocation(fileID, f_sourceManager);
         if (includeLoc.isInvalid()) {
             //TODO
             return;
@@ -135,9 +135,9 @@ namespace cpp14regress {
         string include("#include \"");
         include += f_lhng.generate();
         include += "\"\n";
-        rewriter()->InsertText(includeLoc, include);
+        f_rewriter->InsertText(includeLoc, include);
 
-        string folder = asFolder(sourceManager().getFileEntryForID(fileID)->getDir()->getName());
+        string folder = asFolder(f_sourceManager->getFileEntryForID(fileID)->getDir()->getName());
         std::error_code ec;
         ofstream header(folder + f_lhng.toString());
         if (!header.is_open()) {

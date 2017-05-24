@@ -108,10 +108,11 @@ namespace cpp14regress {
         beginSourceFileAction();
     }
 
-
-    FeatureReplacer::FeatureReplacer(CompilerInstance *ci)
-            : f_compilerInstance(ci) {
-        f_rewriter = new Rewriter(sourceManager(), langOptions());
+    FeatureReplacer::FeatureReplacer(CompilerInstance *ci) : f_compilerInstance(ci) {
+        f_astContext = &(ci->getASTContext());
+        f_sourceManager = &(ci->getSourceManager());
+        f_langOptions = &(ci->getLangOpts());
+        f_rewriter = new Rewriter(*f_sourceManager, *f_langOptions);
     }
 
 }

@@ -28,22 +28,6 @@ namespace cpp14regress {
         virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl);
 
     };
-
-    /*class FinalReplacer : public clang::RecursiveASTVisitor<FinalReplacer> {
-    private:
-        clang::ASTContext *f_context;
-        clang::Rewriter *f_rewriter;
-        cpp14features_stat *f_stat;
-        DirectoryGenerator *f_dg;
-
-    public:
-        FinalReplacer(clang::ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg);
-
-        virtual void EndFileAction();
-
-        virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *funcDecl);
-
-    };*/
 }
 
 #endif /*FINAL*/

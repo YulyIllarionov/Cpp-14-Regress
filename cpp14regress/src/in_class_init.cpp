@@ -82,7 +82,7 @@ namespace cpp14regress {
                                         return (*init).isWritten();
                                     });
                 SourceLocation initBegin = Lexer::getLocForEndOfToken(
-                        getParamRange(fd, *f_context).getEnd(), 0, sm, lo);
+                        getParamRange(fd, f_context).getEnd(), 0, sm, lo);
                 SourceLocation initEnd = (last == definition->init_rend()) ? initBegin :
                                          definition->getBody()->getLocStart().getLocWithOffset(-1); //TODO fix
 

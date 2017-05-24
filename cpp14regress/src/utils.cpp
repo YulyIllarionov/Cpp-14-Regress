@@ -31,9 +31,9 @@ namespace cpp14regress {
         return string(w.ws_col, c);
     }
 
-    string toString(SourceRange sr, const ASTContext &context, bool tokenEnd) {
-        const SourceManager &sm = context.getSourceManager();
-        const LangOptions &lo = context.getLangOpts();
+    string toString(SourceRange sr, const ASTContext *context, bool tokenEnd) {
+        const SourceManager &sm = context->getSourceManager();
+        const LangOptions &lo = context->getLangOpts();
         const char *b = sm.getCharacterData(sr.getBegin());
         SourceLocation end = sr.getEnd();
         if (tokenEnd)
@@ -115,14 +115,15 @@ namespace cpp14regress {
         return false;
     }
 
-    SourceRange getParamRange(const FunctionDecl *func, const ASTContext &context) {
+    SourceRange getParamRange(const FunctionDecl *func, const ASTContext *context) {
         SourceRange range;
         if (!func)
             return range;
 
         SourceLocation sl = func->getLocation();
         SourceLocation bodyBegin;
-        const SourceManager &sm = context.getSourceManager();
+        const SourceManager &sm = context->getSourceManager();
+        const LangOptions &lo = context->getLangOpts();
         if (func->hasBody())
             bodyBegin = func->getBody()->getLocStart();
         else
@@ -130,10 +131,7 @@ namespace cpp14regress {
         int l = sm.getCharacterData(bodyBegin) - sm.getCharacterData(sl);
         int i = 1;
         for (; i < l; i++) { //TODO fix getLocationAfterToken
-            sl = Lexer::findLocationAfterToken(
-                    sl, tok::TokenKind::l_paren,
-                    context.getSourceManager(),
-                    context.getLangOpts(), false);
+            sl = Lexer::findLocationAfterToken(sl, tok::TokenKind::l_paren, sm, lo, false);
             if (sl.isValid())
                 break;
             else
@@ -142,9 +140,7 @@ namespace cpp14regress {
         range.setBegin(sl.getLocWithOffset(-1));
         for (; i < l; i++) {
             sl = Lexer::findLocationAfterToken(
-                    sl, tok::TokenKind::r_paren,
-                    context.getSourceManager(),
-                    context.getLangOpts(), false);
+                    sl, tok::TokenKind::r_paren, sm, lo, false);
             if (sl.isValid())
                 break;
             else
@@ -217,14 +213,14 @@ namespace cpp14regress {
         f_first = true;
     }
 
-    SourceLocation getIncludeLocation(FileID fileID, SourceManager &sm, unsigned carriages) {
+    SourceLocation getIncludeLocation(FileID fileID, const SourceManager *sm, unsigned carriages) {
         set<unsigned> lines;
         if (fileID.isInvalid())
             return SourceLocation();
-        for (auto it = sm.fileinfo_begin(); it != sm.fileinfo_end(); it++) {
-            SourceLocation includeLoc = sm.getIncludeLoc(sm.translateFile(it->first));
-            if (includeLoc.isValid() && sm.isInFileID(includeLoc, fileID)) {
-                lines.insert(sm.getSpellingLineNumber(includeLoc));
+        for (auto it = sm->fileinfo_begin(); it != sm->fileinfo_end(); it++) {
+            SourceLocation includeLoc = sm->getIncludeLoc(sm->translateFile(it->first));
+            if (includeLoc.isValid() && sm->isInFileID(includeLoc, fileID)) {
+                lines.insert(sm->getSpellingLineNumber(includeLoc));
             }
         }
         unsigned pos(0);
@@ -240,26 +236,26 @@ namespace cpp14regress {
             }
             //cout << console_hline('-') << endl;
         }
-        cout << sm.getFileEntryForID(fileID)->getName() << endl;
-        return sm.translateFileLineCol(sm.getFileEntryForID(fileID), ++pos, 1);
+        cout << sm->getFileEntryForID(fileID)->getName() << endl;
+        return sm->translateFileLineCol(sm->getFileEntryForID(fileID), ++pos, 1);
     }
 
-    vector<string> getIncludes(FileID fileID, const ASTContext &context) {
-        const SourceManager &sm = context.getSourceManager();
-        const LangOptions &lo = context.getLangOpts();
+    /*vector<string> getIncludes(FileID fileID, const ASTContext *context) {
+        const SourceManager &sm = context->getSourceManager();
+        const LangOptions &lo = context->getLangOpts();
         vector<string> includes;
         for (auto it = sm.fileinfo_begin(); it != sm.fileinfo_end(); it++) {
             SourceLocation includeBegin = sm.getIncludeLoc(sm.translateFile(it->first));
             if (includeBegin.isValid() && sm.isInFileID(includeBegin, fileID)) {
                 SourceLocation includeEnd = Lexer::getLocForEndOfToken(includeBegin, 0, sm, lo);
                 includeEnd = Lexer::getLocForEndOfToken(includeEnd, 0, sm, lo); //TODO fix
-                string include = toString(SourceRange(includeBegin, includeEnd), context);
+                string include = toString(SourceRange(includeBegin, includeEnd), *context);
                 if (find(includes.begin(), includes.end(), include) == includes.end())
                     includes.push_back(include);
             }
         }
         return includes;
-    }
+    }*/
 
     SourceLocation findTokenLoc(SourceRange sr, const ASTContext &context,
                                 tok::TokenKind kind, unsigned size) {

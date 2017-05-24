@@ -33,7 +33,7 @@ namespace cpp14regress {
     }
 
     bool RangeBasedForReplacer::VisitCXXForRangeStmt(CXXForRangeStmt *for_loop) {
-        if (fromSystemFile(for_loop, astContext()))
+        if (!fromUserFile(for_loop, f_sourceManager))
             return true;
 
         ValueDecl *rangeVar = dyn_cast<DeclRefExpr>(for_loop->getRangeInit())->getDecl();
@@ -55,10 +55,10 @@ namespace cpp14regress {
                       + ".begin(); " + itStr + " != " + rangeStr
                       + ".end(); " + "++" + itStr + ")";
         }
-        rewriter()->ReplaceText(SourceRange(for_loop->getLocStart(), for_loop->getRParenLoc()),
+        f_rewriter->ReplaceText(SourceRange(for_loop->getLocStart(), for_loop->getRParenLoc()),
                                 forDecl);
 
-        RecursiveVariableReplacer *replacer = new RecursiveVariableReplacer(itVar, sg, rewriter());
+        RecursiveVariableReplacer *replacer = new RecursiveVariableReplacer(itVar, sg, f_rewriter);
         replacer->TraverseStmt(for_loop->getBody());
         return true;
     }

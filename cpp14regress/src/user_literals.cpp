@@ -26,7 +26,7 @@ namespace cpp14regress {
 
     //TODO Coincidence with the system luteral
     bool UserLiteralReplacer::VisitUserDefinedLiteral(UserDefinedLiteral *literal) {
-        if (fromSystemFile(literal, astContext()))
+        if (!fromUserFile(literal, f_sourceManager))
             return true;
         if (FunctionDecl *funcDecl = literal->getDirectCallee()) {
             auto pos = find(f_userLiterals.begin(),
@@ -38,7 +38,7 @@ namespace cpp14regress {
             }
             SourceRange paramsRange(literal->getLocStart(), literal->getUDSuffixLoc());
             SourceRange suffixRange(literal->getUDSuffixLoc(), literal->getLocEnd());
-            string params = toString(paramsRange, astContext(), false);
+            string params = toString(paramsRange, f_astContext, false);
             switch (literal->getLiteralOperatorKind()) {
                 case UserDefinedLiteral::LiteralOperatorKind::LOK_String : {
                     params += ", ";
@@ -68,15 +68,15 @@ namespace cpp14regress {
                 }
             }
 
-            string call = replaceName(toString(suffixRange, astContext()));
+            string call = replaceName(toString(suffixRange, f_astContext));
             call += string("(" + params + ")");
-            rewriter()->ReplaceText(literal->getSourceRange(), call);
+            f_rewriter->ReplaceText(literal->getSourceRange(), call);
         }
         return true;
     }
 
     bool UserLiteralReplacer::VisitFunctionDecl(clang::FunctionDecl *funcDecl) {
-        if (fromSystemFile(funcDecl, astContext()))
+        if (!fromUserFile(funcDecl, f_sourceManager))
             return true;
         if (funcDecl->getLiteralIdentifier()) { //TODO check
             if (find(f_userLiterals.begin(), f_userLiterals.end(), funcDecl) ==
@@ -93,11 +93,11 @@ namespace cpp14regress {
             for (auto it = funcDecl->redecls_begin();
                  it != funcDecl->redecls_end(); it++) { //TODO check
                 SourceRange nameRange(funcDecl->getLocation(),
-                                      getParamRange(funcDecl, astContext()).
+                                      getParamRange(funcDecl, f_astContext).
                                               getBegin().getLocWithOffset(-1));
                 string name = replaceName(funcDecl->getLiteralIdentifier()->getName());
                 funcDecl->getOuterLocStart();
-                rewriter()->ReplaceText(nameRange, name);
+                f_rewriter->ReplaceText(nameRange, name);
             }
         }
     }

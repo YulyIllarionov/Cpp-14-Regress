@@ -27,7 +27,7 @@ namespace cpp14regress {
 
 
     bool FinalReplacer::VisitCXXMethodDecl(CXXMethodDecl *methodDecl) {
-        if (fromSystemFile(methodDecl, astContext()))
+        if (!fromUserFile(methodDecl, f_sourceManager))
             return true;
 
         auto pos = find_if(methodDecl->attr_begin(), methodDecl->attr_end(), [](Attr *a) {

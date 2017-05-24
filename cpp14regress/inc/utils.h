@@ -46,34 +46,23 @@ namespace cpp14regress {
     };
 
 
-    std::string toString(clang::SourceRange sr, const clang::ASTContext &context,
+    std::string toString(clang::SourceRange sr, const clang::ASTContext *context,
                          bool tokenEnd = true);
 
     template<typename T>
-    std::string toString(T *source, const clang::ASTContext &context) {
+    std::string toString(T *source, const clang::ASTContext *context) {
         clang::SourceRange sr(source->getLocStart(), source->getLocEnd());
         return toString(sr, context);
     }
 
-    //std::string toString(clang::SourceRange sr, const clang::ASTContext *context) {
-    //    std::cerr << "This toString() is deprecated" << std::endl;
-    //    return std::string();
-    //}
-
     template<typename T>
-    std::string toString(T *source, const clang::ASTContext *context) {
-        std::cerr << "This toString() is deprecated" << std::endl;
-        return std::string();
-    }
-
-    template<typename T>
-    inline bool fromSystemFile(T *source, const clang::ASTContext &context) {
+    inline bool fromUserFile(T *source, const clang::SourceManager *sm) {
         clang::SourceLocation sl = source->getLocStart();
         if (sl.isValid())
-            if (context.getSourceManager().getFileCharacteristic(sl) !=
+            if (sm->getFileCharacteristic(sl) !=
                 clang::SrcMgr::CharacteristicKind::C_User)
-                return true;
-        return false;
+                return false;
+        return true;
     }
 
     template<typename T>
@@ -116,7 +105,7 @@ namespace cpp14regress {
     bool isCppSourceFile(std::string filename);
 
     clang::SourceRange
-    getParamRange(const clang::FunctionDecl *func, const clang::ASTContext &context); //TODO improve
+    getParamRange(const clang::FunctionDecl *func, const clang::ASTContext *context); //TODO improve
 
     std::vector<std::string> pathToVector(std::string path);
 
@@ -143,7 +132,7 @@ namespace cpp14regress {
         void reset();
     };
 
-    clang::SourceLocation getIncludeLocation(clang::FileID fileID, clang::SourceManager &sm,
+    clang::SourceLocation getIncludeLocation(clang::FileID fileID, const clang::SourceManager *sm,
                                              unsigned carriages = 5);
 
     std::vector<std::string> getIncludes(clang::FileID fileID, const clang::ASTContext &context);

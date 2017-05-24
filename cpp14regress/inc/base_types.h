@@ -121,8 +121,12 @@ namespace cpp14regress {
     protected:
         clang::CompilerInstance *f_compilerInstance;
         clang::Rewriter *f_rewriter;
+        clang::ASTContext *f_astContext;
+        clang::SourceManager *f_sourceManager;
+        clang::LangOptions* f_langOptions;
 
-        inline clang::CompilerInstance *compilerInstance() { return f_compilerInstance; }
+
+        /*inline clang::CompilerInstance *compilerInstance() { return f_compilerInstance; }
 
         inline clang::Rewriter *rewriter() { return f_rewriter; }
 
@@ -134,7 +138,7 @@ namespace cpp14regress {
 
         inline clang::LangOptions &langOptions() {
             return f_compilerInstance->getLangOpts();
-        }
+        }*/
 
         virtual void endSourceFileAction() {}
 
