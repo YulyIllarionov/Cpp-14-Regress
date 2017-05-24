@@ -31,16 +31,28 @@ namespace cpp14regress {
         virtual std::string toString() = 0;
     };
 
-    class RecursiveVariableReplacer : public clang::RecursiveASTVisitor<RecursiveVariableReplacer> {
+    class NameGenerator {
+    protected:
+        unsigned f_count = 0;
+        bool f_first = true;
+    public:
+
+        virtual std::string toString() { return std::string(); };
+
+        std::string generate();
+
+        void reset();
+    };
+
+    class VariableReplacer : public clang::RecursiveASTVisitor<VariableReplacer> {
     private:
         const clang::ValueDecl *f_variable;
         StringGenerator *f_generator;
         clang::Rewriter *f_rewriter;
 
     public:
-        RecursiveVariableReplacer(clang::ValueDecl *variable_,
-                                  StringGenerator *generator_, clang::Rewriter *rewriter_) :
-                f_variable(variable_), f_generator(generator_), f_rewriter(rewriter_) {}
+        VariableReplacer(clang::ValueDecl *vd, StringGenerator *sg, clang::Rewriter *r) :
+                f_variable(vd), f_generator(sg), f_rewriter(r) {}
 
         virtual bool VisitDeclRefExpr(clang::DeclRefExpr *dre);
     };
@@ -119,18 +131,6 @@ namespace cpp14regress {
         return std::string("f_" + var);
     }
 
-    class NameGenerator {
-    protected:
-        unsigned f_count = 0;
-        bool f_first = true;
-    public:
-
-        virtual std::string toString() { return std::string(); };
-
-        std::string generate();
-
-        void reset();
-    };
 
     clang::SourceLocation getIncludeLocation(clang::FileID fileID, const clang::SourceManager *sm,
                                              unsigned carriages = 5);
@@ -138,7 +138,7 @@ namespace cpp14regress {
     std::vector<std::string> getIncludes(clang::FileID fileID, const clang::ASTContext &context);
 
     clang::SourceLocation findTokenLoc(clang::SourceRange sr, const clang::ASTContext &context,
-                                      clang::tok::TokenKind kind, unsigned size);
+                                       clang::tok::TokenKind kind, unsigned size);
 }
 
 #endif /*CPP14REGRESS_UTILS_H*/

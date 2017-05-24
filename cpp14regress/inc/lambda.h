@@ -65,28 +65,11 @@ namespace cpp14regress {
 
         LambdaReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
+        virtual cpp14features type() { return cpp14features::lambda; }
+
         virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
 
     };
-
-    /*class LambdaFunctionReplacer : public clang::RecursiveASTVisitor<LambdaFunctionReplacer> {
-    private:
-        clang::ASTContext *f_context;
-        clang::Rewriter *f_rewriter;
-        cpp14features_stat *f_stat;
-        DirectoryGenerator *f_dg;
-        const std::string f_header_path = "/home/yury/llvm-clang/test/cpp14regress_lambda.h";
-        std::string f_code;
-
-    public:
-        explicit LambdaFunctionReplacer(clang::ASTContext *context, cpp14features_stat *stat,
-                                        DirectoryGenerator *dg);
-
-        virtual void EndFileAction() {}
-
-        virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
-
-    };*/
 }
 
 #endif //CPP14REGRESS_LAMBDA_FUNCTION_H

@@ -42,10 +42,9 @@ namespace cpp14regress {
         return std::string(b, e);
     }
 
-    bool RecursiveVariableReplacer::VisitDeclRefExpr(DeclRefExpr *dre) {
+    bool VariableReplacer::VisitDeclRefExpr(DeclRefExpr *dre) {
         if (dre->getDecl()->getNameAsString() == f_variable->getNameAsString()) {
-            f_rewriter->ReplaceText(SourceRange(dre->getLocStart(),
-                                                dre->getLocEnd()), f_generator->toString());
+            f_rewriter->ReplaceText(dre->getSourceRange(), f_generator->toString());
         }
         return true;
     }
@@ -115,7 +114,7 @@ namespace cpp14regress {
         return false;
     }
 
-    SourceRange getParamRange(const FunctionDecl *func, const ASTContext *context) {
+    SourceRange getParamRange(const FunctionDecl *func, const ASTContext *context) { //TODO rename
         SourceRange range;
         if (!func)
             return range;
@@ -146,7 +145,7 @@ namespace cpp14regress {
             else
                 sl = func->getLocation().getLocWithOffset(i);
         }
-        range.setEnd(sl.getLocWithOffset(-1));
+        range.setEnd(sl);
         return range;
     }
 

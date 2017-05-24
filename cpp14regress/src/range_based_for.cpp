@@ -32,12 +32,12 @@ namespace cpp14regress {
         return string(f_array->getNameAsString() + "[" + f_variable->getNameAsString() + "]");
     }
 
-    bool RangeBasedForReplacer::VisitCXXForRangeStmt(CXXForRangeStmt *for_loop) {
-        if (!fromUserFile(for_loop, f_sourceManager))
+    bool RangeBasedForReplacer::VisitCXXForRangeStmt(CXXForRangeStmt *rbf) {
+        if (!fromUserFile(rbf, f_sourceManager))
             return true;
-
-        ValueDecl *rangeVar = dyn_cast<DeclRefExpr>(for_loop->getRangeInit())->getDecl();
-        ValueDecl *itVar = for_loop->getLoopVariable();
+        //TODO check null
+        ValueDecl *rangeVar = dyn_cast<DeclRefExpr>(rbf->getRangeInit())->getDecl();
+        ValueDecl *itVar = rbf->getLoopVariable();
         string itStr = itVar->getQualifiedNameAsString();
 
         StringGenerator *sg;
@@ -49,17 +49,18 @@ namespace cpp14regress {
                       + itStr + "++)"; //int to size_t?
         } else {
             sg = new VariableToPointer(itVar);
-            string rangeTypeStr = QualType::getAsString(rangeVar->getType().split());
-            string rangeStr = rangeVar->getNameAsString();
-            forDecl = "for (" + rangeTypeStr + "::iterator " + itStr + " = " + rangeStr
-                      + ".begin(); " + itStr + " != " + rangeStr
+            string rangeTypeStr = rangeVar->getType().getAsString(PrintingPolicy(*f_langOptions));
+            string rangeVarStr = rangeVar->getNameAsString();
+            //TODO change auto iterator type
+            forDecl = "for (auto " + itStr + " = " + rangeVarStr
+                      + ".begin(); " + itStr + " != " + rangeVarStr
                       + ".end(); " + "++" + itStr + ")";
         }
-        f_rewriter->ReplaceText(SourceRange(for_loop->getLocStart(), for_loop->getRParenLoc()),
-                                forDecl);
-
-        RecursiveVariableReplacer *replacer = new RecursiveVariableReplacer(itVar, sg, f_rewriter);
-        replacer->TraverseStmt(for_loop->getBody());
+        f_rewriter->ReplaceText(SourceRange(rbf->getLocStart(), rbf->getRParenLoc()), forDecl);
+        VariableReplacer vr(itVar, sg, f_rewriter);
+        vr.TraverseStmt(rbf->getBody());
+        f_rewriter->InsertTextBefore(rbf->getLocStart(), Comment::line(
+                replacement::info(type(), replacement::result::replaced)) + "\n");
         return true;
     }
 

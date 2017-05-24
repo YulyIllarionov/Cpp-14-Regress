@@ -15,7 +15,7 @@
 #include "clang/AST/ParentMap.h"
 #include "llvm/ADT/DenseMap.h"
 
-#include "final.h"
+#include "override.h"
 #include "utils.h"
 #include <vector>
 
@@ -26,12 +26,12 @@ namespace cpp14regress {
     using namespace llvm;
 
 
-    bool FinalReplacer::VisitCXXMethodDecl(CXXMethodDecl *methodDecl) {
+    bool OverrideReplacer::VisitCXXMethodDecl(CXXMethodDecl *methodDecl) {
         if (!fromUserFile(methodDecl, f_sourceManager))
             return true;
 
         auto pos = find_if(methodDecl->attr_begin(), methodDecl->attr_end(), [](Attr *a) {
-            return (a->getKind() == attr::Kind::Final);
+            return (a->getKind() == attr::Kind::Override);
         });
         if (pos != methodDecl->attr_end()) {
             f_rewriter->InsertTextAfterToken((*pos)->getRange().getEnd(), Comment::block::end());

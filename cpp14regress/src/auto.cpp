@@ -23,27 +23,60 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    AutoReplacer::AutoReplacer(ASTContext *context, cpp14features_stat *stat,
-                               DirectoryGenerator *dg)
-            : f_context(context), f_stat(stat), f_dg(dg) {
-        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
-                                  context->getLangOpts());
-    }
-
-    void AutoReplacer::EndFileAction() {
-        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
-            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
-            string file = f_dg->getFile(entry->getName());
-            std::error_code ec;
-            sys::fs::remove(Twine(file));
-            raw_fd_ostream rfo(StringRef(file), ec,
-                               sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
-            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
-            i->second.write(rfo);
+    bool AutoReplacer::VisitTypeLoc(clang::TypeLoc typeLoc) {
+        if (!fromUserFile(&typeLoc, f_sourceManager))
+            return true;
+        if (auto at = dyn_cast<AutoType>(typeLoc.getTypePtr())) {
+            replacement::result res = replacement::result::found;
+            QualType deducedType = at->getDeducedType();
+            if (!deducedType.isNull()) {
+                cout << "deduced" << endl;
+                if ((deducedType->isFunctionPointerType()) ||
+                    (deducedType->isMemberFunctionPointerType())) {
+                    return true;
+                }
+                string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
+                f_rewriter->ReplaceText(typeLoc.getSourceRange(), typeName);
+                res = replacement::result::replaced;
+            }
+            f_rewriter->InsertTextBefore(typeLoc.getLocStart(),
+                                         Comment::block(replacement::info(type(), res)));
         }
+        return true;
     }
 
-    bool AutoReplacer::VisitVarDecl(VarDecl *varDecl) {
+    bool AutoReplacer::VisitVarDecl(clang::VarDecl *varDecl) {
+        if (!fromUserFile(varDecl, f_sourceManager))
+            return true;
+        if (auto at = dyn_cast<AutoType>(varDecl->getType().getTypePtr())) {
+            replacement::result res = replacement::result::found;
+            QualType deducedType = at->getDeducedType();
+            if (!deducedType.isNull()) {
+                string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
+                SourceRange typeRange = varDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange();
+                if ((deducedType->isFunctionPointerType()) ||
+                    (deducedType->isMemberFunctionPointerType())) {
+                    string ident = (deducedType->isFunctionPointerType()) ? "(*)" : "::*";
+                    size_t identOffset = (deducedType->isFunctionPointerType()) ? 2 : 3;
+
+                    size_t pos = typeName.find(ident); //TODO change
+                    if (pos != string::npos) {
+                        typeName.insert(pos + identOffset, varDecl->getNameAsString());
+                        typeRange.setEnd(Lexer::getLocForEndOfToken(varDecl->getLocation(), 0,
+                                                                    *f_sourceManager,
+                                                                    *f_langOptions));
+                        f_rewriter->ReplaceText(typeRange, typeName);
+                        res = replacement::result::replaced;
+                    }
+                    f_rewriter->InsertTextBefore(typeRange.getBegin(),
+                                                 Comment::block(replacement::info(type(), res)));
+                }
+            }
+        }
+        return true;
+    }
+
+    /*bool AutoReplacer::VisitVarDecl(VarDecl *varDecl) {
         if (!inProcessedFile(varDecl, f_context))
             return true;
         if (auto at = dyn_cast<AutoType>(varDecl->getType().getTypePtr())) {
@@ -103,6 +136,6 @@ namespace cpp14regress {
             }
         }
         return true;
-    }
+    }*/
 }
 

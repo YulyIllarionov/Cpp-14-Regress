@@ -23,6 +23,16 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
+    namespace replacement {
+        string info(cpp14features f, result r) {
+            return string(label + " _ " + resultStrings[(int)r]);
+        }
+
+        string begin(cpp14features f, result r) { return info(f, r) + " begin"; }
+
+        string end(cpp14features f, result r) { return info(f, r) + " end"; }
+    }
+
     string Comment::line(const string &text) {
         string commented(text);
         commented.insert(0, "//");

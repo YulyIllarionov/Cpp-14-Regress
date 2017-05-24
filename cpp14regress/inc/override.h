@@ -1,5 +1,5 @@
-#ifndef CPP14REGRESS_FINAL_H
-#define CPP14REGRESS_FINAL_H
+#ifndef CPP14REGRESS_OVERRIDE_H
+#define CPP14REGRESS_OVERRIDE_H
 
 #include "clang/Driver/Options.h"
 #include "clang/AST/AST.h"
@@ -20,16 +20,16 @@
 
 namespace cpp14regress {
 
-    class FinalReplacer : public FeatureReplacer {
+    class OverrideReplacer : public FeatureReplacer {
     public:
 
-        FinalReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        OverrideReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual cpp14features type() { return cpp14features::final_specifier; }
+        virtual cpp14features type() { return cpp14features::override_specifier; }
 
         virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl);
 
     };
 }
 
-#endif /*CPP14REGRESS_FINAL_H*/
+#endif /*CPP14REGRESS_OVERRIDE_H*/

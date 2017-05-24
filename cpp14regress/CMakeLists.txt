@@ -15,26 +15,27 @@ add_clang_library(Cpp14scanner
         )
 
 add_clang_library(Cpp14Regress
-        ./src/ast_to_dot.cpp
-        ./src/base_types.cpp
-        ./src/utils.cpp
+        #./src/ast_to_dot.cpp
+        #./src/base_types.cpp
+        #./src/utils.cpp
         ./src/range_based_for.cpp
-        ./src/lambda.cpp
+        #./src/lambda.cpp
         ./src/auto.cpp
-        ./src/decltype.cpp
-        ./src/default.cpp
-        ./src/constuctor_delegation.cpp
-        ./src/raw_string.cpp
-        ./src/implict_sizeof.cpp
-        ./src/digit_separators.cpp
-        ./src/alias_type.cpp
-        ./src/uniform_initialization.cpp
-        ./src/explicit_conversion.cpp
+        #./src/decltype.cpp
+        #./src/default.cpp
+        #./src/constuctor_delegation.cpp
+        #./src/raw_string.cpp
+        #./src/implict_sizeof.cpp
+        #./src/digit_separators.cpp
+        #./src/alias_type.cpp
+        #./src/uniform_initialization.cpp
+        #./src/explicit_conversion.cpp
         ./src/in_class_init.cpp
-        ./src/strongly_typed_enum.cpp
-        ./src/user_literals.cpp
+        #./src/strongly_typed_enum.cpp
+        #./src/user_literals.cpp
         ./src/final.cpp
-        ./src/file_preparator.cpp
+        ./src/override.cpp
+        #./src/file_preparator.cpp
 
         LINK_LIBS
         clangAST

@@ -37,9 +37,8 @@ namespace cpp14regress {
         clang::ValueDecl *f_variable;
         clang::ValueDecl *f_array;
     public:
-        VariableToArrayElement(clang::ValueDecl *variable_,
-                               clang::ValueDecl *array_) :
-                f_variable(variable_), f_array(array_) {}
+        VariableToArrayElement(clang::ValueDecl *variable, clang::ValueDecl *array) :
+                f_variable(variable), f_array(array) {}
 
         virtual std::string toString();
     };
@@ -49,7 +48,9 @@ namespace cpp14regress {
 
         RangeBasedForReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *for_loop);
+        virtual cpp14features type() { return cpp14features::range_based_for; }
+
+        virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *rbf);
     };
 }
 

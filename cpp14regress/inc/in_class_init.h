@@ -23,7 +23,18 @@
 
 namespace cpp14regress {
 
-    class MemberInitReplacer : public clang::RecursiveASTVisitor<MemberInitReplacer> {
+    class MemberInitReplacer : public FeatureReplacer {
+    public:
+
+        MemberInitReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual cpp14features type() { return cpp14features::member_init; }
+
+        virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
+
+    };
+
+    /*class MemberInitReplacer : public clang::RecursiveASTVisitor<MemberInitReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -38,7 +49,7 @@ namespace cpp14regress {
         virtual void EndFileAction();
 
         virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
-    };
+    };*/
 
 }
 

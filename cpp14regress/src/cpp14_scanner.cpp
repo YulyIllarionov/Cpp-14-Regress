@@ -39,7 +39,7 @@ namespace cpp14regress {
     bool Cpp14scanner::VisitLambdaExpr(clang::LambdaExpr *lambdaExpr) {
         if (!inProcessedFile(lambdaExpr, f_context))
             return true;
-        f_stat->push(cpp14features::lambda_function, lambdaExpr->getLocStart());
+        f_stat->push(cpp14features::lambda, lambdaExpr->getLocStart());
         return true;
     }
 

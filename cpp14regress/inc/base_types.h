@@ -69,7 +69,7 @@ namespace cpp14regress {
         initializer_list, //?
         uniform_initialization, //found     cured
         range_based_for, //found    cured
-        lambda_function, //found    cured
+        lambda, //found    cured
         alternative_function_syntax, //found
         constuctor_delegation, //found  cured
         null_pointer_constant, //found
@@ -91,9 +91,8 @@ namespace cpp14regress {
         variable_templates, //found
         digit_separators, //found   cured
         binary_literals, //found
-        inclass_init, //found   //cured
+        member_init, //found   //cured
         end,
-        unknown
     };
 
     class cpp14features_stat {
@@ -116,6 +115,27 @@ namespace cpp14regress {
         static std::string toString(cpp14features f);
     };
 
+    namespace replacement {
+        enum class result {
+            found = 0,
+            removed,
+            replaced,
+            inserted
+        };
+
+        static const std::string resultStrings[]{"found",
+                                                 "removed",
+                                                 "replaced",
+                                                 "inserted"};
+
+        static const std::string label("cpp14regress");
+
+        std::string info(cpp14features f, result r);
+
+        std::string begin(cpp14features f, result r);
+
+        std::string end(cpp14features f, result r);
+    }
 
     class FeatureReplacer : public clang::RecursiveASTVisitor<FeatureReplacer> {
     protected:
@@ -123,22 +143,7 @@ namespace cpp14regress {
         clang::Rewriter *f_rewriter;
         clang::ASTContext *f_astContext;
         clang::SourceManager *f_sourceManager;
-        clang::LangOptions* f_langOptions;
-
-
-        /*inline clang::CompilerInstance *compilerInstance() { return f_compilerInstance; }
-
-        inline clang::Rewriter *rewriter() { return f_rewriter; }
-
-        inline clang::ASTContext &astContext() { return f_compilerInstance->getASTContext(); }
-
-        inline clang::SourceManager &sourceManager() {
-            return f_compilerInstance->getSourceManager();
-        }
-
-        inline clang::LangOptions &langOptions() {
-            return f_compilerInstance->getLangOpts();
-        }*/
+        clang::LangOptions *f_langOptions;
 
         virtual void endSourceFileAction() {}
 
@@ -151,7 +156,7 @@ namespace cpp14regress {
 
         virtual void BeginSourceFileAction();
 
-        virtual cpp14features type() { return cpp14features::unknown; }
+        virtual cpp14features type() = 0;
 
         virtual bool VisitVarDecl(clang::VarDecl *declaratorDecl) { return true; }
 
@@ -166,6 +171,8 @@ namespace cpp14regress {
         virtual bool VisitUserDefinedLiteral(clang::UserDefinedLiteral *literal) { return true; }
 
         virtual bool VisitFunctionDecl(clang::FunctionDecl *funcDecl) { return true; }
+
+        virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl) { return true; }
     };
 
     template<typename VisitorType>
