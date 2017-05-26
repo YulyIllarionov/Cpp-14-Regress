@@ -23,17 +23,30 @@
 
 namespace cpp14regress {
 
-    class ConstructorDelegationReplacer : public clang::RecursiveASTVisitor<ConstructorDelegationReplacer> {
+    class ConstructorDelegationReplacer : public FeatureReplacer {
+    public:
+
+        ConstructorDelegationReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual cpp14features type() { return cpp14features::constuctor_delegation; }
+
+        virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
+
+    private:
+        const std::string f_seed = "Init_cpp14regress";
+
+        std::string initFunName(const clang::CXXConstructorDecl *ctr);
+
+        std::string initFunCall(const clang::CXXConstructorDecl *delegating);
+    };
+
+    /*class ConstructorDelegationReplacer : public clang::RecursiveASTVisitor<ConstructorDelegationReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
         cpp14features_stat *f_stat;
         DirectoryGenerator *f_dg;
-        const std::string f_seed = "Init";
 
-        std::string initFunName(const clang::CXXConstructorDecl *ctr);
-
-        std::string initFunCall(const clang::CXXConstructorDecl *delegating);
 
     public:
         explicit ConstructorDelegationReplacer(clang::ASTContext *context,
@@ -42,7 +55,7 @@ namespace cpp14regress {
         virtual void EndFileAction();
 
         virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
-    };
+    };*/
 
 }
 

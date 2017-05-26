@@ -23,16 +23,24 @@
 
 namespace cpp14regress {
 
+    class AliasTypeReplacer : public FeatureReplacer {
+    public:
+
+        AliasTypeReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual cpp14features type() { return cpp14features::alias_type; }
+
+        virtual bool VisitTypeAliasDecl(clang::TypeAliasDecl *aliasTypeDecl);
+
+    };
+
+    /*
     class AliasTypeReplacer : public clang::RecursiveASTVisitor<AliasTypeReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
         cpp14features_stat *f_stat;
         DirectoryGenerator *f_dg;
-
-        std::string initFunName(const clang::CXXConstructorDecl *ctr);
-
-        std::string initFunCall(const clang::CXXConstructorDecl *delegating);
 
     public:
         explicit AliasTypeReplacer(clang::ASTContext *context,
@@ -42,7 +50,7 @@ namespace cpp14regress {
 
         virtual bool VisitTypeAliasDecl(clang::TypeAliasDecl *aliasTypeDecl);
 
-    };
+    };*/
 
 }
 

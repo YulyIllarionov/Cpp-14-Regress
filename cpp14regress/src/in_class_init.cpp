@@ -39,7 +39,7 @@ namespace cpp14regress {
         for (auto field = recordDecl->field_begin(); field != recordDecl->field_end(); field++) {
             if (field->hasInClassInitializer()) {
                 SourceLocation b = Lexer::getLocForEndOfToken(field->getLocation(), 0, sm, lo);
-                SourceLocation e = field->getLocEnd(); //Lexer::getLocForEndOfToken(field->getLocEnd(), 0, sm, lo);
+                SourceLocation e = field->getLocEnd();
                 f_rewriter->ReplaceText(SourceRange(b, e), Comment::block(
                         replacement::info(type(), replacement::result::removed)));
                 initFound = true;

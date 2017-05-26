@@ -23,7 +23,17 @@
 
 namespace cpp14regress {
 
-    class UniformInitReplacer : public clang::RecursiveASTVisitor<UniformInitReplacer> {
+    class UniformInitReplacer : public FeatureReplacer {
+    public:
+
+        UniformInitReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual cpp14features type() { return cpp14features::uniform_initialization; }
+
+        virtual bool VisitCXXConstructExpr(clang::CXXConstructExpr *constructExpr);
+    };
+
+    /*class UniformInitReplacer : public clang::RecursiveASTVisitor<UniformInitReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -43,7 +53,7 @@ namespace cpp14regress {
         virtual bool VisitCXXScalarValueInitExpr(clang::CXXScalarValueInitExpr *scalarInitExpr);
 
         virtual bool VisitInitListExpr(clang::InitListExpr *initListExpr);
-    };
+    };*/
 
 
     class StdListInitSearcher : public clang::RecursiveASTVisitor<StdListInitSearcher> {

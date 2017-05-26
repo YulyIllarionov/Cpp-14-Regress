@@ -23,7 +23,19 @@
 
 namespace cpp14regress {
 
-    class ExplicitConversionReplacer : public clang::RecursiveASTVisitor<ExplicitConversionReplacer> {
+    class ExplicitConversionReplacer : public FeatureReplacer {
+    public:
+
+        ExplicitConversionReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual cpp14features type() { return cpp14features::explicit_specifier; }
+
+        virtual bool VisitCXXConversionDecl(clang::CXXConversionDecl *conversionDecl);
+
+    };
+
+
+    /*class ExplicitConversionReplacer : public clang::RecursiveASTVisitor<ExplicitConversionReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -38,7 +50,7 @@ namespace cpp14regress {
 
         virtual bool VisitCXXConversionDecl(clang::CXXConversionDecl *conversionMethod);
 
-    };
+    };*/
 }
 
 #endif /*CPP14REGRESS_EXPLICIT_CONVERSION_H*/

@@ -88,7 +88,7 @@ namespace cpp14regress {
 
     bool isCppFile(const clang::Twine &path);
 
-    class Indent {
+    /*class Indent {
     private:
         unsigned int f_level;
         const static unsigned int f_size = 4;
@@ -108,7 +108,7 @@ namespace cpp14regress {
         operator std::string() const { return std::string(f_level * f_size, ' '); }
 
         friend std::ostream &operator<<(std::ostream &stream, const Indent &indent);
-    };
+    }; */
 
     std::vector<std::string> filesInFolder(std::string folder);
 
@@ -136,6 +136,20 @@ namespace cpp14regress {
                                              unsigned carriages = 5);
 
     std::vector<std::string> getIncludes(clang::FileID fileID, const clang::ASTContext &context);
+
+    clang::SourceLocation findTokenEndAfterLoc(clang::SourceLocation start, clang::tok::TokenKind kind,
+                                               const clang::ASTContext *context,
+                                               bool skipWhitespace = false);
+
+    clang::SourceLocation findTokenBeginAfterLoc(clang::SourceLocation start, clang::tok::TokenKind kind,
+                                                 unsigned size, const clang::ASTContext *context);
+
+    clang::SourceLocation findTokenEndBeforeLoc(clang::SourceLocation start, clang::tok::TokenKind kind,
+                                                const clang::ASTContext *context,
+                                                bool skipWhitespace = false);
+
+    clang::SourceLocation findTokenBeginBeforeLoc(clang::SourceLocation start, clang::tok::TokenKind kind,
+                                                  unsigned size, const clang::ASTContext *context);
 
     clang::SourceLocation findTokenLoc(clang::SourceRange sr, const clang::ASTContext &context,
                                        clang::tok::TokenKind kind, unsigned size);

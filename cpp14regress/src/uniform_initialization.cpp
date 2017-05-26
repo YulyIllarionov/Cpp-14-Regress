@@ -26,28 +26,7 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    UniformInitReplacer::UniformInitReplacer(ASTContext *context,
-                                             cpp14features_stat *stat, DirectoryGenerator *dg)
-            : f_context(context), f_stat(stat), f_dg(dg) {
-        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
-                                  context->getLangOpts());
-    }
-
-    void UniformInitReplacer::EndFileAction() {
-        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
-            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
-            string file = f_dg->getFile(entry->getName());
-            std::error_code ec;
-            sys::fs::remove(Twine(file));
-            raw_fd_ostream rfo(StringRef(file), ec,
-                               sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
-            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
-            i->second.write(rfo);
-        }
-        //f_rewriter->overwriteChangedFiles();
-    }
-
-    bool UniformInitReplacer::VisitVarDecl(clang::VarDecl *varDecl) {
+    /*bool UniformInitReplacer::VisitVarDecl(clang::VarDecl *varDecl) {
         if (!inProcessedFile(varDecl, f_context))
             return true;
         if (varDecl->hasInit()) {
@@ -92,10 +71,10 @@ namespace cpp14regress {
             }
         }
         return true;
-    }
+    }*/
 
     //TODO delete
-    bool UniformInitReplacer::VisitInitListExpr(InitListExpr *initListExpr) {
+    /*bool UniformInitReplacer::VisitInitListExpr(InitListExpr *initListExpr) {
         if (!inProcessedFile(initListExpr, f_context))
             return true;
         //static string path = "/home/yury/llvm-clang/test/dot/";
@@ -104,34 +83,59 @@ namespace cpp14regress {
         //ag.to_dot_file(
         //        path + to_string(i++) + "  " + toString(initListExpr, f_context).substr(0, 25));
         return true;
-    }
+    }*/
 
     //TODO best
     bool UniformInitReplacer::VisitCXXConstructExpr(CXXConstructExpr *constructExpr) {
-        if (!inProcessedFile(constructExpr, f_context))
+        if (!fromUserFile(constructExpr, f_sourceManager))
             return true;
         if (constructExpr->isListInitialization() &&
             !constructExpr->isStdInitListInitialization()) {
+            if (auto constructDecl = constructExpr->getConstructor()) {
+                SourceRange braceRange = constructExpr->getParenOrBraceRange();
+                if (constructExpr->getLocStart() == braceRange.getBegin()) {
+                    f_rewriter->InsertTextBefore(braceRange.getBegin(),
+                                                 constructDecl->getNameAsString());
+                }
+                SourceRange lParenRange = (braceRange.getBegin().getLocWithOffset(-1), braceRange.getBegin());
+                SourceRange rParenRAnge = (braceRange.getEnd(), braceRange.getEnd().getLocWithOffset(1));
+                f_rewriter->ReplaceText(lParenRange, "(");
+                f_rewriter->ReplaceText(rParenRAnge, ")");
+            }
+
 
             //static string path = "/home/yury/llvm-clang/test/dot/";
             //static int i = 0;
             //ast_graph ag(constructExpr, f_context);
             //ag.to_dot_file(
             //        path + to_string(i++) + " " + toString(constructExpr, f_context).substr(0, 25));
-
-            cout << "List constructor: " << toString(constructExpr, f_context) << " -- "
-                 << constructExpr->getConstructor()->getNameAsString()
-                 << endl; //TODO name if necessary
+            //cout << "List constructor: " << toString(constructExpr, f_astContext) << " -- "
+            //     << constructExpr->getConstructor()->getNameAsString();
+            //if (auto constructDecl = constructExpr->getConstructor()) {
+            //    cout << "<";
+            //    if (auto tal = constructDecl->getTemplateSpecializationArgs()) {
+            //        for (unsigned i = 0; i < tal->size(); i++) {
+            //            QualType qt = (*tal)[i].getAsType();
+            //            if (!qt.isNull()) {
+            //                cout << qt.getAsString(PrintingPolicy(*f_langOptions));
+            //            } else
+            //                cout << "_";
+            //            cout << ";";
+            //        }
+            //    }
+            //    cout << ">";
+            //}
+            //cout << endl;
         }
         return true;
     }
 
     //TODO delete cause T() only
-    bool UniformInitReplacer::VisitCXXScalarValueInitExpr(CXXScalarValueInitExpr *scalarInitExpr) {
+    /*bool UniformInitReplacer::VisitCXXScalarValueInitExpr(CXXScalarValueInitExpr *scalarInitExpr) {
         if (!inProcessedFile(scalarInitExpr, f_context))
             return true;
 
         cout << "Scalar init: " << toString(scalarInitExpr, f_context) << endl;
         return true;
-    }
+    }*/
 }

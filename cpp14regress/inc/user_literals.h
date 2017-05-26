@@ -27,20 +27,15 @@ namespace cpp14regress {
     class UserLiteralReplacer : public FeatureReplacer {
     private:
 
-        std::stringstream f_header;
-        std::vector<clang::FunctionDecl *> f_userLiterals;
-
-        std::string replaceName(std::string s) {
-            return std::string("cpp14regressUserLiteral" + s);
+        std::string operatorFuncName(std::string s) {
+            return std::string("__cpp14regress_user_literal" + s);
         }
 
     public:
 
-        UserLiteralReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {
-            f_userLiterals.clear();
-        }
+        UserLiteralReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual void endSourceFileAction();
+        virtual cpp14features type() { return cpp14features::user_defined_literals; }
 
         virtual bool VisitFunctionDecl(clang::FunctionDecl *funcDecl);
 
@@ -63,26 +58,6 @@ namespace cpp14regress {
 
         unsigned size() { return f_size; }
     };
-
-
-
-    /*class UserLiteralReplacer : public clang::RecursiveASTVisitor<UserLiteralReplacer> {
-    private:
-        clang::ASTContext *f_context;
-        clang::Rewriter *f_rewriter;
-        cpp14features_stat *f_stat;
-        DirectoryGenerator *f_dg;
-
-    public:
-        explicit UserLiteralReplacer(clang::ASTContext *context,
-                                     cpp14features_stat *stat, DirectoryGenerator *dg);
-
-        virtual void EndFileAction();
-
-        virtual bool VisitFunctionDecl(clang::FunctionDecl *funcDecl);
-
-        virtual bool VisitUserDefinedLiteral(clang::UserDefinedLiteral *literal);
-    };*/
 
 }
 

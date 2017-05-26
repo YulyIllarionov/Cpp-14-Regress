@@ -56,7 +56,7 @@ namespace cpp14regress {
         return false;
     }
 
-    Indent &Indent::operator++() {
+    /*Indent &Indent::operator++() {
         f_level++;
         return *this;
     }
@@ -83,7 +83,7 @@ namespace cpp14regress {
         for (unsigned int i = 0; i < indent.f_size * indent.f_level; i++)
             stream << ' ';
         return stream;
-    }
+    }*/
 
     vector<string> filesInFolder(string folder) {
         vector<string> filenames;
@@ -119,17 +119,17 @@ namespace cpp14regress {
         if (!func)
             return range;
 
-        SourceLocation sl = func->getLocation();
-        SourceLocation bodyBegin;
         const SourceManager &sm = context->getSourceManager();
         const LangOptions &lo = context->getLangOpts();
+        SourceLocation sl = func->getLocStart();
+        SourceLocation declEnd;
         if (func->hasBody())
-            bodyBegin = func->getBody()->getLocStart();
+            declEnd = func->getBody()->getLocStart();
         else
-            bodyBegin = func->getLocEnd();
-        int l = sm.getCharacterData(bodyBegin) - sm.getCharacterData(sl);
+            declEnd = func->getLocEnd();
+        int l = sm.getCharacterData(declEnd) - sm.getCharacterData(sl);
         int i = 1;
-        for (; i < l; i++) { //TODO fix getLocationAfterToken
+        for (; i <= l; i++) { //TODO fix getLocationAfterToken
             sl = Lexer::findLocationAfterToken(sl, tok::TokenKind::l_paren, sm, lo, false);
             if (sl.isValid())
                 break;
@@ -255,6 +255,53 @@ namespace cpp14regress {
         }
         return includes;
     }*/
+
+    SourceLocation findTokenEndAfterLoc(SourceLocation start, tok::TokenKind kind,
+                                        const ASTContext *context, bool skipWhitespace) {
+        const SourceManager &sm = context->getSourceManager();
+        const LangOptions &lo = context->getLangOpts();
+        while (start.isValid()) {
+            SourceLocation sl = Lexer::findLocationAfterToken(start, kind, sm, lo, skipWhitespace);
+            if (sl.isValid()) {
+                start = sl;
+                break;
+            } else
+                start = start.getLocWithOffset(1);
+        }
+        return start;
+    }
+
+    SourceLocation findTokenBeginAfterLoc(SourceLocation start, tok::TokenKind kind,
+                                          unsigned size, const ASTContext *context) {
+        SourceLocation sl = findTokenEndAfterLoc(start, kind, context, false);
+        if (sl.isValid())
+            sl = sl.getLocWithOffset(-size);
+        return sl;
+    }
+
+    SourceLocation findTokenEndBeforeLoc(SourceLocation start, tok::TokenKind kind,
+                                         const ASTContext *context, bool skipWhitespace) {
+        const SourceManager &sm = context->getSourceManager();
+        const LangOptions &lo = context->getLangOpts();
+        while (start.isValid()) {
+            SourceLocation sl = Lexer::findLocationAfterToken(start, kind, sm, lo, skipWhitespace);
+            if (sl.isValid()) {
+                start = sl;
+                break;
+            } else
+                start = start.getLocWithOffset(-1);
+        }
+        return start;
+    }
+
+    SourceLocation findTokenBeginBeforeLoc(SourceLocation start, tok::TokenKind kind,
+                                           unsigned size, const ASTContext *context) {
+        SourceLocation sl = findTokenEndBeforeLoc(start, kind, context, false);
+        if (sl.isValid())
+            sl = sl.getLocWithOffset(-size);
+        return sl;
+    }
+
 
     SourceLocation findTokenLoc(SourceRange sr, const ASTContext &context,
                                 tok::TokenKind kind, unsigned size) {

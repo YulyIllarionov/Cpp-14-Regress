@@ -25,7 +25,7 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    bool ImprovedEnumReplacer::VisitEnumDecl(clang::EnumDecl *enumDecl) { //TODO fix
+    bool ImprovedEnumReplacer::VisitEnumDecl(clang::EnumDecl *enumDecl) {
         if (!fromUserFile(enumDecl, f_sourceManager))
             return true;
 
@@ -48,29 +48,26 @@ namespace cpp14regress {
     bool ImprovedEnumReplacer::VisitTypeLoc(clang::TypeLoc typeLoc) {
         if (!fromUserFile(&typeLoc, f_sourceManager))
             return true;
-        //if (typeLoc.getLocStart().isInvalid())
-        //    return true;
         if (auto type = typeLoc.getTypePtr()) {
-            if (EnumDecl *enumDecl = dyn_cast_or_null<EnumDecl>(type->getAsTagDecl())) {
-                if (EnumDecl *enumDef = enumDecl->getDefinition()) {
-                    if (enumDef->isScopedUsingClassTag()) {
-                        //TODO fix type only for ones with definition?
-                        if (find(f_enums.begin(), f_enums.end(), enumDef) == f_enums.end()) {
-                            f_enums.push_back(enumDef);
-                        }
-                        //Change enum type
-                        SourceLocation insertLoc = Lexer::getLocForEndOfToken(typeLoc.getLocStart(),
-                                                                              0, *f_sourceManager,
-                                                                              *f_langOptions);
-                        //TODO doesn't work
-                        if (Lexer::findLocationAfterToken(insertLoc, tok::TokenKind::coloncolon,
-                                                          *f_sourceManager, *f_langOptions,
-                                                          true).isInvalid()) {
-                            cout << insertLoc.printToString(*f_sourceManager) << endl;
-                            //rewriter()->InsertTextAfterToken(typeLoc.getLocStart(),
-                            //                                 string("::" + nameForReplace()));
-                        }
-                    }
+            if (auto *enumDecl = dyn_cast_or_null<EnumDecl>(type->getAsTagDecl())) {
+                //if (auto *enumDef = enumDecl->getDefinition())  //TODO is necessary?
+                if (enumDecl->isScopedUsingClassTag()) {
+                    if (!fromUserFile(enumDecl, f_sourceManager))
+                        return true;
+
+                    EnumFieldSearcher efs;
+                    //efs.TraverseTypeOfExprTypeLoc(typeLoc);//TODO problem with ::
+
+                    SourceLocation insertLoc = Lexer::getLocForEndOfToken(
+                            typeLoc.getLocStart(), 0, *f_sourceManager, *f_langOptions);
+                    SourceLocation scopeResLoc = Lexer::AdvanceToTokenCharacter(
+                            insertLoc, 0, *f_sourceManager, *f_langOptions);
+                    /*if (Lexer::findLocationAfterToken(insertLoc, tok::TokenKind::coloncolon,
+                                                      *f_sourceManager, *f_langOptions,
+                                                      false).isInvalid()) {*/
+                    cout << scopeResLoc.printToString(*f_sourceManager) << " -- " << efs.found() << endl;
+                    //rewriter()->InsertTextAfterToken(typeLoc.getLocStart(),
+                    //
                 }
             }
         }

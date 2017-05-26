@@ -25,7 +25,7 @@ namespace cpp14regress {
 
     namespace replacement {
         string info(cpp14features f, result r) {
-            return string(label + " _ " + resultStrings[(int)r]);
+            return string(label + " _ " + resultStrings[(int) r]);
         }
 
         string begin(cpp14features f, result r) { return info(f, r) + " begin"; }
@@ -122,6 +122,7 @@ namespace cpp14regress {
         f_astContext = &(ci->getASTContext());
         f_sourceManager = &(ci->getSourceManager());
         f_langOptions = &(ci->getLangOpts());
+        f_preprocessor = &(ci->getPreprocessor());
         f_rewriter = new Rewriter(*f_sourceManager, *f_langOptions);
     }
 

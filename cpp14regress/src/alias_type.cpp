@@ -25,63 +25,40 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    AliasTypeReplacer::AliasTypeReplacer(ASTContext *context,
-                                         cpp14features_stat *stat, DirectoryGenerator *dg)
-            : f_context(context), f_stat(stat), f_dg(dg) {
-        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
-                                  context->getLangOpts());
-    }
-
-    void AliasTypeReplacer::EndFileAction() {
-        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
-            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
-            string file = f_dg->getFile(entry->getName());
-            std::error_code ec;
-            sys::fs::remove(Twine(file));
-            raw_fd_ostream rfo(StringRef(file), ec,
-                               sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
-            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
-            i->second.write(rfo);
-        }
-        //f_rewriter->overwriteChangedFiles();
-    }
-
     bool AliasTypeReplacer::VisitTypeAliasDecl(clang::TypeAliasDecl *aliasTypeDecl) {
-        if (!inProcessedFile(aliasTypeDecl, f_context))
+        if (!fromUserFile(aliasTypeDecl, f_sourceManager))
             return true;
 
         if (!(aliasTypeDecl->getDescribedAliasTemplate())) {
-            const SourceManager &sm = f_context->getSourceManager();
             string oldTypedef = "typedef ";
             QualType qt = aliasTypeDecl->getUnderlyingType();
             string synonym = aliasTypeDecl->getNameAsString();
-            if (qt->isFunctionPointerType()) {
-                string type = qt.getAsString();
-                string::size_type pos = type.find("(*)"); //TODO fix
+            if ((qt->isFunctionPointerType()) ||
+                (qt->isMemberFunctionPointerType())) {
+                string ident = (qt->isFunctionPointerType()) ? "(*)" : "::*";
+                size_t identOffset = (qt->isFunctionPointerType()) ? 2 : 3;
+                string typeName = qt.getAsString();
+                string::size_type pos = typeName.find(ident); //TODO fix
                 if (pos == string::npos) {
-                    //TODO comment can't understand
-                    cerr << "alias type error" << endl;
+                    f_rewriter->InsertTextBefore(aliasTypeDecl->getLocStart(), Comment::line(
+                            replacement::info(type(), replacement::result::found)) + "\n");
                     return true;
                 }
-                type.insert(pos + 2, synonym);
-                oldTypedef += type;
+                typeName.insert(pos + identOffset, synonym);
+                oldTypedef += typeName;
             } else {
                 //oldTypedef += toString(aliasTypeDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange(),
-                //                       f_context); //TODO fix toString
+                //                       f_astContext);
+                oldTypedef += qt.getAsString(PrintingPolicy(*f_langOptions));
                 oldTypedef += " ";
                 oldTypedef += synonym;
             }
-            oldTypedef += ";";
-            SourceRange sr = aliasTypeDecl->getSourceRange();
-            sr.setEnd(Lexer::getLocForEndOfToken(sr.getEnd(), 0,
-                                                 sm, f_context->getLangOpts()));
-            f_rewriter->ReplaceText(sr, oldTypedef);
+            //SourceRange sr = aliasTypeDecl->getSourceRange();
+            //sr.setEnd(Lexer::getLocForEndOfToken(sr.getEnd(), 0, *f_sourceManager, *f_langOptions));
+            f_rewriter->ReplaceText(aliasTypeDecl->getSourceRange(), oldTypedef);
+            f_rewriter->InsertTextBefore(aliasTypeDecl->getLocStart(), Comment::line(
+                    replacement::info(type(), replacement::result::replaced)) + "\n");
         }
-        //else {
-        //    cout << "Alias template: " << toString(aliasTemplate, f_context) /*<< " -- "
-        //         << aliasTemplateDecl->getLocation().printToString(f_context->getSourceManager())*/ << endl;
-        //    cout << console_hline('_') << endl;
-        //}
         return true;
     }
 }

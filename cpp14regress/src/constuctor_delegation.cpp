@@ -31,82 +31,101 @@ namespace cpp14regress {
 
     string ConstructorDelegationReplacer::initFunCall(const CXXConstructorDecl *delegating) {
         string call;
-        const SourceManager &sm = f_context->getSourceManager();
-        SourceLocation b((*(delegating->init_begin()))->getLParenLoc());
-        SourceLocation e((*(delegating->init_begin()))->getRParenLoc().getLocWithOffset(1));
+        const SourceManager &sm = f_astContext->getSourceManager();
+        auto init = find_if(delegating->init_begin(), delegating->init_end(),
+                            [](CXXCtorInitializer *init) -> bool {
+                                if (init->isDelegatingInitializer())
+                                    return true;
+                                return false;
+                            });
+        if (init == delegating->init_end())
+            return string();
+        SourceLocation b((*init)->getLParenLoc());
+        SourceLocation e((*init)->getRParenLoc().getLocWithOffset(1));
         string params(sm.getCharacterData(b), sm.getCharacterData(e));
         return string(initFunName(delegating) + params + ";");
     }
 
-    ConstructorDelegationReplacer::ConstructorDelegationReplacer(ASTContext *context,
-                                                                 cpp14features_stat *stat, DirectoryGenerator *dg)
-            : f_context(context), f_stat(stat), f_dg(dg) {
-        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
-                                  context->getLangOpts());
-    }
-
-    void ConstructorDelegationReplacer::EndFileAction() {
-        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
-            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
-            string file = f_dg->getFile(entry->getName());
-            std::error_code ec;
-            sys::fs::remove(Twine(file));
-            raw_fd_ostream rfo(StringRef(file), ec, sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
-            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
-            i->second.write(rfo);
-        }
-        //f_rewriter->overwriteChangedFiles();
-    }
-
     bool ConstructorDelegationReplacer::VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl) {
-        if (!inProcessedFile(recordDecl, f_context))
+        if (!fromUserFile(recordDecl, f_sourceManager))
             return true;
+
         if (recordDecl->ctor_begin() == recordDecl->ctor_end())
             return true;
         vector<CXXConstructorDecl *> targetCtors;
-        const SourceManager &sm = f_context->getSourceManager();
-        const LangOptions &lo = f_context->getLangOpts();
+        //Delegation replacement
         for (auto declaration = recordDecl->ctor_begin();
              declaration != recordDecl->ctor_end(); declaration++) {
 
             const FunctionDecl *fd = nullptr;
-            declaration->isDefined(fd);
+            declaration->hasBody(fd);
             const CXXConstructorDecl *definition = dyn_cast_or_null<CXXConstructorDecl>(fd);
 
             if (definition) {
-                //if (definition->isUserProvided()) {
-                //    cout << console_hline('-') << endl
-                //         << toString(*declaration, f_context) << " -- "
-                //         << toString(definition, f_context) << endl
-                //         << console_hline('-') << endl;
-                //    cout << *declaration << " -- " << definition << endl;
-                //}
-
                 if (definition->isDelegatingConstructor()) {
+                    replacement::result res = replacement::result::found;
 
                     auto targetCtor = definition->getTargetConstructor();
-                    auto pos = find(targetCtors.begin(), targetCtors.end(), targetCtor); //TODO fix duplicates check
+                    auto pos = find(targetCtors.begin(), targetCtors.end(), //TODO move
+                                    targetCtor);
                     if (pos == targetCtors.end()) {
                         targetCtors.push_back(targetCtor);
                     }
-                    //TODO check multiple init
+
+                    SourceRange delegRange;
+                    delegRange.setBegin(findTokenBeginAfterLoc(definition->getLocation(),
+                                                               tok::TokenKind::colon, 1, f_astContext));
+                    delegRange.setEnd(definition->getBody()->getLocStart().getLocWithOffset(-1)); //TODO
+                    if (delegRange.isInvalid())
+                        continue;
+
+                    const FunctionDecl *fd1 = nullptr;
+                    targetCtor->hasBody(fd1);
+                    const CXXConstructorDecl *targetCtorDef = dyn_cast_or_null<CXXConstructorDecl>(fd1);
+                    if (targetCtorDef) {
+                        if (find_if(targetCtorDef->init_begin(), targetCtorDef->init_end(),
+                                    [](CXXCtorInitializer *init) -> bool {
+                                        if (init->isWritten() && !init->isDelegatingInitializer())
+                                            return true;
+                                        return false;
+                                    }) != targetCtorDef->init_end()) {
+                            SourceRange targetInitRange;
+                            //TODO передача исходного параметра
+
+
+                            targetInitRange.setBegin(findTokenBeginAfterLoc(targetCtor->getLocation(),
+                                                                            tok::TokenKind::colon,
+                                                                            1, f_astContext));
+                            targetInitRange.setEnd(targetCtor->getBody()->getLocStart());
+                            if (targetInitRange.isValid()) {
+                                string targetInits = toString(targetInitRange, f_astContext, false);
+                                f_rewriter->ReplaceText(delegRange, targetInits);
+                                res = replacement::result::replaced;
+                            }
+                        } else {
+                            f_rewriter->RemoveText(delegRange);
+                            res = replacement::result::removed;
+                        }
+                    }
+                    f_rewriter->InsertTextBefore(definition->getLocStart(), Comment::line(
+                            replacement::info(type(), res)) + "\n");
+
                     SourceLocation bodyStart = Lexer::getLocForEndOfToken(
-                            definition->getBody()->getLocStart(), 0, sm, lo);
-                    string call("\n" + initFunCall(definition));
+                            definition->getBody()->getLocStart(), 0, *f_sourceManager, *f_langOptions);
+                    string initCall = initFunCall(definition);
+                    if (initCall.empty()) {
+                        initCall = string(initFunName(definition) + "(" + Comment::block(
+                                replacement::info(type(), replacement::result::error)) + ");");
+                    }
+                    string call("\n" + initCall);
                     f_rewriter->InsertText(bodyStart, call, true, true);
-                    SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>(definition), f_context);
-                    f_rewriter->RemoveText(SourceRange(paramRange.getEnd().getLocWithOffset(1),
-                                                       definition->getBody()->getLocStart().getLocWithOffset(-1)));
                 }
             }
         }
-        CXXRecordDecl::method_iterator last;
-        for (auto it = recordDecl->method_begin(); it != recordDecl->method_end(); it++)
-            if (it->isUserProvided())
-                last = it;
-        SourceLocation initFunInsert = recordDecl->getRBraceLoc();
+        //Init functions creation
         if (!targetCtors.empty()) {
-            f_rewriter->InsertText(initFunInsert, "\nprivate:");
+            f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), Comment::line(
+                    replacement::end(type(), replacement::result::inserted)) + "\n");
         }
         for (auto declaration = targetCtors.rbegin();
              declaration != targetCtors.rend(); declaration++) {
@@ -115,36 +134,34 @@ namespace cpp14regress {
             const CXXConstructorDecl *definition = dyn_cast_or_null<CXXConstructorDecl>(fd);
 
             if (definition) {
-                SourceRange paramRange = getParamRange(dyn_cast<FunctionDecl>((*declaration)), f_context);
-                string initFunParams(sm.getCharacterData(paramRange.getBegin()),
-                                     sm.getCharacterData(paramRange.getEnd()) + 1);
-                string initFunBody = "{";
-                int size = 0;
-                for (auto it = definition->init_begin(); it != definition->init_end(); it++) {
-                    size++;
-                    string init("\n");
-                    if ((*it)->isDelegatingInitializer()) {
-                        init += initFunCall(definition);
-                    } else {
-                        init += (*it)->getMember()->getNameAsString();
-                        init += " = ";
-                        const char *b = sm.getCharacterData((*it)->getLParenLoc()) + 1;
-                        const char *e = sm.getCharacterData((*it)->getRParenLoc());
-                        init += string(b, e - b);
-                        init += ";";
-                    }
-                    initFunBody += init;
+                SourceRange paramRange;
+                paramRange.setBegin(findTokenBeginAfterLoc(definition->getLocation(),
+                                                           tok::TokenKind::l_paren, 1, f_astContext));
+                paramRange.setEnd(findTokenEndAfterLoc(definition->getLocation(),
+                                                       tok::TokenKind::r_paren, f_astContext));
+                string initFunParams;
+                if (paramRange.isValid())
+                    initFunParams = toString(paramRange, f_astContext, false);
+                else
+                    initFunParams = string("(" + replacement::info(type(), replacement::result::error) + ")");
+                string initFunBody = "{\n";
+                string delegation = initFunCall(definition);
+                if (!delegation.empty()) {
+                    initFunBody += delegation;
+                    initFunBody += "\n";
                 }
                 SourceLocation bodyStart = Lexer::getLocForEndOfToken(
-                        definition->getBody()->getLocStart(), 0, sm, lo);
-                initFunBody += string(sm.getCharacterData(bodyStart),
-                                      sm.getCharacterData(definition->getBody()->getLocEnd()) -
-                                      sm.getCharacterData(bodyStart));
-                initFunBody += "}";
-                string initFunDefinition(" \n" + initFunName(definition) +
+                        definition->getBody()->getLocStart(), 0, *f_sourceManager, *f_langOptions);
+                initFunBody += toString(SourceRange(bodyStart, definition->getBodyRBrace()), f_astContext);
+                string initFunDefinition(" \nvoid " + initFunName(definition) +
                                          initFunParams + " " + initFunBody + "\n");
-                f_rewriter->InsertText(initFunInsert, initFunDefinition, true, true);
+                f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), initFunDefinition);
             }
+        }
+        if (!targetCtors.empty()) {
+            f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), "private:\n");
+            f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), Comment::line(
+                    replacement::begin(type(), replacement::result::inserted)) + "\n");
         }
         return true;
     }

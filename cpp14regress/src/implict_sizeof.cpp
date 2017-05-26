@@ -26,52 +26,55 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    ImplictSizeofReplacer::ImplictSizeofReplacer(ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg)
-            : f_context(context), f_stat(stat), f_dg(dg) {
-        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
-                                  context->getLangOpts());
-    }
-
-    void ImplictSizeofReplacer::EndFileAction() {
-        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
-            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
-            string file = f_dg->getFile(entry->getName());
-            std::error_code ec;
-            sys::fs::remove(Twine(file));
-            raw_fd_ostream rfo(StringRef(file), ec, sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
-            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
-            i->second.write(rfo);
-        }
-    }
-
-    bool ImplictSizeofReplacer::VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *sizeofOrAlignof) {
-        if (!inProcessedFile(sizeofOrAlignof, f_context))
+    bool
+    MemberSizeofReplacer::VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *sizeofOrAlignof) {
+        if (!fromUserFile(sizeofOrAlignof, f_sourceManager))
             return true;
+
         if (sizeofOrAlignof->getKind() == UnaryExprOrTypeTrait::UETT_SizeOf) {
             if (!sizeofOrAlignof->isArgumentType()) {
                 Expr *arg = sizeofOrAlignof->getArgumentExpr();
-                int parens = 0;
-                while (auto parenExpr = dyn_cast<ParenExpr>(arg)) {
-                    parens++;
-                    arg = parenExpr->getSubExpr();
-                }
-                if (auto dre = dyn_cast_or_null<DeclRefExpr>(arg)) {
-                    if (auto fd = dyn_cast_or_null<FieldDecl>(dre->getDecl())) {
-                        string type = fd->getType().getAsString();
-                        if (parens == 0) {
-                            type.insert(0, 1, '(');
-                            type.push_back(')');
-                        }
-                        f_rewriter->ReplaceText(dre->getSourceRange(), type);
+                if (arg) {
+                    SourceRange replaceRange = arg->getSourceRange();
+                    //TODO strange behaviour
+                    replaceRange.setEnd(Lexer::getLocForEndOfToken(replaceRange.getEnd(), 0,
+                                                                   *f_sourceManager, *f_langOptions));
+                    int parentheses = 0;
+                    while (auto parenExpr = dyn_cast<ParenExpr>(arg)) {
+                        parentheses++;
+                        arg = parenExpr->getSubExpr();
                     }
-                    //if (dre->hasQualifier()) { //TODO check another SpecifierKind
-                    //    if ((dre->getQualifier()->getKind() ==
-                    //         clang::NestedNameSpecifier::SpecifierKind::TypeSpec) ||
-                    //        (dre->getQualifier()->getKind() ==
-                    //         clang::NestedNameSpecifier::SpecifierKind::TypeSpecWithTemplate)) {
-                    //         here
-                    //    }
-                    //}
+                    if (auto dre = dyn_cast_or_null<DeclRefExpr>(arg)) {
+                        if (auto fd = dyn_cast_or_null<FieldDecl>(dre->getDecl())) {
+                            if (replaceRange.isValid()) {
+                                string typeName = fd->getType().getAsString(PrintingPolicy(*f_langOptions));
+                                for (int i = 0; i < max(parentheses, 1); i++) {
+                                    typeName.insert(0, 1, '(');
+                                    typeName.push_back(')');
+                                }
+                                string info = replacement::info(type(), replacement::result::replaced);
+                                info += " from ";
+                                f_rewriter->InsertTextBefore(replaceRange.getBegin(), info);
+                                f_rewriter->InsertTextBefore(replaceRange.getBegin(),
+                                                             Comment::block::begin());
+                                f_rewriter->InsertTextAfter(replaceRange.getEnd(),
+                                                            Comment::block::end());
+                                f_rewriter->InsertTextBefore(replaceRange.getBegin(), typeName);
+                            } else {
+                                f_rewriter->InsertTextBefore(dre->getLocStart(), Comment::block(
+                                        replacement::info(type(), replacement::result::found)));
+                            }
+                        }
+                        //if (dre->hasQualifier()) { //TODO check another SpecifierKind
+                        //    if ((dre->getQualifier()->getKind() ==
+                        //         clang::NestedNameSpecifier::SpecifierKind::TypeSpec) ||
+                        //        (dre->getQualifier()->getKind() ==
+                        //         clang::NestedNameSpecifier::SpecifierKind::TypeSpecWithTemplate)) {
+                        //         here
+                        //    }
+                        //}
+                    }
+
                 }
             }
         }

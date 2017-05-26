@@ -23,7 +23,18 @@
 
 namespace cpp14regress {
 
-    class ImplictSizeofReplacer : public clang::RecursiveASTVisitor<ImplictSizeofReplacer> {
+    class MemberSizeofReplacer : public FeatureReplacer {
+    public:
+
+        MemberSizeofReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual cpp14features type() { return cpp14features::member_sizeof; }
+
+        virtual bool VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *sizeofOrAlignof);
+
+    };
+
+    /*class ImplictSizeofReplacer : public clang::RecursiveASTVisitor<ImplictSizeofReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -37,7 +48,7 @@ namespace cpp14regress {
         virtual void EndFileAction();
 
         virtual bool VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *sizeofOrAlignof);
-    };
+    };*/
 
 }
 

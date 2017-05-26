@@ -73,7 +73,7 @@ namespace cpp14regress {
         alternative_function_syntax, //found
         constuctor_delegation, //found  cured
         null_pointer_constant, //found
-        enum_class, //found
+        improved_enum, //found
         right_angle_bracket, //?
         alias_template, //found
         alias_type, //found     cured
@@ -83,7 +83,7 @@ namespace cpp14regress {
         unicode_string_literals, //found
         user_defined_literals, //found
         long_long_int, //found //TODO literals spec like 12345LL
-        implict_sizeof, //found     cured
+        member_sizeof, //found     cured
         noexcept_keyword, //found
         alignof_operator, //found
         alignas_specifier, //found
@@ -120,13 +120,15 @@ namespace cpp14regress {
             found = 0,
             removed,
             replaced,
-            inserted
+            inserted,
+            error
         };
 
         static const std::string resultStrings[]{"found",
                                                  "removed",
                                                  "replaced",
-                                                 "inserted"};
+                                                 "inserted",
+                                                 "error"};
 
         static const std::string label("cpp14regress");
 
@@ -144,6 +146,8 @@ namespace cpp14regress {
         clang::ASTContext *f_astContext;
         clang::SourceManager *f_sourceManager;
         clang::LangOptions *f_langOptions;
+        clang::Preprocessor *f_preprocessor;
+
 
         virtual void endSourceFileAction() {}
 
@@ -158,21 +162,33 @@ namespace cpp14regress {
 
         virtual cpp14features type() = 0;
 
-        virtual bool VisitVarDecl(clang::VarDecl *declaratorDecl) { return true; }
+        virtual bool VisitVarDecl(clang::VarDecl *) { return true; }
 
-        virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda) { return true; }
+        virtual bool VisitLambdaExpr(clang::LambdaExpr *) { return true; }
 
-        virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *for_loop) { return true; }
+        virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *) { return true; }
 
-        virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl) { return true; }
+        virtual bool VisitEnumDecl(clang::EnumDecl *) { return true; }
 
-        virtual bool VisitTypeLoc(clang::TypeLoc typeLoc) { return true; }
+        virtual bool VisitTypeLoc(clang::TypeLoc) { return true; }
 
-        virtual bool VisitUserDefinedLiteral(clang::UserDefinedLiteral *literal) { return true; }
+        virtual bool VisitUserDefinedLiteral(clang::UserDefinedLiteral *) { return true; }
 
-        virtual bool VisitFunctionDecl(clang::FunctionDecl *funcDecl) { return true; }
+        virtual bool VisitFunctionDecl(clang::FunctionDecl *) { return true; }
 
-        virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl) { return true; }
+        virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *) { return true; }
+
+        virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *) { return true; }
+
+        virtual bool VisitTypeAliasDecl(clang::TypeAliasDecl *) { return true; }
+
+        virtual bool VisitCXXConversionDecl(clang::CXXConversionDecl *) { return true; }
+
+        virtual bool VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *) { return true; }
+
+        virtual bool VisitIntegerLiteral(clang::IntegerLiteral *) { return true; }
+
+        virtual bool VisitCXXConstructExpr(clang::CXXConstructExpr *constructExpr) { return true; }
     };
 
     template<typename VisitorType>

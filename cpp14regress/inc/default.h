@@ -19,7 +19,19 @@
 #include "base_types.h"
 
 namespace cpp14regress {
-    class DefaultKeywordReplacer : public clang::RecursiveASTVisitor<DefaultKeywordReplacer> {
+
+    class DefaultReplacer : public FeatureReplacer {
+    public:
+        DefaultReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual cpp14features type() { return cpp14features::default_keyword; }
+
+        virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl);
+
+    private:
+    };
+
+    /*class DefaultKeywordReplacer : public clang::RecursiveASTVisitor<DefaultKeywordReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -31,7 +43,7 @@ public:
         virtual void EndFileAction();
 
         virtual bool VisitCXXMethodDecl(clang::CXXMethodDecl *methodDecl);
-    };
+    };*/
 }
 
 #endif //CPP14REGRESS_DEFAULT_KEYWORD_H

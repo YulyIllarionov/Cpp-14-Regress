@@ -23,28 +23,9 @@
 
 namespace cpp14regress {
 
-    /*class StronglyTypedEnumReplacer : public clang::RecursiveASTVisitor<StronglyTypedEnumReplacer> {
-    private:
-        clang::ASTContext *f_context;
-        clang::Rewriter *f_rewriter;
-        cpp14features_stat *f_stat;
-        DirectoryGenerator *f_dg;
-        std::set<clang::EnumDecl*> f_enumDecls;
-
-    public:
-        explicit StronglyTypedEnumReplacer(clang::ASTContext *context,
-                                        cpp14features_stat *stat, DirectoryGenerator *dg);
-
-        virtual void EndFileAction();
-
-        virtual bool VisitValueDecl(clang::ValueDecl *varDecl);
-
-        virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl);
-    };*/
-
     class ImprovedEnumReplacer : public FeatureReplacer {
     private:
-        std::vector<clang::EnumDecl*> f_enums;
+        std::vector<clang::EnumDecl *> f_enums;
 
         std::string nameForReplace() { return "enumeration"; }
 
@@ -52,11 +33,44 @@ namespace cpp14regress {
 
         ImprovedEnumReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
+        virtual cpp14features type() { return cpp14features::improved_enum; }
+
         virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl);
 
         virtual bool VisitTypeLoc(clang::TypeLoc typeLoc);
 
         virtual void endSourceFileAction();
+    };
+
+    class EnumFieldSearcher : public clang::RecursiveASTVisitor<EnumFieldSearcher> {
+    private:
+        bool f_found = false;
+
+    public:
+        virtual bool VisitEnumConstantDecl(clang::EnumConstantDecl *field) {
+            f_found = true;
+            return false;
+        }
+
+        virtual bool VisitDecl(clang::Decl *decl) {
+            if (decl)
+                std::cout << decl->getDeclKindName() << std::endl;
+            return true;
+        }
+
+        virtual bool VisitStmt(clang::Stmt *stmt) {
+            if (stmt)
+                std::cout << stmt->getStmtClassName() << std::endl;
+            return true;
+        }
+
+        virtual bool VisitType(clang::Type *type) {
+            if (type)
+                std::cout << clang::QualType::getAsString(type, clang::Qualifiers()) << std::endl;
+            return true;
+        }
+
+        bool found() { return f_found; }
     };
 }
 
