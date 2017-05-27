@@ -23,7 +23,22 @@
 
 namespace cpp14regress {
 
-    class DigitSeparatorReplacer : public clang::RecursiveASTVisitor<DigitSeparatorReplacer> {
+    class DigitSeparatorReplacer : public FeatureReplacer { //TODO fix
+    public:
+        DigitSeparatorReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual cpp14features type() { return cpp14features::digit_separators; }
+
+        virtual bool VisitIntegerLiteral(clang::IntegerLiteral *literal);
+
+        virtual bool VisitFloatingLiteral(clang::FloatingLiteral *literal);
+
+    private:
+        bool removeSeparators(std::string &literal);
+    };
+
+
+    /*class DigitSeparatorReplacer : public clang::RecursiveASTVisitor<DigitSeparatorReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -41,7 +56,7 @@ namespace cpp14regress {
         virtual bool VisitIntegerLiteral(clang::IntegerLiteral *literal);
 
         virtual bool VisitFloatingLiteral(clang::FloatingLiteral *literal);
-    };
+    };*/
 
 }
 

@@ -28,36 +28,14 @@ namespace cpp14regress {
 
         virtual cpp14features type() { return cpp14features::auto_keyword; }
 
-        virtual bool VisitTypeLoc(clang::TypeLoc typeLoc);
+        /*virtual bool VisitTypeLoc(clang::TypeLoc typeLoc);*/
 
         virtual bool VisitVarDecl(clang::VarDecl *varDecl);
 
+        virtual bool VisitFunctionDecl(clang::FunctionDecl *funDecl);
+
     };
-
-    /*class AutoReplacer : public clang::RecursiveASTVisitor<AutoReplacer> {
-    private:
-        clang::ASTContext *f_context;
-        clang::Rewriter *f_rewriter;
-        cpp14features_stat *f_stat;
-        DirectoryGenerator *f_dg;
-
-    public:
-        explicit AutoReplacer(clang::ASTContext *context, cpp14features_stat *stat,
-                              DirectoryGenerator *dg);
-
-        virtual bool VisitTypeLoc(clang::TypeLoc typeLoc);
-
-        virtual void EndFileAction();
-
-        virtual bool VisitVarDecl(clang::VarDecl *declaratorDecl);
-
-        virtual bool VisitFunctionDecl(clang::FunctionDecl *fun);
-
-        //TODO Structured binding declaration
-        //TODO template parameter
-        //TODO nested-name-specifie
-
-    };*/
+    
 }
 
 #endif /*CPP14REGRESS_AUTO_H*/

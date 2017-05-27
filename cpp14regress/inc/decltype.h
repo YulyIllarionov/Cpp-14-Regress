@@ -21,7 +21,21 @@
 
 namespace cpp14regress {
 
-    class DecltypeReplacer : public clang::RecursiveASTVisitor<DecltypeReplacer> {
+    class DecltypeReplacer : public FeatureReplacer { //TODO fix
+    public:
+
+        DecltypeReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual cpp14features type() { return cpp14features::decltype_keyword; }
+
+        //virtual bool VisitTypeLoc(clang::TypeLoc typeLoc);
+
+        virtual bool VisitDecltypeTypeLoc(clang::DecltypeTypeLoc typeLoc);
+
+        //virtual bool VisitDeclaratorDecl(clang::DeclaratorDecl *valueDecl);
+    };
+
+    /*class DecltypeReplacer : public clang::RecursiveASTVisitor<DecltypeReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
@@ -33,7 +47,7 @@ namespace cpp14regress {
 
         virtual void EndFileAction(); //TODO add check
         virtual bool VisitDeclaratorDecl(clang::DeclaratorDecl *valueDecl);
-    };
+    };*/
 
 }
 

@@ -27,12 +27,12 @@
 #include "default.h"
 #include "delete.h"
 #include "auto.h"
-//#include "decltype.h"
+#include "decltype.h"
 //#include "lambda.h"
 #include "constuctor_delegation.h"
-//#include "raw_string.h"
+#include "raw_string.h"
 #include "implict_sizeof.h"
-//#include "digit_separators.h"
+#include "digit_separators.h"
 #include "alias_type.h"
 #include "uniform_initialization.h"
 #include "explicit_conversion.h"
@@ -42,8 +42,8 @@
 #include "user_literals.h"
 #include "final.h"
 #include "override.h"
-//#include "file_preparator.h"
 #include"binary_literals.h"
+//#include "file_preparator.h"
 
 using namespace std;
 using namespace clang;
@@ -93,7 +93,7 @@ int main(int argc, const char **argv) {
     CommonOptionsParser op(argc_mod, argv_mod, MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
     int result = Tool.run(
-            newFrontendActionFactory<FeatureReplacerFrontendAction<UniformInitReplacer>>().get());
+            newFrontendActionFactory<FeatureReplacerFrontendAction<DigitSeparatorReplacer>>().get());
 
     return result;
 }

@@ -23,28 +23,57 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    DecltypeReplacer::DecltypeReplacer(ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg)
-            : f_context(context), f_stat(stat), f_dg(dg) {
-        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
-                                  context->getLangOpts());
-    }
-
-    void DecltypeReplacer::EndFileAction() {
-        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
-            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
-            string file = f_dg->getFile(entry->getName());
-            std::error_code ec;
-            sys::fs::remove(Twine(file));
-            raw_fd_ostream rfo(StringRef(file), ec, sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
-            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
-            i->second.write(rfo);
-        }
-        //f_rewriter->overwriteChangedFiles();
-    }
-
-    bool DecltypeReplacer::VisitDeclaratorDecl(DeclaratorDecl *declaratorDecl) {
-        if (!inProcessedFile(declaratorDecl, f_context))
+    bool DecltypeReplacer::VisitDecltypeTypeLoc(clang::DecltypeTypeLoc typeLoc) {
+        if (!fromUserFile(&typeLoc, f_sourceManager))
             return true;
+        QualType deducedType = typeLoc.getTypePtr()->getUnderlyingType();
+        if (!deducedType.isNull()) {
+            replacement::result res = replacement::result::found;
+            if (!deducedType->isDependentType()) {
+                if ((deducedType->isFunctionPointerType()) ||
+                    (deducedType->isMemberFunctionPointerType())) {
+                    return true;
+                }
+                SourceLocation decltypeBegin = typeLoc.getLocStart();
+                SourceLocation decltypeEnd = typeLoc.getTypePtr()->getUnderlyingExpr()->getLocEnd();
+                decltypeEnd = findTokenEndAfterLoc(decltypeEnd, tok::TokenKind::r_paren, f_astContext);
+                SourceRange decltypeRange(decltypeBegin, decltypeEnd);
+                if (decltypeRange.isValid()) {
+                    f_rewriter->ReplaceText(decltypeRange,
+                                            deducedType.getAsString(PrintingPolicy(*f_langOptions)));
+                    res = replacement::result::replaced;
+                }
+            }
+            f_rewriter->InsertTextBefore(typeLoc.getLocStart(),
+                                         Comment::block(replacement::info(type(), res)));
+        }
+        return true;
+    }
+
+    /*bool DecltypeReplacer::VisitTypeLoc(clang::TypeLoc typeLoc) {
+        if (!fromUserFile(&typeLoc, f_sourceManager))
+            return true;
+        if (auto at = dyn_cast<DecltypeType>(typeLoc.getTypePtr())) {
+            cout << toString(&typeLoc, f_astContext);
+            replacement::result res = replacement::result::found;
+            QualType deducedType = at->getUnderlyingType();
+            if (!deducedType.isNull()) {
+                string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
+                cout << " -2- " << typeName;
+                f_rewriter->ReplaceText(typeLoc.getSourceRange(), typeName);
+                res = replacement::result::replaced;
+            }
+            cout << endl;
+            f_rewriter->InsertTextBefore(typeLoc.getLocStart(),
+                                         Comment::block(replacement::info(type(), res)));
+        }
+        return true;
+    }*/
+
+    /*bool DecltypeReplacer::VisitDeclaratorDecl(DeclaratorDecl *declaratorDecl) {
+        if (!fromUserFile(declaratorDecl, f_sourceManager))
+            return true;
+
         if (auto dt = dyn_cast<DecltypeType>(declaratorDecl->getType().getTypePtr())) {
             QualType qt = dt->getUnderlyingType();
             string typeName = qt.getAsString();
@@ -52,8 +81,8 @@ namespace cpp14regress {
             typeRange.setBegin(declaratorDecl->getTypeSourceInfo()->getTypeLoc().getBeginLoc());
             typeRange.setEnd(Lexer::findLocationAfterToken(
                     dt->getUnderlyingExpr()->getLocEnd(), tok::TokenKind::r_paren,
-                    f_context->getSourceManager(),
-                    f_context->getLangOpts(), false));
+                    *,
+                    f_astContext->getLangOpts(), false));
             if (qt->isFunctionPointerType()) { //TODO decltype() a, b, c; ???
                 size_t pointerPos = typeName.find("(*)"); //TODO change
                 if (pointerPos != string::npos) {
@@ -71,6 +100,6 @@ namespace cpp14regress {
             //}
         }
         return true;
-    }
+    }*/
 
 }

@@ -23,14 +23,26 @@
 
 namespace cpp14regress {
 
-    class RawStringReplacer : public clang::RecursiveASTVisitor<RawStringReplacer> {
+    class RawStringReplacer : public FeatureReplacer { //TODO fix
+    public:
+        RawStringReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+
+        virtual cpp14features type() { return cpp14features::raw_string_literals; }
+
+        virtual bool VisitStringLiteral(clang::StringLiteral *literal);
+
+    private:
+        inline bool escapeCharToString(char c, std::string &s);
+    };
+
+    /*class RawStringReplacer : public clang::RecursiveASTVisitor<RawStringReplacer> {
     private:
         clang::ASTContext *f_context;
         clang::Rewriter *f_rewriter;
         cpp14features_stat *f_stat;
         DirectoryGenerator *f_dg;
 
-        inline bool escapeCharToString(char c, std::string& s);
+
 
     public:
         explicit RawStringReplacer(clang::ASTContext *context,
@@ -39,7 +51,7 @@ namespace cpp14regress {
         virtual void EndFileAction();
 
         virtual bool VisitStringLiteral(clang::StringLiteral *literal);
-    };
+    };*/
 
 }
 

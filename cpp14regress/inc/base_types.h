@@ -120,6 +120,7 @@ namespace cpp14regress {
             found = 0,
             removed,
             replaced,
+            unsureReplaced,
             inserted,
             error
         };
@@ -127,6 +128,7 @@ namespace cpp14regress {
         static const std::string resultStrings[]{"found",
                                                  "removed",
                                                  "replaced",
+                                                 "unsure replaced",
                                                  "inserted",
                                                  "error"};
 
@@ -188,7 +190,13 @@ namespace cpp14regress {
 
         virtual bool VisitIntegerLiteral(clang::IntegerLiteral *) { return true; }
 
-        virtual bool VisitCXXConstructExpr(clang::CXXConstructExpr *constructExpr) { return true; }
+        virtual bool VisitFloatingLiteral(clang::FloatingLiteral *) { return true; }
+
+        virtual bool VisitCXXConstructExpr(clang::CXXConstructExpr *) { return true; }
+
+        virtual bool VisitDecltypeTypeLoc(clang::DecltypeTypeLoc) { return true; }
+
+        virtual bool VisitStringLiteral(clang::StringLiteral *) { return true; }
     };
 
     template<typename VisitorType>

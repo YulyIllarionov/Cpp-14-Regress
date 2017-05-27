@@ -23,14 +23,14 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    bool AutoReplacer::VisitTypeLoc(clang::TypeLoc typeLoc) {
+    /*bool AutoReplacer::VisitTypeLoc(clang::TypeLoc typeLoc) {
         if (!fromUserFile(&typeLoc, f_sourceManager))
             return true;
         if (auto at = dyn_cast<AutoType>(typeLoc.getTypePtr())) {
+            cout << "is auto" << endl;
             replacement::result res = replacement::result::found;
             QualType deducedType = at->getDeducedType();
             if (!deducedType.isNull()) {
-                cout << "deduced" << endl;
                 if ((deducedType->isFunctionPointerType()) ||
                     (deducedType->isMemberFunctionPointerType())) {
                     return true;
@@ -43,60 +43,24 @@ namespace cpp14regress {
                                          Comment::block(replacement::info(type(), res)));
         }
         return true;
-    }
+    }*/
 
-    bool AutoReplacer::VisitVarDecl(clang::VarDecl *varDecl) {
+    bool AutoReplacer::VisitVarDecl(VarDecl *varDecl) {
         if (!fromUserFile(varDecl, f_sourceManager))
             return true;
+
         if (auto at = dyn_cast<AutoType>(varDecl->getType().getTypePtr())) {
-            replacement::result res = replacement::result::found;
             QualType deducedType = at->getDeducedType();
+            cout << deducedType->getTypeClassName()
+                 << varDecl->getLocStart().printToString(*f_sourceManager) << endl;
+            replacement::result res = replacement::result::found;
+            SourceRange typeRange = varDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange();
             if (!deducedType.isNull()) {
-                string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
-                SourceRange typeRange = varDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange();
-                if ((deducedType->isFunctionPointerType()) ||
-                    (deducedType->isMemberFunctionPointerType())) {
-                    string ident = (deducedType->isFunctionPointerType()) ? "(*)" : "::*";
-                    size_t identOffset = (deducedType->isFunctionPointerType()) ? 2 : 3;
-
-                    size_t pos = typeName.find(ident); //TODO change
-                    if (pos != string::npos) {
-                        typeName.insert(pos + identOffset, varDecl->getNameAsString());
-                        typeRange.setEnd(Lexer::getLocForEndOfToken(varDecl->getLocation(), 0,
-                                                                    *f_sourceManager,
-                                                                    *f_langOptions));
-                        f_rewriter->ReplaceText(typeRange, typeName);
-                        res = replacement::result::replaced;
-                    }
-                    f_rewriter->InsertTextBefore(typeRange.getBegin(),
-                                                 Comment::block(replacement::info(type(), res)));
-                }
-            }
-        }
-        return true;
-    }
-
-    /*bool AutoReplacer::VisitVarDecl(VarDecl *varDecl) {
-        if (!inProcessedFile(varDecl, f_context))
-            return true;
-        if (auto at = dyn_cast<AutoType>(varDecl->getType().getTypePtr())) {
-            //TODO need GNUAutoType?
-            QualType deducedType = at->getDeducedType(); //TODO understand deduced
-            if (!deducedType.isNull()) {
-
-                cout << toString(varDecl, f_context) << " -- " << deducedType.getAsString()
-                     << " -- " << varDecl->getDeclKindName() << " -- "
-                     << deducedType->getTypeClassName() << " -- "
-                     << varDecl->getLocation().printToString(f_context->getSourceManager())
-                     << endl << console_hline('-') << endl;
-
                 //TODO method pointer and reference -- reference not found
                 //TODO field pointer and reference  -- reference not found
                 //TODO array reference
                 //TODO function reference
-                PrintingPolicy pp(f_context->getLangOpts());
-                string typeName = deducedType.getAsString(pp);
-                SourceRange typeRange = varDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange();
+                string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
                 if ((deducedType->isFunctionPointerType()) ||
                     (deducedType->isMemberFunctionPointerType())) {
                     string ident = (deducedType->isFunctionPointerType()) ? "(*)" : "::*";
@@ -110,32 +74,31 @@ namespace cpp14regress {
                         return false;
                     }
                     typeRange.setEnd(Lexer::getLocForEndOfToken(varDecl->getLocation(), 0,
-                                                                f_context->getSourceManager(),
-                                                                f_context->getLangOpts()));
+                                                                *f_sourceManager, *f_langOptions));
                 }
                 f_rewriter->ReplaceText(typeRange, typeName);
-            } else {
-                //TODO not deduced
+                res = replacement::result::replaced;
             }
+            f_rewriter->InsertTextBefore(typeRange.getBegin(),
+                                         Comment::block(replacement::info(type(), res)));
         }
         return true;
     }
 
-    bool AutoReplacer::VisitFunctionDecl(clang::FunctionDecl *fun) {
-        if (!inProcessedFile(fun, f_context))
+    bool AutoReplacer::VisitFunctionDecl(clang::FunctionDecl *funDecl) {
+        if (!fromUserFile(funDecl, f_sourceManager))
             return true;
-        if (auto at = dyn_cast<AutoType>(fun->getReturnType().getTypePtr())) {
-            QualType deducedType = at->getDeducedType(); //TODO understand deduced
+        if (auto at = dyn_cast<AutoType>(funDecl->getReturnType().getTypePtr())) {
+            QualType deducedType = at->getDeducedType();
+            replacement::result res = replacement::result::found;
             if (!deducedType.isNull()) {
-                f_rewriter->ReplaceText(fun->getReturnTypeSourceRange(), deducedType.getAsString());
-
-                //cout << "Auto function" << toString(fun, f_context) << " -- "
-                //     << fun->getLocation().printToString(f_context->getSourceManager()) << endl;
-            } else {
-                //TODO not deduced
+                f_rewriter->ReplaceText(funDecl->getReturnTypeSourceRange(), deducedType.getAsString());
+                res = replacement::result::replaced;
             }
+            f_rewriter->InsertTextBefore(funDecl->getReturnTypeSourceRange().getBegin(),
+                                         Comment::block(replacement::info(type(), res)));
         }
         return true;
-    }*/
+    }
 }
 

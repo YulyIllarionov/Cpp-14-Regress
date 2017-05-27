@@ -26,29 +26,11 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    RawStringReplacer::RawStringReplacer(ASTContext *context, cpp14features_stat *stat, DirectoryGenerator *dg)
-            : f_context(context), f_stat(stat), f_dg(dg) {
-        f_rewriter = new Rewriter(context->getSourceManager(), //TODO delete in destructor
-                                  context->getLangOpts());
-    }
-
-    void RawStringReplacer::EndFileAction() {
-        for (auto i = f_rewriter->buffer_begin(), e = f_rewriter->buffer_end(); i != e; ++i) {
-            const FileEntry *entry = f_context->getSourceManager().getFileEntryForID(i->first);
-            string file = f_dg->getFile(entry->getName());
-            std::error_code ec;
-            sys::fs::remove(Twine(file));
-            raw_fd_ostream rfo(StringRef(file), ec, sys::fs::OpenFlags::F_Excl | sys::fs::OpenFlags::F_RW);
-            //cout << "Trying to write " << entry->getName() << " to " << file << " with " << ec.message() << endl;
-            i->second.write(rfo);
-        }
-    }
-
     bool RawStringReplacer::VisitStringLiteral(clang::StringLiteral *literal) {
-        if (!inProcessedFile(literal, f_context))
+        if (!fromUserFile(literal, f_sourceManager))
             return true;
 
-        string sl = toString(literal, f_context);
+        string sl = toString(literal, f_astContext);
         string::size_type pos = sl.find('\"');
         if ((pos != 0) && (pos != string::npos)) {
             if (sl[--pos] == 'R') {
@@ -62,15 +44,20 @@ namespace cpp14regress {
                     }
                 }
                 //cout << raw << endl;
-                raw.insert(0,"\"");
+                raw.insert(0, "\"");
                 raw += "\"";
+                if (pos != 0)
+                    raw = sl.substr(0, pos) + raw;
                 f_rewriter->ReplaceText(literal->getSourceRange(), raw);
+                f_rewriter->InsertTextBefore(literal->getLocStart(), Comment::block(
+                        replacement::info(type(), replacement::result::replaced)));
             }
         }
         return true;
     }
 
-    bool RawStringReplacer::escapeCharToString(char c, string& s) {
+    // @formatter:off
+    bool RawStringReplacer::escapeCharToString(char c, string& s) { //TODO check other
         switch (c) {
             case '\'' : { s = "\\\'"; break; }
             case '\"' : { s = "\\\""; break; }
@@ -87,4 +74,5 @@ namespace cpp14regress {
         }
         return true;
     }
+    // @formatter:on
 }

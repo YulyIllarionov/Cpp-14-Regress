@@ -35,7 +35,7 @@ namespace cpp14regress {
     bool RangeBasedForReplacer::VisitCXXForRangeStmt(CXXForRangeStmt *rbf) {
         if (!fromUserFile(rbf, f_sourceManager))
             return true;
-        //TODO check null
+
         ValueDecl *rangeVar = dyn_cast<DeclRefExpr>(rbf->getRangeInit())->getDecl();
         ValueDecl *itVar = rbf->getLoopVariable();
         string itStr = itVar->getQualifiedNameAsString();

@@ -21,12 +21,12 @@ add_clang_library(Cpp14Regress
         ./src/range_based_for.cpp
         #./src/lambda.cpp
         ./src/auto.cpp
-        #./src/decltype.cpp
+        ./src/decltype.cpp
         ./src/default.cpp
         ./src/constuctor_delegation.cpp
-        #./src/raw_string.cpp
+        ./src/raw_string.cpp
         ./src/implict_sizeof.cpp
-        #./src/digit_separators.cpp
+        ./src/digit_separators.cpp
         ./src/alias_type.cpp
         ./src/uniform_initialization.cpp
         ./src/explicit_conversion.cpp
