@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class TrailingReturnSearcher : public FeatureReplacer {
+    class TrailingReturnSearcher : public FeatureVisitor {
     public:
 
-        TrailingReturnSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        TrailingReturnSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::trailing_return; }
 

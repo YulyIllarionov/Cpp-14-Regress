@@ -21,7 +21,7 @@ add_clang_library(Cpp14Regress
         ./src/tool.cpp
         ./src/cpp14feature.cpp
         ./src/range_based_for.cpp
-        #./src/lambda.cpp
+        ./src/lambda.cpp
         ./src/auto.cpp
         ./src/decltype.cpp
         ./src/default.cpp
@@ -33,7 +33,7 @@ add_clang_library(Cpp14Regress
         ./src/uniform_initialization.cpp
         ./src/explicit_conversion.cpp
         ./src/in_class_init.cpp
-        #./src/strongly_typed_enum.cpp
+        ./src/strongly_typed_enum.cpp
         ./src/user_literals.cpp
         ./src/final.cpp
         ./src/override.cpp

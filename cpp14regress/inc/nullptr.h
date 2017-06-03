@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class NullPtrReplacer : public FeatureReplacer {
+    class NullPtrReplacer : public FeatureVisitor {
     public:
 
-        NullPtrReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        NullPtrReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::null_pointer_constant; }
 

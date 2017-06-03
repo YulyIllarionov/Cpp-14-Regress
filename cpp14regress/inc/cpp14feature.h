@@ -20,7 +20,7 @@
 #include "utils.h"
 
 namespace cpp14regress {
-    class FeatureReplacer : public clang::RecursiveASTVisitor<FeatureReplacer> {
+    class FeatureVisitor : public clang::RecursiveASTVisitor<FeatureVisitor> {
     protected:
         clang::CompilerInstance *f_compilerInstance;
         clang::Rewriter *f_rewriter;
@@ -35,7 +35,7 @@ namespace cpp14regress {
         virtual void beginSourceFileAction() {}
 
     public:
-        FeatureReplacer(clang::CompilerInstance *ci);
+        FeatureVisitor(clang::CompilerInstance *ci);
 
         virtual void EndSourceFileAction();
 

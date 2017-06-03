@@ -23,10 +23,10 @@
 
 namespace cpp14regress {
 
-    class MemberInitReplacer : public FeatureReplacer {
+    class MemberInitReplacer : public FeatureVisitor {
     public:
 
-        MemberInitReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        MemberInitReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::member_init; }
 

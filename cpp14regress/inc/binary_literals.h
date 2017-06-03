@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class BinaryLiteralReplacer : public FeatureReplacer {
+    class BinaryLiteralReplacer : public FeatureVisitor {
     public:
 
-        BinaryLiteralReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        BinaryLiteralReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::final_specifier; }
 

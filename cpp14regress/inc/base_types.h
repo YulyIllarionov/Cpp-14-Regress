@@ -40,7 +40,7 @@ namespace cpp14regress {
         };
     };
 
-    struct features_base {
+    struct features {
         enum type {
             auto_keyword = 0, //found   cured?
             decltype_keyword, //found   cured?
@@ -78,61 +78,58 @@ namespace cpp14regress {
             member_init, //found   //cured
             static_assert_decl,
             inline_namespace,
+            func_templ_default_args,
             SIZE
         };
+
+        static constexpr unsigned size() { return type::SIZE; }
 
         static std::string toString(type t) {
             std::string s;
             // @formatter:off
             switch (t) {
-                case auto_keyword : s = "auto type"; break;
-                case decltype_keyword : s = "decltype type"; break;
-                case constexpr_keyword : s = "constexpr"; break;
-                case extern_template : s = "extern template"; break;
-                case default_keyword : s = "default method"; break;
-                case delete_keyword : s = "delete "; break;
-                case override_specifier : s = "override method"; break;
-                case final_specifier : s = "final method"; break;
-                case explicit_specifier : s = "explicit conversion"; break;
-                case initializer_list : s = "initializer list"; break;
-                case uniform_initialization : s = "uniform initialization"; break;
-                case range_based_for : s = "range based for"; break;
-                case lambda : s = "lambda"; break;
-                case trailing_return : s = "trailing return"; break;
-                case constuctor_delegation : s = "constructor delegation "; break;
-                case null_pointer_constant : s = "nullptr"; break;
-                case improved_enum : s = "improved enum"; break;
                 case alias_template : s = "alias template"; break;
                 case alias_type : s = "alias type"; break;
-                case unrestricted_unions : s = "unrestricted union"; break;
-                case variadic_templates : s = "variadic template"; break;
-                case raw_string_literals : s = "raw string literal"; break;
-                case unicode_string_literals : s = "unicode string literal"; break;
-                case user_defined_literals : s = "user defined literal"; break;
+                case alignas_specifier : s = "alignas"; break;
+                case alignof_operator : s = "alignof"; break;
+                case attributes : s = "[[attributes]]"; break;
+                case auto_keyword : s = "auto type"; break;
+                case binary_literals : s = "binary literal"; break;
+                case constexpr_keyword : s = "constexpr"; break;
+                case constuctor_delegation : s = "constructor delegation "; break;
+                case decltype_keyword : s = "decltype type"; break;
+                case default_keyword : s = "default method"; break;
+                case delete_keyword : s = "delete "; break;
+                case digit_separators : s = "digit separators"; break;
+                case explicit_specifier : s = "explicit conversion"; break;
+                case extern_template : s = "extern template"; break;
+                case final_specifier : s = "final method"; break;
+                case func_templ_default_args : s = "function template default args"; break;
+                case improved_enum : s = "improved enum"; break;
+                case initializer_list : s = "initializer list"; break;
+                case inline_namespace : s = "inline namespace"; break;
+                case lambda : s = "lambda"; break;
                 case long_long_int : s = "long long int"; break;
+                case member_init : s = "member init"; break;
                 case member_sizeof : s = "member sizeof"; break;
                 case noexcept_keyword : s = "noexcept keyword"; break;
-                case alignof_operator : s = "alignof"; break;
-                case alignas_specifier : s = "alignas"; break;
-                case attributes : s = "[[attributes]]"; break;
-                case variable_templates : s = "variable template"; break;
-                case digit_separators : s = "digit separators"; break;
-                case binary_literals : s = "binary literal"; break;
-                case member_init : s = "member init"; break;
+                case null_pointer_constant : s = "nullptr"; break;
+                case override_specifier : s = "override method"; break;
+                case range_based_for : s = "range-based for"; break;
+                case raw_string_literals : s = "raw string literal"; break;
                 case static_assert_decl : s = "static assert"; break;
-                case inline_namespace : s = "inline namespace"; break;
+                case trailing_return : s = "trailing return"; break;
+                case unicode_string_literals : s = "unicode string literal"; break;
+                case uniform_initialization : s = "uniform initialization"; break;
+                case unrestricted_unions : s = "unrestricted union"; break;
+                case user_defined_literals : s = "user defined literal"; break;
+                case variable_templates : s = "variable template"; break;
+                case variadic_templates : s = "variadic template"; break;
                 case SIZE : break;
             }
         // @formatter:on
             return s;
         }
-    };
-
-    struct features : public features_base {
-        static constexpr unsigned size() { return type::SIZE; }
-
-    private :
-        using features_base::SIZE;
     };
 
     namespace replacement {

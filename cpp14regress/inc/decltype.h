@@ -21,10 +21,10 @@
 
 namespace cpp14regress {
 
-    class DecltypeReplacer : public FeatureReplacer { //TODO fix
+    class DecltypeReplacer : public FeatureVisitor { //TODO fix
     public:
 
-        DecltypeReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        DecltypeReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::decltype_keyword; }
 

@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class StaticAssertSearcher : public FeatureReplacer {
+    class StaticAssertSearcher : public FeatureVisitor {
     public:
 
-        StaticAssertSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        StaticAssertSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::static_assert_decl; }
 

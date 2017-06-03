@@ -21,16 +21,16 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    void FeatureReplacer::EndSourceFileAction() {
+    void FeatureVisitor::EndSourceFileAction() {
         endSourceFileAction();
         f_rewriter->overwriteChangedFiles();
     }
 
-    void FeatureReplacer::BeginSourceFileAction() {
+    void FeatureVisitor::BeginSourceFileAction() {
         beginSourceFileAction();
     }
 
-    FeatureReplacer::FeatureReplacer(CompilerInstance *ci) : f_compilerInstance(ci) {
+    FeatureVisitor::FeatureVisitor(CompilerInstance *ci) : f_compilerInstance(ci) {
         f_astContext = &(ci->getASTContext());
         f_sourceManager = &(ci->getSourceManager());
         f_langOptions = &(ci->getLangOpts());

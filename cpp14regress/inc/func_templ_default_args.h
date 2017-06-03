@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class FuncTemplDefaultArgsSearcher : public FeatureReplacer {
+    class FuncTemplDefaultArgsSearcher : public FeatureVisitor {
     public:
 
-        FuncTemplDefaultArgsSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        FuncTemplDefaultArgsSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::trailing_return; }
 

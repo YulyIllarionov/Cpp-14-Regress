@@ -42,7 +42,7 @@ namespace cpp14regress {
     class LambdaHeaderGuardGenerator : public NameGenerator {
     public:
         virtual std::string toString() {
-            string seedUpper;
+            std::string seedUpper;
             std::transform(replacement::seed.begin(), replacement::seed.end(), seedUpper.begin(), ::toupper);
             return std::string(seedUpper + "_LAMBDA_" + std::to_string(f_count) + "_H");
         }
@@ -55,7 +55,7 @@ namespace cpp14regress {
         }
     };
 
-    class LambdaReplacer : public FeatureReplacer {
+    class LambdaReplacer : public FeatureVisitor {
     private:
         std::stringstream f_header;
         LambdaClassNameGenerator f_lcng;
@@ -66,7 +66,7 @@ namespace cpp14regress {
 
     public:
 
-        LambdaReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        LambdaReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::lambda; }
 

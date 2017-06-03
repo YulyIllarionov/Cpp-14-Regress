@@ -20,9 +20,9 @@
 
 namespace cpp14regress {
 
-    class DefaultReplacer : public FeatureReplacer {
+    class DefaultReplacer : public FeatureVisitor {
     public:
-        DefaultReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        DefaultReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::default_keyword; }
 

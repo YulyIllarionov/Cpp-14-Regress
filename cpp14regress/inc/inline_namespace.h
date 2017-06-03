@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class InlineNamespaceSearcher : public FeatureReplacer {
+    class InlineNamespaceSearcher : public FeatureVisitor {
     public:
 
-        InlineNamespaceSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        InlineNamespaceSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::unicode_string_literals; }
 

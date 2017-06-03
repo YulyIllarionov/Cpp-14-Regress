@@ -22,11 +22,10 @@
 
 namespace cpp14regress {
 
-    template<typename VisitorType>
-    class FeatureReplacerASTConsumer : public clang::ASTConsumer {
+    class Cpp14RegressASTConsumer : public clang::ASTConsumer {
     public:
-        FeatureReplacerASTConsumer(clang::CompilerInstance *ci)
-                : f_visitor(new VisitorType(ci)) {}
+        Cpp14RegressASTConsumer(features::type feature, clang::CompilerInstance *ci);
+//                : f_visitor(new VisitorType(ci)) {}
 
         virtual void HandleTranslationUnit(clang::ASTContext &context) {
             f_visitor->TraverseDecl(context.getTranslationUnitDecl());
@@ -37,20 +36,21 @@ namespace cpp14regress {
         virtual void BeginSourceFileAction() { f_visitor->BeginSourceFileAction(); }
 
     private:
-        VisitorType *f_visitor;
+        FeatureVisitor *f_visitor = nullptr;
     };
 
-    template<typename VisitorType>
-    class FeatureReplacerFrontendAction : public clang::ASTFrontendAction {
+    class Cpp14RegressFrontendAction : public clang::ASTFrontendAction {
     public:
+
+        Cpp14RegressFrontendAction(features::type feature) : f_feature(feature) {}
 
         virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
                                                                       llvm::StringRef file) {
-            f_consumer = new FeatureReplacerASTConsumer<VisitorType>(&CI);
-            return std::unique_ptr<clang::ASTConsumer>(f_consumer);
+            f_astConsumer = new Cpp14RegressASTConsumer(f_feature, &CI);
+            return std::unique_ptr<clang::ASTConsumer>(f_astConsumer);
         }
 
-        virtual void EndSourceFileAction() { f_consumer->EndSourceFileAction(); }
+        virtual void EndSourceFileAction() { f_astConsumer->EndSourceFileAction(); }
 
         //TODO segmentation fault
         //virtual bool BeginSourceFileAction(clang::CompilerInstance &CI, llvm::StringRef Filename) {
@@ -59,8 +59,22 @@ namespace cpp14regress {
         //}
 
     private:
-        FeatureReplacerASTConsumer<VisitorType> *f_consumer;
+        Cpp14RegressASTConsumer *f_astConsumer;
+        features::type f_feature;
     };
+
+    class Cpp14RegressFrontendActionFactory : public clang::tooling::FrontendActionFactory {
+    public:
+        Cpp14RegressFrontendActionFactory(features::type feature) : f_feature(feature) {}
+
+        clang::FrontendAction *create() {
+            return new Cpp14RegressFrontendAction(f_feature);
+        }
+
+    private:
+        features::type f_feature;
+    };
+
 }
 
 #endif /*CPP14REGRESS_TOOL_H*/

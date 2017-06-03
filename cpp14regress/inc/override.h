@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class OverrideReplacer : public FeatureReplacer {
+    class OverrideReplacer : public FeatureVisitor {
     public:
 
-        OverrideReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        OverrideReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::override_specifier; }
 

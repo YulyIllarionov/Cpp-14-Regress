@@ -23,9 +23,9 @@
 
 namespace cpp14regress {
 
-    class DigitSeparatorReplacer : public FeatureReplacer { //TODO fix
+    class DigitSeparatorReplacer : public FeatureVisitor { //TODO fix
     public:
-        DigitSeparatorReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        DigitSeparatorReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::digit_separators; }
 

@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class UnrestrictedUnionsSearcher : public FeatureReplacer {
+    class UnrestrictedUnionsSearcher : public FeatureVisitor {
     public:
 
-        UnrestrictedUnionsSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        UnrestrictedUnionsSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::unrestricted_unions; }
 

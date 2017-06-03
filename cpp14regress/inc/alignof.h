@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class AlignofSearcher : public FeatureReplacer {
+    class AlignofSearcher : public FeatureVisitor {
     public:
 
-        AlignofSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        AlignofSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::alignof_operator; }
 

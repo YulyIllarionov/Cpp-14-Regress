@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class UnicodeStringLiteralSearcher : public FeatureReplacer {
+    class UnicodeStringLiteralSearcher : public FeatureVisitor {
     public:
 
-        UnicodeStringLiteralSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        UnicodeStringLiteralSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::unicode_string_literals; }
 

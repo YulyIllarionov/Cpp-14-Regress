@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class FinalReplacer : public FeatureReplacer {
+    class FinalReplacer : public FeatureVisitor {
     public:
 
-        FinalReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        FinalReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::final_specifier; }
 

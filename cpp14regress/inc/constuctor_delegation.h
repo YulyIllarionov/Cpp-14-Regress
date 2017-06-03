@@ -23,10 +23,10 @@
 
 namespace cpp14regress {
 
-    class ConstructorDelegationReplacer : public FeatureReplacer {
+    class ConstructorDelegationReplacer : public FeatureVisitor {
     public:
 
-        ConstructorDelegationReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        ConstructorDelegationReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::constuctor_delegation; }
 

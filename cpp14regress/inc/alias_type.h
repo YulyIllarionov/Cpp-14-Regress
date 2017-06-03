@@ -23,10 +23,10 @@
 
 namespace cpp14regress {
 
-    class AliasTypeReplacer : public FeatureReplacer {
+    class AliasTypeReplacer : public FeatureVisitor {
     public:
 
-        AliasTypeReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        AliasTypeReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::alias_type; }
 

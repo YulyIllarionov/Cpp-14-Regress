@@ -23,7 +23,7 @@
 
 namespace cpp14regress {
 
-    class ImprovedEnumReplacer : public FeatureReplacer {
+    class ImprovedEnumReplacer : public FeatureVisitor {
     private:
         std::vector<clang::EnumDecl *> f_enums;
 
@@ -31,7 +31,7 @@ namespace cpp14regress {
 
     public:
 
-        ImprovedEnumReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        ImprovedEnumReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::improved_enum; }
 

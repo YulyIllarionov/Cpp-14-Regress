@@ -23,9 +23,9 @@
 
 namespace cpp14regress {
 
-    class RawStringReplacer : public FeatureReplacer { //TODO fix
+    class RawStringReplacer : public FeatureVisitor { //TODO fix
     public:
-        RawStringReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        RawStringReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::raw_string_literals; }
 

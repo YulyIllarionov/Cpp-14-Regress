@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class VariableTemplateSearcher : public FeatureReplacer {
+    class VariableTemplateSearcher : public FeatureVisitor {
     public:
 
-        VariableTemplateSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        VariableTemplateSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::variable_templates; }
 

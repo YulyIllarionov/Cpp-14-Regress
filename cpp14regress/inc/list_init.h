@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class ListInitSearcher : public FeatureReplacer {
+    class ListInitSearcher : public FeatureVisitor {
     public:
 
-        ListInitSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        ListInitSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::initializer_list; }
 

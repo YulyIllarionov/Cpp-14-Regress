@@ -24,37 +24,6 @@
 #include "base_types.h"
 #include "tool.h"
 
-#include "default.h"
-#include "delete.h"
-#include "auto.h"
-#include "decltype.h"
-//#include "lambda.h"
-#include "constuctor_delegation.h"
-#include "raw_string.h"
-#include "implict_sizeof.h"
-#include "digit_separators.h"
-#include "alias_type.h"
-#include "uniform_initialization.h"
-#include "explicit_conversion.h"
-#include "in_class_init.h"
-#include "range_based_for.h"
-//#include "strongly_typed_enum.h"
-#include "user_literals.h"
-#include "final.h"
-#include "override.h"
-#include"binary_literals.h"
-#include "list_init.h"
-#include "static_assert.h"
-#include "trailing_return.h"
-#include "func_templ_default_args.h"
-#include "nullptr.h"
-#include "alignof.h"
-#include "alignas.h"
-#include "unicode_literals.h"
-#include "inline_namespace.h"
-#include "unrestricted_unions.h"
-#include "variable_template.h"
-
 using namespace std;
 using namespace clang;
 using namespace clang::driver;
@@ -102,8 +71,8 @@ int main(int argc, const char **argv) {
     int argc_mod = 4;
     CommonOptionsParser op(argc_mod, argv_mod, MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
-    int result = Tool.run(
-            newFrontendActionFactory<FeatureReplacerFrontendAction<VariableTemplateSearcher>>().get());
+    auto faf = new Cpp14RegressFrontendActionFactory(features::range_based_for);
+    int result = Tool.run(faf);
 
     return result;
 }

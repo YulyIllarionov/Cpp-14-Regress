@@ -24,7 +24,7 @@
 
 namespace cpp14regress {
 
-    class UserLiteralReplacer : public FeatureReplacer {
+    class UserLiteralReplacer : public FeatureVisitor {
     private:
 
         std::string operatorFuncName(std::string s) {
@@ -33,7 +33,7 @@ namespace cpp14regress {
 
     public:
 
-        UserLiteralReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        UserLiteralReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::user_defined_literals; }
 

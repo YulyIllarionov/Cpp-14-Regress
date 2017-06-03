@@ -23,10 +23,10 @@
 
 namespace cpp14regress {
 
-    class UniformInitReplacer : public FeatureReplacer {
+    class UniformInitReplacer : public FeatureVisitor {
     public:
 
-        UniformInitReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        UniformInitReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::uniform_initialization; }
 

@@ -20,10 +20,10 @@
 
 namespace cpp14regress {
 
-    class AlignasSearcher : public FeatureReplacer {
+    class AlignasSearcher : public FeatureVisitor {
     public:
 
-        AlignasSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        AlignasSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::alignas_specifier; }
 

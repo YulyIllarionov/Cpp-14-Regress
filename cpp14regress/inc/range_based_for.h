@@ -43,10 +43,10 @@ namespace cpp14regress {
         virtual std::string toString();
     };
 
-    class RangeBasedForReplacer : public FeatureReplacer {
+    class RangeBasedForReplacer : public FeatureVisitor {
     public:
 
-        RangeBasedForReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        RangeBasedForReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::range_based_for; }
 

@@ -23,10 +23,10 @@
 
 namespace cpp14regress {
 
-    class ExplicitConversionReplacer : public FeatureReplacer {
+    class ExplicitConversionReplacer : public FeatureVisitor {
     public:
 
-        ExplicitConversionReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        ExplicitConversionReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::explicit_specifier; }
 

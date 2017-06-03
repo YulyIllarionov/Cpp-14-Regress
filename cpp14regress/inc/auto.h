@@ -21,10 +21,10 @@
 
 namespace cpp14regress {
 
-    class AutoReplacer : public FeatureReplacer { //TODO fix
+    class AutoReplacer : public FeatureVisitor { //TODO fix
     public:
 
-        AutoReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        AutoReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::auto_keyword; }
 

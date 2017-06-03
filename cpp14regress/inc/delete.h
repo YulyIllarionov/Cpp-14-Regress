@@ -20,9 +20,9 @@
 
 namespace cpp14regress {
 
-    class DeleteReplacer : public FeatureReplacer {
+    class DeleteReplacer : public FeatureVisitor {
     public:
-        DeleteReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        DeleteReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::delete_keyword; }
 

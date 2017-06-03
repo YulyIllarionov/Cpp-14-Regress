@@ -23,10 +23,10 @@
 
 namespace cpp14regress {
 
-    class MemberSizeofReplacer : public FeatureReplacer {
+    class MemberSizeofReplacer : public FeatureVisitor {
     public:
 
-        MemberSizeofReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
+        MemberSizeofReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::member_sizeof; }
 
