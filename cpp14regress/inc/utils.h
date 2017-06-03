@@ -77,6 +77,16 @@ namespace cpp14regress {
         return true;
     }
 
+    template<>
+    inline bool fromUserFile<clang::Attr>(clang::Attr *source, const clang::SourceManager *sm) {
+        clang::SourceLocation sl = source->getLocation();
+        if (sl.isValid())
+            if (sm->getFileCharacteristic(sl) !=
+                clang::SrcMgr::CharacteristicKind::C_User)
+                return false;
+        return true;
+    }
+
     template<typename T>
     inline bool inProcessedFile(T *source, clang::ASTContext *context) {
         if (source->getLocStart().isValid())

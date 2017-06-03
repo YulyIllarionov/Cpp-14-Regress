@@ -70,11 +70,10 @@ namespace cpp14regress {
         uniform_initialization, //found     cured
         range_based_for, //found    cured
         lambda, //found    cured
-        alternative_function_syntax, //found
+        trailing_return, //found
         constuctor_delegation, //found  cured
         null_pointer_constant, //found
         improved_enum, //found
-        right_angle_bracket, //?
         alias_template, //found
         alias_type, //found     cured
         unrestricted_unions, //found //boost::variant или placement-new
@@ -92,7 +91,9 @@ namespace cpp14regress {
         digit_separators, //found   cured
         binary_literals, //found
         member_init, //found   //cured
-        end,
+        static_assert_decl,
+        inline_namespace,
+        end
     };
 
     class cpp14features_stat {
@@ -197,6 +198,18 @@ namespace cpp14regress {
         virtual bool VisitDecltypeTypeLoc(clang::DecltypeTypeLoc) { return true; }
 
         virtual bool VisitStringLiteral(clang::StringLiteral *) { return true; }
+
+        virtual bool VisitCXXStdInitializerListExpr(clang::CXXStdInitializerListExpr *) { return true; }
+
+        virtual bool VisitStaticAssertDecl(clang::StaticAssertDecl *) { return true; }
+
+        virtual bool VisitFunctionTemplateDecl(clang::FunctionTemplateDecl *) { return true; }
+
+        virtual bool VisitCXXNullPtrLiteralExpr(clang::CXXNullPtrLiteralExpr *nullPtrExpr) { return true; }
+
+        virtual bool VisitAttr(clang::Attr *) { return true; }
+
+        virtual bool VisitVarTemplateDecl(clang::VarTemplateDecl *) { return true; }
     };
 
     template<typename VisitorType>

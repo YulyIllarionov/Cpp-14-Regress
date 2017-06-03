@@ -37,6 +37,17 @@ add_clang_library(Cpp14Regress
         ./src/override.cpp
         ./src/delete.cpp
         ./src/binary_literals.cpp
+        ./src/list_init.cpp
+        ./src/static_assert.cpp
+        ./src/trailing_return.cpp
+        ./src/func_templ_default_args.cpp
+        ./src/nullptr.cpp
+        ./src/alignas.cpp
+        ./src/alignof.cpp
+        ./src/unicode_literals.cpp
+        ./src/inline_namespace.cpp
+        ./src/unrestricted_unions.cpp
+        ./src/variable_template.cpp
         #./src/file_preparator.cpp
 
         LINK_LIBS

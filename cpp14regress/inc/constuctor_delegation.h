@@ -40,6 +40,26 @@ namespace cpp14regress {
         std::string initFunCall(const clang::CXXConstructorDecl *delegating);
     };
 
+    class ParamSearcher : public clang::RecursiveASTVisitor<ParamSearcher> {
+    private:
+        typedef clang::FunctionDecl::param_const_iterator param_iterator;
+
+        param_iterator f_begin;
+        param_iterator f_end;
+        bool f_found = false;
+        unsigned f_index = 0;
+
+    public:
+        ParamSearcher(param_iterator begin, param_iterator end) :
+                f_begin(begin), f_end(end) {}
+
+        virtual bool VisitDeclRefExpr(clang::DeclRefExpr *dre);
+
+        bool found() { return f_found; }
+
+        unsigned index() { return f_index; }
+    };
+
     /*class ConstructorDelegationReplacer : public clang::RecursiveASTVisitor<ConstructorDelegationReplacer> {
     private:
         clang::ASTContext *f_context;

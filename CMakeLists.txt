@@ -59,6 +59,17 @@ set(HEADER_FILES
         ${CPP14REGRESS_INCLUDE_DIR}/delete.h
         ${CPP14REGRESS_INCLUDE_DIR}/file_preparator.h
         ${CPP14REGRESS_INCLUDE_DIR}/binary_literals.h
+        ${CPP14REGRESS_INCLUDE_DIR}/list_init.h
+        ${CPP14REGRESS_INCLUDE_DIR}/static_assert.h
+        ${CPP14REGRESS_INCLUDE_DIR}/trailing_return.h
+        ${CPP14REGRESS_INCLUDE_DIR}/func_templ_default_args.h
+        ${CPP14REGRESS_INCLUDE_DIR}/nullptr.h
+        ${CPP14REGRESS_INCLUDE_DIR}/alignas.h
+        ${CPP14REGRESS_INCLUDE_DIR}/alignof.h
+        ${CPP14REGRESS_INCLUDE_DIR}/unicode_literals.h
+        ${CPP14REGRESS_INCLUDE_DIR}/inline_namespace.h
+        ${CPP14REGRESS_INCLUDE_DIR}/unrestricted_unions.h
+        ${CPP14REGRESS_INCLUDE_DIR}/variable_template.h
         )
 
 set(SOURCE_FILES
@@ -87,6 +98,17 @@ set(SOURCE_FILES
         ${CPP14REGRESS_SOURCE_DIR}/delete.cpp
         ${CPP14REGRESS_SOURCE_DIR}/file_preparator.cpp
         ${CPP14REGRESS_SOURCE_DIR}/binary_literals.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/list_init.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/static_assert.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/trailing_return.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/func_templ_default_args.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/nullptr.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/alignas.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/alignof.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/unicode_literals.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/inline_namespace.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/unrestricted_unions.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/variable_template.cpp
         #tool main.cpp
         ./cpp14regress/tool/main.cpp
         #clang sources

@@ -69,7 +69,7 @@ namespace cpp14regress {
             cout << "Alternate syntax: "
                  << functionDecl->getLocStart().printToString(f_context->getSourceManager())
                  << " -- " << functionDecl->getType()->getTypeClassName() << endl;
-            f_stat->push(cpp14features::alternative_function_syntax, functionDecl->getLocStart());
+            f_stat->push(cpp14features::trailing_return, functionDecl->getLocStart());
         }
         return true;
     }

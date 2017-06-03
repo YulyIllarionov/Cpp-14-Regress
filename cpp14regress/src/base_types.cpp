@@ -87,7 +87,6 @@ namespace cpp14regress {
                 "constuctor delegation",
                 "null pointer constant",
                 "enum class",
-                "right angle bracket",
                 "alias template",
                 "alias_type",
                 "unrestricted unions",
@@ -104,7 +103,9 @@ namespace cpp14regress {
                 "variable templates",
                 "digit separators",
                 "binary literals",
-                "inclass init"
+                "inclass init",
+                "static assert",
+                "inline namespace"
         };
         return string(features[(size_t) f - (size_t) cpp14features::begin]);
     }

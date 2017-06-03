@@ -43,7 +43,17 @@
 #include "final.h"
 #include "override.h"
 #include"binary_literals.h"
-//#include "file_preparator.h"
+#include "list_init.h"
+#include "static_assert.h"
+#include "trailing_return.h"
+#include "func_templ_default_args.h"
+#include "nullptr.h"
+#include "alignof.h"
+#include "alignas.h"
+#include "unicode_literals.h"
+#include "inline_namespace.h"
+#include "unrestricted_unions.h"
+#include "variable_template.h"
 
 using namespace std;
 using namespace clang;
@@ -93,7 +103,7 @@ int main(int argc, const char **argv) {
     CommonOptionsParser op(argc_mod, argv_mod, MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
     int result = Tool.run(
-            newFrontendActionFactory<FeatureReplacerFrontendAction<DigitSeparatorReplacer>>().get());
+            newFrontendActionFactory<FeatureReplacerFrontendAction<VariableTemplateSearcher>>().get());
 
     return result;
 }
