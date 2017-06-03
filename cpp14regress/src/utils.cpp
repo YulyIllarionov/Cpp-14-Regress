@@ -56,35 +56,6 @@ namespace cpp14regress {
         return false;
     }
 
-    /*Indent &Indent::operator++() {
-        f_level++;
-        return *this;
-    }
-
-    Indent Indent::operator++(int) {
-        Indent tmp(*this);
-        ++(*this);
-        return tmp;
-    }
-
-    Indent &Indent::operator--() {
-        if (f_level)
-            f_level--;
-        return *this;
-    }
-
-    Indent Indent::operator--(int) {
-        Indent tmp(*this);
-        --(*this);
-        return tmp;
-    }
-
-    ostream &operator<<(ostream &stream, const Indent &indent) {
-        for (unsigned int i = 0; i < indent.f_size * indent.f_level; i++)
-            stream << ' ';
-        return stream;
-    }*/
-
     vector<string> filesInFolder(string folder) {
         vector<string> filenames;
         error_code ec;
@@ -197,19 +168,6 @@ namespace cpp14regress {
         if (folder.back() != '/')
             folder += '/';
         return folder;
-    }
-
-    std::string NameGenerator::generate() {
-        if (f_first)
-            f_first = false;
-        else
-            f_count++;
-        return toString();
-    }
-
-    void NameGenerator::reset() {
-        f_count = 0;
-        f_first = true;
     }
 
     SourceLocation getIncludeLocation(FileID fileID, const SourceManager *sm, unsigned carriages) {

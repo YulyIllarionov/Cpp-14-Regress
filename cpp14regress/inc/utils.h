@@ -31,18 +31,20 @@ namespace cpp14regress {
         virtual std::string toString() = 0;
     };
 
+    template<class SG>
     class NameGenerator {
-    protected:
-        unsigned f_count = 0;
-        bool f_first = true;
     public:
+        static unsigned f_count;
+    public:
+        static std::string toString() { return SG::toString(f_count); }
 
-        virtual std::string toString() { return std::string(); };
+        static void generate() { f_count++; }
 
-        std::string generate();
-
-        void reset();
+        static void reset() { f_count = 0; }
     };
+
+    template<class SG>
+    unsigned NameGenerator<SG>::f_count = 0;
 
     class VariableReplacer : public clang::RecursiveASTVisitor<VariableReplacer> {
     private:
@@ -98,28 +100,6 @@ namespace cpp14regress {
 
     bool isCppFile(const clang::Twine &path);
 
-    /*class Indent {
-    private:
-        unsigned int f_level;
-        const static unsigned int f_size = 4;
-    public:
-        Indent() : f_level(0) {}
-
-        Indent(const Indent &other) = default;
-
-        Indent &operator++();
-
-        Indent operator++(int);
-
-        Indent &operator--();
-
-        Indent operator--(int);
-
-        operator std::string() const { return std::string(f_level * f_size, ' '); }
-
-        friend std::ostream &operator<<(std::ostream &stream, const Indent &indent);
-    }; */
-
     std::vector<std::string> filesInFolder(std::string folder);
 
     bool isCppFile(std::string filename);
@@ -136,11 +116,6 @@ namespace cpp14regress {
     std::string removeExtension(const std::string &path);
 
     std::string asFolder(const std::string &path);
-
-    inline std::string VariableToField(const std::string &var) {
-        return std::string("f_" + var);
-    }
-
 
     clang::SourceLocation getIncludeLocation(clang::FileID fileID, const clang::SourceManager *sm,
                                              unsigned carriages = 5);

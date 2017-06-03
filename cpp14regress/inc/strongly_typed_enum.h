@@ -25,7 +25,7 @@ namespace cpp14regress {
 
     class ImprovedEnumReplacer : public FeatureVisitor {
     private:
-        std::vector<clang::EnumDecl *> f_enums;
+        std::vector<clang::EnumDecl *> f_separatelyDefs;
 
         std::string nameForReplace() { return "enumeration"; }
 
@@ -38,40 +38,8 @@ namespace cpp14regress {
         virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl);
 
         virtual bool VisitTypeLoc(clang::TypeLoc typeLoc);
-
-        virtual void endSourceFileAction();
     };
 
-    class EnumFieldSearcher : public clang::RecursiveASTVisitor<EnumFieldSearcher> {
-    private:
-        bool f_found = false;
-
-    public:
-        virtual bool VisitEnumConstantDecl(clang::EnumConstantDecl *field) {
-            f_found = true;
-            return false;
-        }
-
-        virtual bool VisitDecl(clang::Decl *decl) {
-            if (decl)
-                std::cout << decl->getDeclKindName() << std::endl;
-            return true;
-        }
-
-        virtual bool VisitStmt(clang::Stmt *stmt) {
-            if (stmt)
-                std::cout << stmt->getStmtClassName() << std::endl;
-            return true;
-        }
-
-        virtual bool VisitType(clang::Type *type) {
-            if (type)
-                std::cout << clang::QualType::getAsString(type, clang::Qualifiers()) << std::endl;
-            return true;
-        }
-
-        bool found() { return f_found; }
-    };
 }
 
 #endif /*CPP14REGRESS_STRONGLY_TYPED_ENUM_H*/

@@ -25,53 +25,65 @@
 
 namespace cpp14regress {
 
-    class LambdaClassNameGenerator : public NameGenerator {
+    /*class VariableToField : public StringGenerator {
+    private:
+        const clang::ValueDecl *f_variable;
     public:
-        virtual std::string toString() {
-            return std::string("__" + replacement::seed + "Lambda" + std::to_string(f_count));
-        }
+        VariableToField(const clang::ValueDecl *variable) : f_variable(variable) {}
+
+        virtual std::string toString();
+    };*/
+
+    struct LambdaClassName {
+        static std::string toString(unsigned i);
     };
 
-    class LambdaHeaderNameGenerator : public NameGenerator {
-    public:
-        virtual std::string toString() {
-            return std::string(replacement::seed + "_lambda_" + std::to_string(f_count) + ".h");
-        }
+    struct LambdaHeaderName {
+        static std::string toString(unsigned i);
     };
 
-    class LambdaHeaderGuardGenerator : public NameGenerator {
-    public:
-        virtual std::string toString() {
-            std::string seedUpper;
-            std::transform(replacement::seed.begin(), replacement::seed.end(), seedUpper.begin(), ::toupper);
-            return std::string(seedUpper + "_LAMBDA_" + std::to_string(f_count) + "_H");
-        }
+    struct LambdaHeaderGuard {
+        static std::string toString(unsigned i);
     };
 
-    class GenericTypeGenerator : public NameGenerator {
+    struct GenericType {
+        static std::string toString(unsigned i);
+    };
+
+    class IncludeLocSearcher {
+    private:
+        typedef clang::ast_type_traits::DynTypedNode AnyNode;
+
+        clang::ASTContext *f_astContext;
+        bool f_found;
+        clang::SourceLocation f_location;
+
+        void visit(const AnyNode &node);
+
+        void visitDecl(const clang::Decl *decl);
+
+        void visitStmt(const clang::Stmt *stmt);
+
+        void visitType(const clang::Type *type);
+
     public:
-        virtual std::string toString() {
-            return std::string("type" + std::to_string(f_count));
-        }
+        IncludeLocSearcher(clang::ASTContext *astContext) : f_astContext(astContext) {}
+
+        clang::SourceLocation find(const clang::Stmt *stmt);
     };
 
     class LambdaReplacer : public FeatureVisitor {
-    private:
-        std::stringstream f_header;
-        LambdaClassNameGenerator f_lcng;
-        LambdaHeaderNameGenerator f_lhng;
-        LambdaHeaderGuardGenerator f_lhgg;
-
-        virtual void endSourceFileAction();
-
     public:
+        typedef NameGenerator<LambdaClassName> LambdaClassNameGenerator;
+        typedef NameGenerator<LambdaHeaderName> LambdaHeaderNameGenerator;
+        typedef NameGenerator<LambdaHeaderGuard> LambdaHeaderGuardGenerator;
+        typedef NameGenerator<GenericType> GenericTypeGenerator;
 
         LambdaReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::lambda; }
 
         virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
-
     };
 }
 

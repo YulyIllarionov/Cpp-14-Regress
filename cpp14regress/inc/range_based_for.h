@@ -26,8 +26,8 @@ namespace cpp14regress {
     private:
         clang::ValueDecl *f_variable;
     public:
-        VariableToPointer(clang::ValueDecl *variable_)
-                : f_variable(variable_) {}
+        VariableToPointer(clang::ValueDecl *variable)
+                : f_variable(variable) {}
 
         virtual std::string toString();
     };
