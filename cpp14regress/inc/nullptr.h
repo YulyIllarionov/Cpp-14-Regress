@@ -16,7 +16,7 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
-#include "base_types.h"
+#include "cpp14feature.h"
 
 namespace cpp14regress {
 
@@ -25,7 +25,7 @@ namespace cpp14regress {
 
         NullPtrReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual cpp14features type() { return cpp14features::null_pointer_constant; }
+        virtual features::type type() { return features::type::null_pointer_constant; }
 
         virtual bool VisitCXXNullPtrLiteralExpr(clang::CXXNullPtrLiteralExpr *nullPtrExpr);
 

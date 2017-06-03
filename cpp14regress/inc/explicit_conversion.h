@@ -16,7 +16,7 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
-#include "base_types.h"
+#include "cpp14feature.h"
 
 #include <iostream>
 #include <string>
@@ -28,7 +28,7 @@ namespace cpp14regress {
 
         ExplicitConversionReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual cpp14features type() { return cpp14features::explicit_specifier; }
+        virtual features::type type() { return features::type::explicit_specifier; }
 
         virtual bool VisitCXXConversionDecl(clang::CXXConversionDecl *conversionDecl);
 

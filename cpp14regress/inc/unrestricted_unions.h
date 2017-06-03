@@ -16,7 +16,7 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
-#include "base_types.h"
+#include "cpp14feature.h"
 
 namespace cpp14regress {
 
@@ -25,7 +25,7 @@ namespace cpp14regress {
 
         UnrestrictedUnionsSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual cpp14features type() { return cpp14features::unrestricted_unions; }
+        virtual features::type type() { return features::type::unrestricted_unions; }
 
         virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
     };

@@ -18,6 +18,8 @@ add_clang_library(Cpp14Regress
         #./src/ast_to_dot.cpp
         ./src/base_types.cpp
         ./src/utils.cpp
+        ./src/tool.cpp
+        ./src/cpp14feature.cpp
         ./src/range_based_for.cpp
         #./src/lambda.cpp
         ./src/auto.cpp

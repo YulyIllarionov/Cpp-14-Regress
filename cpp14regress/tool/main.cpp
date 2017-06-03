@@ -22,8 +22,8 @@
 #include <clang/Sema/Ownership.h>
 
 #include "base_types.h"
-//#include "utils.h"
-//#include "cpp14_scanner.h"
+#include "tool.h"
+
 #include "default.h"
 #include "delete.h"
 #include "auto.h"

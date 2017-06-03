@@ -13,8 +13,7 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
-#include "base_types.h"
-#include <iostream>
+#include "cpp14feature.h"
 #include <string>
 
 namespace cpp14regress {
@@ -24,13 +23,13 @@ namespace cpp14regress {
     using namespace llvm;
 
     namespace replacement {
-        string info(cpp14features f, result r) {
-            return string(label + " _ " + resultStrings[(int) r]);
+        string info(features::type f, result r) {
+            return string(seed + " " + features::toString(f) + " " + resultStrings[(int) r]);
         }
 
-        string begin(cpp14features f, result r) { return info(f, r) + " begin"; }
+        string begin(features::type f, result r) { return info(f, r) + " begin"; }
 
-        string end(cpp14features f, result r) { return info(f, r) + " end"; }
+        string end(features::type f, result r) { return info(f, r) + " end"; }
     }
 
     string Comment::line(const string &text) {
@@ -47,84 +46,6 @@ namespace cpp14regress {
 
     string Comment::block(const string &text) {
         return string("/*" + text + "*/");
-    }
-
-    DirectoryGenerator::DirectoryGenerator(string path, string extension) {
-        //SmallVector<char,100> tmp(path.begin(), path.end()); //TODO FIX!!!!!!
-        //sys::fs::make_absolute(tmp);
-        //path = string(tmp.begin());
-        f_extension = extension;
-        if (path.back() == '/')
-            path.pop_back();
-        f_directory = path;
-        sys::fs::create_directory(f_directory + f_extension);
-        //cout << "Created dir" << f_directory + f_extension << endl;
-    }
-
-    string DirectoryGenerator::getFile(string file) {
-        if (file.substr(0, f_directory.size()) != f_directory)
-            return string();
-        file.insert(f_directory.size(), f_extension);
-        return file;
-    }
-
-    string cpp14features_stat::toString(cpp14features f) {
-        static const char *features[size()] = {
-                "auto keyword",
-                "decltype keyword",
-                "constexpr keyword",
-                "extern template",
-                "default keyword",
-                "delete keyword",
-                "override specifier",
-                "final specifier",
-                "explicit specifier",
-                "initializer list",
-                "uniform initialization",
-                "range based for",
-                "lambda function",
-                "alternative function syntax",
-                "constuctor delegation",
-                "null pointer constant",
-                "enum class",
-                "alias template",
-                "alias_type",
-                "unrestricted unions",
-                "variadic templates",
-                "raw_string_literals",
-                "unicode string literals",
-                "user defined literals",
-                "long long int",
-                "implict sizeof",
-                "noexcept keyword",
-                "alignof operator",
-                "alignas specifier",
-                "attributes",
-                "variable templates",
-                "digit separators",
-                "binary literals",
-                "inclass init",
-                "static assert",
-                "inline namespace"
-        };
-        return string(features[(size_t) f - (size_t) cpp14features::begin]);
-    }
-
-    void FeatureReplacer::EndSourceFileAction() {
-        endSourceFileAction();
-        f_rewriter->overwriteChangedFiles();
-    }
-
-    void FeatureReplacer::BeginSourceFileAction() {
-        beginSourceFileAction();
-    }
-
-    FeatureReplacer::FeatureReplacer(CompilerInstance *ci) : f_compilerInstance(ci) {
-        f_astContext = &(ci->getASTContext());
-        f_sourceManager = &(ci->getSourceManager());
-        f_langOptions = &(ci->getLangOpts());
-        f_preprocessor = &(ci->getPreprocessor());
-        f_rewriter = new Rewriter(*f_sourceManager, *f_langOptions);
     }
 
 }

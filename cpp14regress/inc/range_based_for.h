@@ -17,7 +17,7 @@
 #include "clang/AST/ParentMap.h"
 
 #include "utils.h"
-#include "base_types.h"
+#include "cpp14feature.h"
 #include <string>
 
 namespace cpp14regress {
@@ -48,7 +48,7 @@ namespace cpp14regress {
 
         RangeBasedForReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual cpp14features type() { return cpp14features::range_based_for; }
+        virtual features::type type() { return features::type::range_based_for; }
 
         virtual bool VisitCXXForRangeStmt(clang::CXXForRangeStmt *rbf);
     };

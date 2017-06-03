@@ -1,6 +1,3 @@
-#ifndef CPP14REGRESS_INLINE_NAMESPACES_H
-#define CPP14REGRESS_INLINE_NAMESPACES_H
-
 #include "clang/Driver/Options.h"
 #include "clang/AST/AST.h"
 #include "clang/AST/ASTContext.h"
@@ -16,19 +13,12 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
-#include "cpp14feature.h"
+#include "tool.h"
 
 namespace cpp14regress {
 
-    class InlineNamespaceSearcher : public FeatureReplacer {
-    public:
+    using namespace std;
+    using namespace clang;
+    using namespace llvm;
 
-        InlineNamespaceSearcher(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
-
-        virtual features::type type() { return features::type::unicode_string_literals; }
-
-        virtual bool VisitNamespaceDecl(clang::NamespaceDecl *namespaceDecl);
-    };
 }
-
-#endif /*CPP14REGRESS_INLINE_NAMESPACES_H*/

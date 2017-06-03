@@ -16,7 +16,7 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
-#include "base_types.h"
+#include "cpp14feature.h"
 
 #include <iostream>
 #include <vector>
@@ -28,14 +28,14 @@ namespace cpp14regress {
     private:
 
         std::string operatorFuncName(std::string s) {
-            return std::string("__cpp14regress_user_literal" + s);
+            return std::string("__" + replacement::seed + "_user_literal" + s);
         }
 
     public:
 
         UserLiteralReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual cpp14features type() { return cpp14features::user_defined_literals; }
+        virtual features::type type() { return features::type::user_defined_literals; }
 
         virtual bool VisitFunctionDecl(clang::FunctionDecl *funcDecl);
 

@@ -16,7 +16,7 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
-#include "base_types.h"
+#include "cpp14feature.h"
 
 #include <iostream>
 #include <string>
@@ -27,7 +27,7 @@ namespace cpp14regress {
     public:
         DigitSeparatorReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual cpp14features type() { return cpp14features::digit_separators; }
+        virtual features::type type() { return features::type::digit_separators; }
 
         virtual bool VisitIntegerLiteral(clang::IntegerLiteral *literal);
 

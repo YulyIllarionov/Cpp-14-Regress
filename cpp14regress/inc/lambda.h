@@ -16,32 +16,35 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 
-#include "base_types.h"
+#include "cpp14feature.h"
 #include "utils.h"
 
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 namespace cpp14regress {
 
     class LambdaClassNameGenerator : public NameGenerator {
     public:
         virtual std::string toString() {
-            return std::string("__cpp14regressLambda" + std::to_string(f_count));
+            return std::string("__" + replacement::seed + "Lambda" + std::to_string(f_count));
         }
     };
 
     class LambdaHeaderNameGenerator : public NameGenerator {
     public:
         virtual std::string toString() {
-            return std::string("cpp14regress_lambda_" + std::to_string(f_count) + ".h");
+            return std::string(replacement::seed + "_lambda_" + std::to_string(f_count) + ".h");
         }
     };
 
     class LambdaHeaderGuardGenerator : public NameGenerator {
     public:
         virtual std::string toString() {
-            return std::string("CPP14REGRESS_LAMBDA_" + std::to_string(f_count) + "_H");
+            string seedUpper;
+            std::transform(replacement::seed.begin(), replacement::seed.end(), seedUpper.begin(), ::toupper);
+            return std::string(seedUpper + "_LAMBDA_" + std::to_string(f_count) + "_H");
         }
     };
 
@@ -65,7 +68,7 @@ namespace cpp14regress {
 
         LambdaReplacer(clang::CompilerInstance *ci) : FeatureReplacer(ci) {}
 
-        virtual cpp14features type() { return cpp14features::lambda; }
+        virtual features::type type() { return features::type::lambda; }
 
         virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
 

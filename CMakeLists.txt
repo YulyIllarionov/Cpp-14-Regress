@@ -37,6 +37,8 @@ set(HEADER_FILES
         #cpp14regress includes
         ${CPP14REGRESS_INCLUDE_DIR}/base_types.h
         ${CPP14REGRESS_INCLUDE_DIR}/utils.h
+        ${CPP14REGRESS_INCLUDE_DIR}/tool.h
+        ${CPP14REGRESS_INCLUDE_DIR}/cpp14feature.h
         ${CPP14REGRESS_INCLUDE_DIR}/range_based_for.h
         ${CPP14REGRESS_INCLUDE_DIR}/lambda.h
         ${CPP14REGRESS_INCLUDE_DIR}/auto.h
@@ -76,6 +78,8 @@ set(SOURCE_FILES
         #cpp14regress sources
         ${CPP14REGRESS_SOURCE_DIR}/base_types.cpp
         ${CPP14REGRESS_SOURCE_DIR}/utils.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/tool.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/cpp14feature.cpp
         ${CPP14REGRESS_SOURCE_DIR}/range_based_for.cpp
         ${CPP14REGRESS_SOURCE_DIR}/lambda.cpp
         ${CPP14REGRESS_SOURCE_DIR}/auto.cpp

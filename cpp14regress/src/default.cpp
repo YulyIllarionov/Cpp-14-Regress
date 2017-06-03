@@ -17,7 +17,7 @@
 #include "llvm/ADT/DenseMap.h"
 
 #include "default.h"
-#include "base_types.h"
+#include "cpp14feature.h"
 #include "utils.h"
 #include "ast_to_dot.h"
 
