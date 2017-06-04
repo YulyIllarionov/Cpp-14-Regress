@@ -42,40 +42,40 @@ namespace cpp14regress {
 
     struct features {
         enum type {
-            auto_keyword = 0, //found   cured?
-            decltype_keyword, //found   cured?
-            constexpr_keyword, //found
-            extern_template, //?
-            default_keyword, //found    cured
-            delete_keyword, //found
-            override_specifier, //found
-            final_specifier, //found
-            explicit_specifier, //found     cured
-            initializer_list, //?
-            uniform_initialization, //found     cured
-            range_based_for, //found    cured
-            lambda, //found    cured
-            trailing_return, //found
-            constuctor_delegation, //found  cured
-            null_pointer_constant, //found
-            improved_enum, //found
-            alias_template, //found
-            alias_type, //found     cured
-            unrestricted_unions, //found //boost::variant или placement-new
-            variadic_templates, //found
-            raw_string_literals, //found    cured
-            unicode_string_literals, //found
-            user_defined_literals, //found
-            long_long_int, //found //TODO literals spec like 12345LL
-            member_sizeof, //found     cured
-            noexcept_keyword, //found
-            alignof_operator, //found
-            alignas_specifier, //found
-            attributes, //?
-            variable_templates, //found
-            digit_separators, //found   cured
-            binary_literals, //found
-            member_init, //found   //cured
+            auto_keyword = 0,    
+            decltype_keyword,    
+            constexpr_keyword, 
+            //extern_template, 
+            default_keyword,     
+            delete_keyword, 
+            override_specifier, 
+            final_specifier, 
+            explicit_specifier,      
+            initializer_list, 
+            uniform_initialization,      
+            range_based_for,     
+            lambda,     
+            trailing_return, 
+            constuctor_delegation,   
+            null_pointer_constant, 
+            improved_enum, 
+            alias_template, 
+            alias_type, 
+            unrestricted_unions, 
+            variadic_templates, 
+            raw_string_literals,
+            unicode_string_literals, 
+            user_defined_literals,
+            //long_long_int, 
+            member_sizeof,      
+            noexcept_keyword, 
+            alignof_operator, 
+            alignas_specifier, 
+            //attributes, 
+            variable_templates, 
+            digit_separators,    
+            binary_literals,
+            member_init,
             static_assert_decl,
             inline_namespace,
             func_templ_default_args,
@@ -92,7 +92,7 @@ namespace cpp14regress {
                 case alias_type : s = "alias type"; break;
                 case alignas_specifier : s = "alignas"; break;
                 case alignof_operator : s = "alignof"; break;
-                case attributes : s = "[[attributes]]"; break;
+                //case attributes : s = "[[attributes]]"; break;
                 case auto_keyword : s = "auto type"; break;
                 case binary_literals : s = "binary literal"; break;
                 case constexpr_keyword : s = "constexpr"; break;
@@ -102,14 +102,14 @@ namespace cpp14regress {
                 case delete_keyword : s = "delete "; break;
                 case digit_separators : s = "digit separators"; break;
                 case explicit_specifier : s = "explicit conversion"; break;
-                case extern_template : s = "extern template"; break;
+                //case extern_template : s = "extern template"; break;
                 case final_specifier : s = "final method"; break;
                 case func_templ_default_args : s = "function template default args"; break;
                 case improved_enum : s = "improved enum"; break;
                 case initializer_list : s = "initializer list"; break;
                 case inline_namespace : s = "inline namespace"; break;
                 case lambda : s = "lambda"; break;
-                case long_long_int : s = "long long int"; break;
+                //case long_long_int : s = "long long int"; break;
                 case member_init : s = "member init"; break;
                 case member_sizeof : s = "member sizeof"; break;
                 case noexcept_keyword : s = "noexcept keyword"; break;

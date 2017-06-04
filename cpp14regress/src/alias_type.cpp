@@ -38,7 +38,7 @@ namespace cpp14regress {
                 string ident = (qt->isFunctionPointerType()) ? "(*)" : "::*";
                 size_t identOffset = (qt->isFunctionPointerType()) ? 2 : 3;
                 string typeName = qt.getAsString();
-                string::size_type pos = typeName.find(ident); //TODO fix
+                string::size_type pos = typeName.find(ident); //TODO change
                 if (pos == string::npos) {
                     f_rewriter->InsertTextBefore(aliasTypeDecl->getLocStart(), Comment::line(
                             replacement::info(type(), replacement::result::found)) + "\n");

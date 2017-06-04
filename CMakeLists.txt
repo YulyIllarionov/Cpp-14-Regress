@@ -72,6 +72,10 @@ set(HEADER_FILES
         ${CPP14REGRESS_INCLUDE_DIR}/inline_namespace.h
         ${CPP14REGRESS_INCLUDE_DIR}/unrestricted_unions.h
         ${CPP14REGRESS_INCLUDE_DIR}/variable_template.h
+        ${CPP14REGRESS_INCLUDE_DIR}/alias_template.h
+        ${CPP14REGRESS_INCLUDE_DIR}/constexpr.h
+        ${CPP14REGRESS_INCLUDE_DIR}/noexcept.h
+        ${CPP14REGRESS_INCLUDE_DIR}/variadic_template.h
         )
 
 set(SOURCE_FILES
@@ -113,6 +117,10 @@ set(SOURCE_FILES
         ${CPP14REGRESS_SOURCE_DIR}/inline_namespace.cpp
         ${CPP14REGRESS_SOURCE_DIR}/unrestricted_unions.cpp
         ${CPP14REGRESS_SOURCE_DIR}/variable_template.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/alias_template.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/constexpr.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/noexcept.cpp
+        ${CPP14REGRESS_SOURCE_DIR}/variadic_template.cpp
         #tool main.cpp
         ./cpp14regress/tool/main.cpp
         #clang sources

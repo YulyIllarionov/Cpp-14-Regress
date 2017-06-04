@@ -45,6 +45,10 @@
 #include "inline_namespace.h"
 #include "unrestricted_unions.h"
 #include "variable_template.h"
+#include "alias_template.h"
+#include "constexpr.h"
+#include "noexcept.h"
+#include "variadic_template.h"
 
 namespace cpp14regress {
 
@@ -56,31 +60,31 @@ namespace cpp14regress {
                                                      clang::CompilerInstance *ci) {
         switch (feature) {
             // @formatter:off
-            case features::alias_template : break; //TODO
+            case features::alias_template : f_visitor = new AliasTemplateSearcher(ci); break;
             case features::alias_type : f_visitor = new AliasTypeReplacer(ci); break;
             case features::alignas_specifier : f_visitor = new AlignasSearcher(ci); break;
             case features::alignof_operator : f_visitor = new AlignofSearcher(ci); break;
-            case features::attributes : break; //TODO
+            //case features::attributes : break; //TODO
             case features::auto_keyword : f_visitor = new AutoReplacer(ci); break;
             case features::binary_literals : f_visitor = new BinaryLiteralReplacer(ci); break;
-            case features::constexpr_keyword : break; //TODO
+            case features::constexpr_keyword : f_visitor = new ConstexprSearcher(ci); break;
             case features::constuctor_delegation : f_visitor = new ConstructorDelegationReplacer(ci); break;
             case features::decltype_keyword : f_visitor = new DecltypeReplacer(ci); break;
             case features::default_keyword : f_visitor = new DefaultReplacer(ci); break;
             case features::delete_keyword : f_visitor = new DeleteReplacer(ci); break;
             case features::digit_separators : f_visitor = new DigitSeparatorReplacer(ci); break;
             case features::explicit_specifier : f_visitor = new ExplicitConversionReplacer(ci); break;
-            case features::extern_template : break; //TODO
+            //case features::extern_template : break; //TODO
             case features::final_specifier : f_visitor = new FinalReplacer(ci); break;
             case features::func_templ_default_args : f_visitor = new FuncTemplDefaultArgsSearcher(ci); break;
             case features::improved_enum : f_visitor = new ImprovedEnumReplacer(ci); break;
             case features::initializer_list : f_visitor = new ListInitSearcher(ci); break;
             case features::inline_namespace : f_visitor = new InlineNamespaceSearcher(ci); break;
             case features::lambda : f_visitor = new LambdaReplacer(ci); break;
-            case features::long_long_int : break; //TODO
+            //case features::long_long_int : break; //TODO
             case features::member_init : f_visitor = new MemberInitReplacer(ci); break;
             case features::member_sizeof : f_visitor = new MemberSizeofReplacer(ci); break;
-            case features::noexcept_keyword : break; //TODO
+            case features::noexcept_keyword : f_visitor = new NoexceptSearcher(ci); break;
             case features::null_pointer_constant : f_visitor = new NullPtrReplacer(ci); break;
             case features::override_specifier : f_visitor = new OverrideReplacer(ci); break;
             case features::range_based_for : f_visitor = new RangeBasedForReplacer(ci); break;
@@ -92,7 +96,7 @@ namespace cpp14regress {
             case features::unrestricted_unions : f_visitor = new UnrestrictedUnionsSearcher(ci); break;
             case features::user_defined_literals : f_visitor = new UserLiteralReplacer(ci); break;
             case features::variable_templates : f_visitor = new VariableTemplateSearcher(ci); break;
-            case features::variadic_templates : break; //TODO
+            case features::variadic_templates :  f_visitor = new VariadicTemplateSearcher(ci); break; //TODO
             case features::SIZE : break;
             // @formatter:on
         }

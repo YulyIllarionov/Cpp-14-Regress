@@ -50,6 +50,10 @@ add_clang_library(Cpp14Regress
         ./src/inline_namespace.cpp
         ./src/unrestricted_unions.cpp
         ./src/variable_template.cpp
+        ./src/alias_template.cpp
+        ./src/constexpr.cpp
+        ./src/noexcept.cpp
+        ./src/variadic_template.cpp
         #./src/file_preparator.cpp
 
         LINK_LIBS

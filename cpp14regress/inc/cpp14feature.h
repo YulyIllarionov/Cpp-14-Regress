@@ -88,6 +88,16 @@ namespace cpp14regress {
         virtual bool VisitAttr(clang::Attr *) { return true; }
 
         virtual bool VisitVarTemplateDecl(clang::VarTemplateDecl *) { return true; }
+
+        virtual bool VisitTypeAliasTemplateDecl(clang::TypeAliasTemplateDecl *) { return true; }
+
+        virtual bool VisitCXXNoexceptExpr(clang::CXXNoexceptExpr *) { return true; }
+
+        virtual bool VisitTemplateDecl(clang::TemplateDecl *) { return true; }
+
+        virtual bool VisitPackExpansionTypeLoc(clang::PackExpansionTypeLoc) { return true; }
+
+        virtual ~FeatureVisitor() { delete f_rewriter; }
     };
 }
 

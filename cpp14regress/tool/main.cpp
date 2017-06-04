@@ -71,7 +71,7 @@ int main(int argc, const char **argv) {
     int argc_mod = 4;
     CommonOptionsParser op(argc_mod, argv_mod, MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
-    auto faf = new Cpp14RegressFrontendActionFactory(features::lambda);
+    auto faf = new Cpp14RegressFrontendActionFactory(features::variadic_templates);
     int result = Tool.run(faf);
 
     return result;

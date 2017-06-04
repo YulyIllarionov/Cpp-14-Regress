@@ -25,7 +25,6 @@ namespace cpp14regress {
     class Cpp14RegressASTConsumer : public clang::ASTConsumer {
     public:
         Cpp14RegressASTConsumer(features::type feature, clang::CompilerInstance *ci);
-//                : f_visitor(new VisitorType(ci)) {}
 
         virtual void HandleTranslationUnit(clang::ASTContext &context) {
             f_visitor->TraverseDecl(context.getTranslationUnitDecl());
