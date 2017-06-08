@@ -37,7 +37,7 @@ namespace cpp14regress {
 
         bool initFound = false;
         for (auto field = recordDecl->field_begin(); field != recordDecl->field_end(); field++) {
-            if (field->hasInClassInitializer()) {
+            if (field->hasInClassInitializer()) { //TODO check const static fundamental
                 SourceLocation b = Lexer::getLocForEndOfToken(field->getLocation(), 0, sm, lo);
                 SourceLocation e = field->getLocEnd();
                 f_rewriter->ReplaceText(SourceRange(b, e), Comment::block(
@@ -47,35 +47,15 @@ namespace cpp14regress {
         }
         if (!initFound)
             return true;
-        if (recordDecl->ctor_begin() == recordDecl->ctor_end()) {
-            string initCtor = string("public:\n" + recordDecl->getNameAsString() + "() : ");
-            vector<string> inits;
-            for (auto field = recordDecl->field_begin(); field != recordDecl->field_end(); field++) {
-                if (auto init = field->getInClassInitializer()) {
-                    inits.push_back(string(field->getNameAsString() +
-                                           "(" + toString(init, f_astContext) + ")"));
-                }
-            }
-            for (auto it = inits.begin(); it != inits.end();) {
-                initCtor += *it;
-                if (++it != inits.end())
-                    initCtor += ", ";
-            }
-            initCtor += " {}\n";
-            f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), Comment::line(
-                    replacement::end(type(), replacement::result::inserted)) + "\n");
-            f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), initCtor);
-            f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), Comment::line(
-                    replacement::begin(type(), replacement::result::inserted)) + "\n");
-            return true;
-        }
 
+        bool ctorFound = false;
         for (auto declaration = recordDecl->ctor_begin();
              declaration != recordDecl->ctor_end(); declaration++) {
             const FunctionDecl *fd = nullptr;
             declaration->hasBody(fd);
             const CXXConstructorDecl *definition = dyn_cast_or_null<CXXConstructorDecl>(fd);
             if (definition) {
+                ctorFound = true;
                 auto last = find_if(definition->init_rbegin(), definition->init_rend(),
                                     [](CXXCtorInitializer *init) {
                                         return (*init).isWritten();
@@ -113,6 +93,31 @@ namespace cpp14regress {
                 }
             }
         }
+
+        if (!ctorFound) {
+            string initCtor = string("public:\n" + recordDecl->getNameAsString() + "() : ");
+            vector<string> inits;
+            for (auto field = recordDecl->field_begin(); field != recordDecl->field_end(); field++) {
+                if (auto init = field->getInClassInitializer()) {
+                    inits.push_back(string(field->getNameAsString() +
+                                           "(" + toString(init, f_astContext) + ")"));
+                }
+            }
+            for (auto it = inits.begin(); it != inits.end();) {
+                initCtor += *it;
+                if (++it != inits.end())
+                    initCtor += ", ";
+            }
+            initCtor += " {}\n";
+            f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), Comment::line(
+                    replacement::end(type(), replacement::result::inserted)) + "\n");
+            f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), initCtor);
+            f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), Comment::line(
+                    replacement::begin(type(), replacement::result::inserted)) + "\n");
+            return true;
+        }
+
+
         return true;
     }
 }

@@ -45,8 +45,8 @@ namespace cpp14regress {
                         arg = parenExpr->getSubExpr();
                     }
                     if (auto dre = dyn_cast_or_null<DeclRefExpr>(arg)) {
-                        if (auto fd = dyn_cast_or_null<FieldDecl>(dre->getDecl())) {
-                            if (replaceRange.isValid()) {
+                        if (auto fd = dyn_cast_or_null<FieldDecl>(dre->getDecl())) { //TODO only non static
+                            if (replaceRange.isValid()) { //TODO check if type is dependent
                                 string typeName = fd->getType().getAsString(PrintingPolicy(*f_langOptions));
                                 for (int i = 0; i < max(parentheses, 1); i++) {
                                     typeName.insert(0, 1, '(');

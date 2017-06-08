@@ -31,7 +31,6 @@ namespace cpp14regress {
         virtual features::type type() { return features::type::member_init; }
 
         virtual bool VisitCXXRecordDecl(clang::CXXRecordDecl *recordDecl);
-
     };
 
     /*class MemberInitReplacer : public clang::RecursiveASTVisitor<MemberInitReplacer> {

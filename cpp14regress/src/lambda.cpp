@@ -79,7 +79,7 @@ namespace cpp14regress {
             header << "private:" << endl;
 
         //Lambda class fields
-        for (auto it = lambda->captures().begin(); it != lambda->captures().end(); it++) {
+        for (auto it = lambda->capture_begin(); it != lambda->capture_end(); it++) {
             VarDecl *captured_var = it->getCapturedVar();
             header << ((lambda->isMutable()) ? "mutable " : "")
                    << clangCaptures[captured_var]->getType().getAsString(pp) << " "
@@ -179,7 +179,7 @@ namespace cpp14regress {
 
     void IncludeLocSearcher::visitDecl(const Decl *decl) {
         if (!f_found && decl) {
-            if (isa<NamespaceDecl>(decl) || isa<TranslationUnitDecl>(decl)) {
+            if (isa<NamespaceDecl>(decl) || isa<TranslationUnitDecl>(decl)) { //TODO first not last
                 f_found = true;
                 return;
             }

@@ -65,14 +65,21 @@ int main(int argc, const char **argv) {
         }
     }
 
-    cout << "Running tool on: " << sourceFile << endl;
-
+    cout << "Running tool on: " << sourceFile << endl
+         << console_hline() << endl;
     const char *argv_mod[] = {argv[0], sourceFile.data(), "--", "-std=c++14"};
     int argc_mod = 4;
     CommonOptionsParser op(argc_mod, argv_mod, MyToolCategory);
     ClangTool Tool(op.getCompilations(), op.getSourcePathList());
-    auto faf = new Cpp14RegressFrontendActionFactory(features::variadic_templates);
-    int result = Tool.run(faf);
-
-    return result;
+    for (unsigned i = 0; i < features::size(); i++) {
+        features::type f = features::type(i);
+        if (features::isSupported(f)) {
+            cout << features::toString(f) << endl
+                 << console_hline('-') << endl;
+            auto faf = new Cpp14RegressFrontendActionFactory(f);
+            Tool.run(faf);
+            delete faf;
+        }
+    }
+    return 0;
 }
