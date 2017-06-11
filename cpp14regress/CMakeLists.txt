@@ -15,7 +15,7 @@ include_directories(./inc)
 #        )
 
 add_clang_library(Cpp14Regress
-        #./src/ast_to_dot.cpp
+        ./src/ast_to_dot.cpp
         ./src/base_types.cpp
         ./src/utils.cpp
         ./src/tool.cpp

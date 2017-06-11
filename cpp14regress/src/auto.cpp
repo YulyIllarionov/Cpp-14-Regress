@@ -23,25 +23,23 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    /*bool AutoReplacer::VisitTypeLoc(clang::TypeLoc typeLoc) {
+    /*bool AutoReplacer::VisitAutoTypeLoc(clang::AutoTypeLoc typeLoc) {
         if (!fromUserFile(&typeLoc, f_sourceManager))
             return true;
-        if (auto at = dyn_cast<AutoType>(typeLoc.getTypePtr())) {
-            cout << "is auto" << endl;
-            replacement::result res = replacement::result::found;
-            QualType deducedType = at->getDeducedType();
-            if (!deducedType.isNull()) {
-                if ((deducedType->isFunctionPointerType()) ||
-                    (deducedType->isMemberFunctionPointerType())) {
-                    return true;
-                }
-                string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
-                f_rewriter->ReplaceText(typeLoc.getSourceRange(), typeName);
-                res = replacement::result::replaced;
+        replacement::result res = replacement::result::found;
+        QualType deducedType = typeLoc.getTypePtr()->getDeducedType();
+        if (!deducedType.isNull()) {
+            if ((deducedType->isFunctionPointerType()) ||
+                (deducedType->isMemberFunctionPointerType())) {
+                return true;
             }
-            f_rewriter->InsertTextBefore(typeLoc.getLocStart(),
-                                         Comment::block(replacement::info(type(), res)));
+            string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
+            //f_rewriter->ReplaceText(typeLoc.getSourceRange(), typeName);
+            res = replacement::result::replaced;
+            cout << typeName << " -- " << typeLoc.getEndLoc().printToString(*f_sourceManager) << endl;
         }
+        //f_rewriter->InsertTextBefore(typeLoc.getLocStart(),
+        //                             Comment::block(replacement::info(type(), res)));
         return true;
     }*/
 
@@ -100,5 +98,6 @@ namespace cpp14regress {
         }
         return true;
     }
+
 }
 

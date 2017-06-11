@@ -76,9 +76,10 @@ namespace cpp14regress {
             case features::explicit_specifier : f_visitor = new ExplicitConversionReplacer(ci); break;
             //case features::extern_template : break; //TODO
             case features::final_specifier : f_visitor = new FinalReplacer(ci); break;
+            case features::forward_declared_enum : f_visitor = new ForwardDeclaredEnumReplacer(ci); break;
             case features::func_templ_default_args : f_visitor = new FuncTemplDefaultArgsSearcher(ci); break;
             case features::improved_enum : f_visitor = new ImprovedEnumReplacer(ci); break;
-            case features::initializer_list : f_visitor = new ListInitSearcher(ci); break;
+            case features::init_list : f_visitor = new ListInitSearcher(ci); break;
             case features::inline_namespace : f_visitor = new InlineNamespaceSearcher(ci); break;
             case features::lambda : f_visitor = new LambdaReplacer(ci); break;
             //case features::long_long_int : break; //TODO

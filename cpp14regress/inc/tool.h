@@ -34,6 +34,8 @@ namespace cpp14regress {
 
         virtual void BeginSourceFileAction() { f_visitor->BeginSourceFileAction(); }
 
+        virtual ~Cpp14RegressASTConsumer() { delete f_visitor; }
+
     private:
         FeatureVisitor *f_visitor = nullptr;
     };
@@ -56,6 +58,8 @@ namespace cpp14regress {
         //    f_consumer->BeginSourceFileAction();
         //    return true;
         //}
+
+        //virtual ~Cpp14RegressFrontendAction() { delete f_astConsumer; }
 
     private:
         Cpp14RegressASTConsumer *f_astConsumer;

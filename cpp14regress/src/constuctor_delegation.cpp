@@ -143,16 +143,17 @@ namespace cpp14regress {
                     }
                     f_rewriter->InsertTextBefore(definition->getLocStart(), Comment::line(
                             replacement::info(type(), res)) + "\n");
-
-                    SourceLocation bodyStart = Lexer::getLocForEndOfToken(
-                            definition->getBody()->getLocStart(), 0, *f_sourceManager, *f_langOptions);
-                    string initCall = initFunCall(definition);
-                    if (initCall.empty()) {
-                        initCall = string(initFunName(definition) + "(" + Comment::block(
-                                replacement::info(type(), replacement::result::error)) + ");");
+                    if (res != replacement::result::found) {
+                        SourceLocation bodyStart = Lexer::getLocForEndOfToken(
+                                definition->getBody()->getLocStart(), 0, *f_sourceManager, *f_langOptions);
+                        string initCall = initFunCall(definition);
+                        if (initCall.empty()) {
+                            initCall = string(initFunName(definition) + "(" + Comment::block(
+                                    replacement::info(type(), replacement::result::error)) + ");");
+                        }
+                        string call("\n" + initCall);
+                        f_rewriter->InsertText(bodyStart, call, true, true);
                     }
-                    string call("\n" + initCall);
-                    f_rewriter->InsertText(bodyStart, call, true, true);
                 }
             }
         }

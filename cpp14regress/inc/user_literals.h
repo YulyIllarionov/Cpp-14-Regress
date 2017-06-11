@@ -40,6 +40,20 @@ namespace cpp14regress {
         virtual bool VisitFunctionDecl(clang::FunctionDecl *funcDecl);
 
         virtual bool VisitUserDefinedLiteral(clang::UserDefinedLiteral *literal);
+
+        virtual bool VisitDeclRefExpr(clang::DeclRefExpr *declRefExpr);
+    };
+
+    class InParentUserDefinedLiteralSearcher : public InParentSearcher {
+    private:
+        const clang::Decl *f_decl = nullptr;
+
+        virtual bool checkStmt(const clang::Stmt *stmt);
+
+    public:
+        InParentUserDefinedLiteralSearcher(clang::ASTContext *astContext) : InParentSearcher(astContext) {}
+
+        bool find(const clang::DeclRefExpr *declRefExprl);
     };
 
     class StringLiteralMeter : public clang::RecursiveASTVisitor<StringLiteralMeter> {

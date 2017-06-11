@@ -32,7 +32,9 @@ namespace cpp14regress {
         virtual bool VisitStringLiteral(clang::StringLiteral *literal);
 
     private:
-        inline bool escapeCharToString(char c, std::string &s);
+        inline bool escapeCharToString(char c, std::string &raw);
+
+        bool getFromRaw(std::string &s);
     };
 
     /*class RawStringReplacer : public clang::RecursiveASTVisitor<RawStringReplacer> {

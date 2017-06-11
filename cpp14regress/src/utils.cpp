@@ -278,4 +278,52 @@ namespace cpp14regress {
         }
         return sl.getLocWithOffset(-size);
     }
+
+    void InParentSearcher::visit(const AnyNode &node) {
+        if (auto d = node.get<Decl>())
+            visitDecl(d);
+        if (auto s = node.get<Stmt>())
+            visitStmt(s);
+        if (auto t = node.get<Type>())
+            visitType(t);
+    }
+
+    void InParentSearcher::visitDecl(const Decl *decl) {
+        if (!f_found && decl) {
+            if (checkDecl(decl)) {
+                f_found = true;
+                return;
+            }
+            const auto &parents = f_astContext->getParents(*decl);
+            for (auto parent : parents) {
+                visit(parent);
+            }
+        }
+    }
+
+    void InParentSearcher::visitStmt(const clang::Stmt *stmt) {
+        if (!f_found && stmt) {
+            if (checkStmt(stmt)) {
+                f_found = true;
+                return;
+            }
+            const auto &parents = f_astContext->getParents(*stmt);
+            for (auto parent : parents) {
+                visit(parent);
+            }
+        }
+    }
+
+    void InParentSearcher::visitType(const clang::Type *type) {
+        if (!f_found && type) {
+            if (checkType(type)) {
+                f_found = true;
+                return;
+            }
+            const auto &parents = f_astContext->getParents(*type);
+            for (auto parent : parents) {
+                visit(parent);
+            }
+        }
+    }
 }

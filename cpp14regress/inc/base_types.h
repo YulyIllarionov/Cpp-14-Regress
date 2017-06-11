@@ -57,15 +57,16 @@ namespace cpp14regress {
             member_init,
             constuctor_delegation,
             user_defined_literals,
-            improved_enum,
+            forward_declared_enum,
             uniform_initialization,
+            improved_enum,
             lambda,
             auto_keyword,
             decltype_keyword,
 
             constexpr_keyword, //found only
             //extern_template,
-            initializer_list, //found only
+            init_list, //found only
             trailing_return, //found only
             null_pointer_constant, //found only
             alias_template, //found only

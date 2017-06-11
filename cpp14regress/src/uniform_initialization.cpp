@@ -35,13 +35,12 @@ namespace cpp14regress {
                 replacement::result res = replacement::result::replaced;
                 SourceRange braceRange = constructExpr->getParenOrBraceRange();
                 if (constructExpr->getLocStart() == braceRange.getBegin()) {
-                    string ctorName = constructDecl->getNameAsString();
-                    if (auto inst = dyn_cast_or_null<ClassTemplateSpecializationDecl>(
-                            constructDecl->getParent())) {
-                        QualType ctorType = f_astContext->getRecordType(constructDecl->getParent());
-                        if (!ctorType.isNull()) {
-                            ctorName = ctorType.getAsString(PrintingPolicy(*f_langOptions));
-                        } else {
+                    QualType ctorType = f_astContext->getRecordType(constructDecl->getParent());
+                    string ctorName;
+                    if (ctorType.isNull()) {
+                        ctorName = constructDecl->getNameAsString();
+                        if (auto inst = dyn_cast_or_null<ClassTemplateSpecializationDecl>(
+                                constructDecl->getParent())) {
                             res = replacement::result::unsureReplaced;
                             string ctorTemplArgs;
                             const TemplateArgumentList &tal = inst->getTemplateInstantiationArgs();
@@ -63,13 +62,17 @@ namespace cpp14regress {
                                 ctorName += string("<" + ctorTemplArgs + ">");
                             }
                         }
-                        f_rewriter->InsertTextBefore(braceRange.getBegin(), ctorName);
+                    } else {
+                        ctorName = ctorType.getAsString(PrintingPolicy(*f_langOptions));
                     }
-                    f_rewriter->InsertTextBefore(braceRange.getBegin(),
-                                                 Comment::block(replacement::info(type(), res)));
-                    f_rewriter->ReplaceText(braceRange.getBegin(), 1, "(");
-                    f_rewriter->ReplaceText(braceRange.getEnd(), 1, ")");
+                    f_rewriter->InsertTextBefore(braceRange.getBegin(), ctorName);
                 }
+                f_rewriter->InsertTextBefore(braceRange.getBegin(),
+                                             Comment::block(replacement::info(type(), res)));
+                f_rewriter->ReplaceText(braceRange.getBegin(), 1, "(");
+                f_rewriter->ReplaceText(braceRange.getEnd(), 1, ")");
+
+
             }
         }
         return true;

@@ -28,23 +28,23 @@
 namespace cpp14regress {
 
     typedef clang::Stmt ast_graph_node;
-    typedef std::pair<ast_graph_node*, ast_graph_node*> ast_graph_edge;
+    typedef std::pair<const ast_graph_node*, const ast_graph_node*> ast_graph_edge;
     typedef std::string node_inf_record;
     typedef std::vector<node_inf_record> node_inf;
 
     class ast_graph
     {
     private:
-        std::vector<ast_graph_node*> f_nodes;
+        std::vector<const ast_graph_node*> f_nodes;
         std::vector<ast_graph_edge*> f_edges;
         clang::ASTContext* f_context;
     public:
-        ast_graph(clang::Stmt* stmt_, clang::ASTContext* context_);
+        ast_graph(const clang::Stmt* stmt_, clang::ASTContext* context_);
         bool to_dot_file(std::string file_name);
         ~ast_graph(){}
     private:
-        void recursive_visit(ast_graph_node *agn_f);
-        node_inf get_stmt_inf(clang::Stmt* stmt);
+        void recursive_visit(const ast_graph_node *agn_f);
+        node_inf get_stmt_inf(const clang::Stmt* stmt);
         std::string string_to_label(std::string s);
         std::string node_inf_to_label(node_inf inf);
     };

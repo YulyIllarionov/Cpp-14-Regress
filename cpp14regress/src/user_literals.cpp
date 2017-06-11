@@ -17,12 +17,45 @@
 
 #include "user_literals.h"
 #include "utils.h"
+#include "ast_to_dot.h"
 
 namespace cpp14regress {
 
     using namespace std;
     using namespace clang;
     using namespace llvm;
+
+    bool UserLiteralReplacer::VisitDeclRefExpr(clang::DeclRefExpr *declRefExpr) {
+        if (!fromUserFile(declRefExpr, f_sourceManager))
+            return true;
+        if (auto funcDecl = dyn_cast_or_null<FunctionDecl>(declRefExpr->getDecl())) {
+            if (auto ident = funcDecl->getLiteralIdentifier()) {
+                InParentUserDefinedLiteralSearcher ipudls(f_astContext);
+                if (ipudls.find(declRefExpr))
+                    return true;
+
+                f_rewriter->InsertTextAfterToken(declRefExpr->getLocEnd(), Comment::block(
+                        replacement::info(type(), replacement::result::replaced) + " _decl ref_"));
+                f_rewriter->ReplaceText(declRefExpr->getSourceRange(),
+                                        operatorFuncName(ident->getName()));
+            }
+        }
+        return true;
+    }
+
+    bool InParentUserDefinedLiteralSearcher::checkStmt(const clang::Stmt *stmt) {
+        if (auto userLiteral = dyn_cast<UserDefinedLiteral>(stmt))
+            if (auto decl = userLiteral->getCalleeDecl())
+                if (decl == f_decl)
+                    return true;
+        return false;
+    }
+
+    bool InParentUserDefinedLiteralSearcher::find(const clang::DeclRefExpr *declRefExpr) {
+        f_decl = declRefExpr->getDecl();
+        visitStmt(declRefExpr);
+        return f_found;
+    }
 
     //TODO coincidence with the system literal
     bool UserLiteralReplacer::VisitUserDefinedLiteral(UserDefinedLiteral *literal) {
@@ -31,7 +64,6 @@ namespace cpp14regress {
         if (FunctionDecl *funcDecl = literal->getDirectCallee()) {
             if (!fromUserFile(funcDecl, f_sourceManager))
                 return true;
-
             SourceRange paramsRange(literal->getLocStart(), literal->getUDSuffixLoc());
             SourceRange suffixRange(literal->getUDSuffixLoc(), literal->getLocEnd());
             string params = toString(paramsRange, f_astContext, false);
@@ -61,7 +93,7 @@ namespace cpp14regress {
                 }
             }
             f_rewriter->InsertTextAfterToken(literal->getLocEnd(), Comment::block(
-                    replacement::info(type(), res)));
+                    replacement::info(type(), res) + " _literal_"));
             if (res == replacement::result::replaced) {
                 string call = operatorFuncName(toString(suffixRange, f_astContext));
                 call += string("(" + params + ")");

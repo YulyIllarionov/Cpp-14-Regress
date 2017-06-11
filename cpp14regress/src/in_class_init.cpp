@@ -39,9 +39,9 @@ namespace cpp14regress {
         for (auto field = recordDecl->field_begin(); field != recordDecl->field_end(); field++) {
             if (field->hasInClassInitializer()) { //TODO check const static fundamental
                 SourceLocation b = Lexer::getLocForEndOfToken(field->getLocation(), 0, sm, lo);
-                SourceLocation e = field->getLocEnd();
-                f_rewriter->ReplaceText(SourceRange(b, e), Comment::block(
-                        replacement::info(type(), replacement::result::removed)));
+                f_rewriter->InsertTextBefore(b, replacement::info(type(), replacement::result::removed));
+                f_rewriter->InsertTextBefore(b, Comment::block::begin());
+                f_rewriter->InsertTextAfterToken(field->getLocEnd(), Comment::block::end());
                 initFound = true;
             }
         }
@@ -51,6 +51,8 @@ namespace cpp14regress {
         bool ctorFound = false;
         for (auto declaration = recordDecl->ctor_begin();
              declaration != recordDecl->ctor_end(); declaration++) {
+            if (!declaration->isExplicit())
+                continue;
             const FunctionDecl *fd = nullptr;
             declaration->hasBody(fd);
             const CXXConstructorDecl *definition = dyn_cast_or_null<CXXConstructorDecl>(fd);
@@ -93,7 +95,7 @@ namespace cpp14regress {
                 }
             }
         }
-
+        cout << "Ctor found: " << ctorFound << endl;
         if (!ctorFound) {
             string initCtor = string("public:\n" + recordDecl->getNameAsString() + "() : ");
             vector<string> inits;

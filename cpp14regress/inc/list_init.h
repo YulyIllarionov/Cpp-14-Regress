@@ -25,7 +25,7 @@ namespace cpp14regress {
 
         ListInitSearcher(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
-        virtual features::type type() { return features::type::initializer_list; }
+        virtual features::type type() { return features::type::init_list; }
 
         virtual bool VisitCXXStdInitializerListExpr(clang::CXXStdInitializerListExpr *initList);
 

@@ -39,38 +39,41 @@ namespace cpp14regress {
     };
 
     struct LambdaHeaderName {
-        static std::string toString(unsigned i);
+        static std::string toString(unsigned i, std::string seed);
     };
 
     struct LambdaHeaderGuard {
-        static std::string toString(unsigned i);
+        static std::string toString(unsigned i, std::string seed);
     };
 
     struct GenericType {
         static std::string toString(unsigned i);
     };
 
-    class IncludeLocSearcher {
+    class IncludeLocSearcher : public InParentSearcher {
     private:
-        typedef clang::ast_type_traits::DynTypedNode AnyNode;
-
-        clang::ASTContext *f_astContext;
-        bool f_found;
         clang::SourceLocation f_location;
 
-        void visit(const AnyNode &node);
-
-        void visitDecl(const clang::Decl *decl);
-
-        void visitStmt(const clang::Stmt *stmt);
-
-        void visitType(const clang::Type *type);
+        virtual bool checkDecl(const clang::Decl *decl);
 
     public:
-        IncludeLocSearcher(clang::ASTContext *astContext) : f_astContext(astContext) {}
+        IncludeLocSearcher(clang::ASTContext *astContext) : InParentSearcher(astContext) {}
 
         clang::SourceLocation find(const clang::Stmt *stmt);
     };
+
+    class InParentTemplateSearcher : public InParentSearcher {
+    private:
+        const clang::RedeclarableTemplateDecl *f_templateDecl = nullptr;
+
+        virtual bool checkDecl(const clang::Decl *decl);
+
+    public:
+        InParentTemplateSearcher(clang::ASTContext *astContext) : InParentSearcher(astContext) {}
+
+        const clang::RedeclarableTemplateDecl *find(const clang::Stmt *stmt);
+    };
+
 
     class LambdaReplacer : public FeatureVisitor {
     public:
@@ -82,6 +85,8 @@ namespace cpp14regress {
         LambdaReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
 
         virtual features::type type() { return features::type::lambda; }
+
+        //virtual bool VisitCallExpr(clang::CallExpr *lambdaCall);
 
         virtual bool VisitLambdaExpr(clang::LambdaExpr *lambda);
     };

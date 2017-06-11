@@ -16,6 +16,7 @@
 #include "llvm/ADT/DenseMap.h"
 
 #include "lambda.h"
+#include "ast_to_dot.h"
 
 #include <iostream>
 #include <string>
@@ -36,20 +37,39 @@ namespace cpp14regress {
         return std::string("__" + replacement::seed + "Lambda" + std::to_string(i));
     }
 
-    std::string LambdaHeaderName::toString(unsigned i) {
-        return std::string(replacement::seed + "_lambda_" + std::to_string(i) + ".def");
+    std::string LambdaHeaderName::toString(unsigned i, string seed) {
+        return std::string(replacement::seed + "_lambda_for_" + seed + "_" + std::to_string(i) + ".def");
     }
 
-    std::string LambdaHeaderGuard::toString(unsigned i) {
-        std::string seedUpper;
-        std::transform(replacement::seed.begin(), replacement::seed.end(), seedUpper.begin(),
-                       ::toupper);
-        return std::string(seedUpper + "_LAMBDA_" + std::to_string(i) + "_H");
+    std::string LambdaHeaderGuard::toString(unsigned i, string seed) {
+        std::string seedUpper(replacement::seed);
+        std::transform(seedUpper.begin(), seedUpper.end(), seedUpper.begin(), ::toupper);
+        std::string seedCurrentUpper(seed);
+        std::transform(seedCurrentUpper.begin(), seedCurrentUpper.end(), seedCurrentUpper.begin(), ::toupper);
+        std::transform(seedCurrentUpper.begin(), seedCurrentUpper.end(), seedCurrentUpper.begin(),
+                       [](char c) -> char {
+                           if (isdigit(c) || isalpha(c))
+                               return c;
+                           return '_';
+                       });
+        return std::string(seedUpper + "_LAMBDA_FOR_" + seedCurrentUpper + "_" + std::to_string(i) + "_DEF");
     }
 
     std::string GenericType::toString(unsigned i) {
         return std::string("type" + std::to_string(i));
     }
+
+    /*bool LambdaReplacer::VisitCallExpr(CallExpr *lambdaCall) {
+        if (!fromUserFile(lambdaCall, f_sourceManager))
+            return true;
+        LambdaSearcher ls;
+        ls.TraverseStmt(lambdaCall);
+        if (auto lambda = ls.found()) {
+            cout << "Labmda found" << endl;
+            f_rewriter->InsertTextAfterToken(lambda->getLocEnd(), ".operator()");
+        }
+        return true;
+    }*/
 
     //TODO check Types
     //TODO capture this
@@ -61,9 +81,17 @@ namespace cpp14regress {
 
         FileID fid = f_sourceManager->getFileID(lambda->getLocStart());
         string folder = asFolder(f_sourceManager->getFileEntryForID(fid)->getDir()->getName());
-        ofstream header(folder + LambdaHeaderNameGenerator::toString());
-        header << "#ifndef " << LambdaHeaderGuardGenerator::toString() << endl
-               << "#define " << LambdaHeaderGuardGenerator::toString() << endl << endl;
+        string seedOfFile(f_sourceManager->getFileEntryForID(fid)->getName());
+        seedOfFile = removeExtension(pathPopBack(seedOfFile));
+        ofstream header(folder + LambdaHeaderNameGenerator::toString(seedOfFile));
+        if (!header.is_open()) {
+            f_rewriter->InsertTextBefore(lambda->getLocStart(), Comment::block(
+                    replacement::info(type(), replacement::result::found)));
+            return true;
+        }
+
+        header << "#ifndef " << LambdaHeaderGuardGenerator::toString(seedOfFile) << endl
+               << "#define " << LambdaHeaderGuardGenerator::toString(seedOfFile) << endl << endl;
 
         header << "//lambda at:"
                << lambda->getLocStart().printToString(*f_sourceManager) << endl;
@@ -72,6 +100,23 @@ namespace cpp14regress {
         DenseMap<const VarDecl *, FieldDecl *> clangCaptures;
         FieldDecl *thisField;
         lambdaClass->getCaptureFields(clangCaptures, thisField);
+
+        //If lambda template
+        InParentTemplateSearcher ipts(f_astContext);
+        if (auto templateDecl = ipts.find(lambda)) {
+            SourceLocation templateEnd = findTokenBeginBeforeLoc(templateDecl->getLocation(),
+                                                                 tok::TokenKind::greater, 1, f_astContext);
+            SourceRange templateRange(templateDecl->getLocStart(), templateEnd);
+            string templateStr;
+            if (templateRange.isInvalid()) {
+                templateStr = Comment::block(replacement::info(type(), replacement::result::error) +
+                                             " in template declaration");
+            } else {
+                templateStr = toString(templateRange, f_astContext);
+            }
+            header << templateStr << endl;
+
+        }
 
         //Lambda Class
         header << "class " << LambdaClassNameGenerator::toString() << " {" << endl;
@@ -123,28 +168,36 @@ namespace cpp14regress {
         GenericTypeGenerator::reset();
 
         header << lambdaFunction->getReturnType().getAsString(pp)
-               << " operator() (";
+               << " operator()(";
         auto tn = typeNames.begin();
         for (size_t i = 0; i != lambdaFunction->param_size();) {
             ParmVarDecl *parameter = lambdaFunction->getParamDecl(i);
-            header << ((isa<TemplateTypeParmType>(*parameter->getType())) ? *tn++ :
-                       parameter->getType().getAsString(pp)) << " "
+            string paramType;
+            if (generics) {
+                if (find(generics->begin(), generics->end(), parameter) != generics->end()) {
+                    paramType = *tn++;
+                }
+            } else {
+                paramType = parameter->getType().getAsString(pp);
+            }
+            header << paramType << " "
                    << parameter->getQualifiedNameAsString()
-                   << ((++i != lambdaFunction->param_size()) ? ", "
-                                                             : "");
+                   << ((++i != lambdaFunction->param_size()) ? ", " : "");
         }
         header << ") const ";
+
         //Lambda class operator() body
         header << toString(lambda->getBody(), f_astContext) << endl;
         header << "};\n" << endl;
 
-        header << "#endif " << Comment::block(LambdaHeaderGuardGenerator::toString()) << endl;
+        header << "#endif " << Comment::block(LambdaHeaderGuardGenerator::toString(seedOfFile)) << endl;
+        header.close();
 
         replacement::result res = replacement::result::found;
         SourceLocation includeLoc = IncludeLocSearcher(f_astContext).find(lambda);
         if (includeLoc.isValid()) {
             //Include
-            string incl("#include \"" + LambdaHeaderNameGenerator::toString() + "\"\n");
+            string incl("#include \"" + LambdaHeaderNameGenerator::toString(seedOfFile) + "\"\n");
             f_rewriter->InsertTextBefore(includeLoc, incl);
             //f_rewriter->InsertTextBefore(includeLoc, Comment::line(
             //        replacement::info(type(), replacement::result::replaced)) + "\n");
@@ -158,6 +211,21 @@ namespace cpp14regress {
             }
             call += ")";
             f_rewriter->ReplaceText(lambda->getSourceRange(), call);
+            //Check if lambda called after body
+            SourceLocation insertLoc = Lexer::getLocForEndOfToken(
+                    lambda->getLocEnd(), 0, *f_sourceManager, *f_langOptions);
+            Token token;
+            do {
+                if (Lexer::getRawToken(insertLoc, token, *f_sourceManager, *f_langOptions, true)) {
+                    res = replacement::result::found;
+                    break;
+                }
+                insertLoc = token.getEndLoc();
+            } while (token.is(tok::TokenKind::comment));
+            if (token.is(tok::TokenKind::l_paren)) {
+                f_rewriter->InsertTextAfterToken(lambda->getLocEnd(), ".operator()");
+            }
+
             res = replacement::result::replaced;
         }
         f_rewriter->InsertTextBefore(lambda->getLocStart(),
@@ -168,46 +236,12 @@ namespace cpp14regress {
         return true;
     }
 
-    void IncludeLocSearcher::visit(const AnyNode &node) {
-        if (auto d = node.get<Decl>())
-            visitDecl(d);
-        if (auto s = node.get<Stmt>())
-            visitStmt(s);
-        if (auto t = node.get<Type>())
-            visitType(t);
-    }
-
-    void IncludeLocSearcher::visitDecl(const Decl *decl) {
-        if (!f_found && decl) {
-            if (isa<NamespaceDecl>(decl) || isa<TranslationUnitDecl>(decl)) { //TODO first not last
-                f_found = true;
-                return;
-            }
-            f_location = decl->getLocStart();
-            const auto &parents = f_astContext->getParents(*decl);
-            for (auto parent : parents) {
-                visit(parent);
-            }
+    bool IncludeLocSearcher::checkDecl(const Decl *decl) {
+        if (isa<NamespaceDecl>(decl) || isa<TranslationUnitDecl>(decl)) { //TODO first not last
+            return true;
         }
-    }
-
-    void IncludeLocSearcher::visitStmt(const clang::Stmt *stmt) {
-        if (!f_found && stmt) {
-            f_location = stmt->getLocStart();
-            const auto &parents = f_astContext->getParents(*stmt);
-            for (auto parent : parents) {
-                visit(parent);
-            }
-        }
-    }
-
-    void IncludeLocSearcher::visitType(const clang::Type *type) {
-        if (!f_found && type) {
-            const auto &parents = f_astContext->getParents(*type);
-            for (auto parent : parents) {
-                visit(parent);
-            }
-        }
+        f_location = decl->getLocStart();
+        return false;
     }
 
     SourceLocation IncludeLocSearcher::find(const Stmt *stmt) {
@@ -215,4 +249,19 @@ namespace cpp14regress {
         visitStmt(stmt);
         return f_location;
     }
+
+    bool InParentTemplateSearcher::checkDecl(const Decl *decl) {
+        if (auto templateDecl = dyn_cast_or_null<RedeclarableTemplateDecl>(decl)) {
+            f_templateDecl = templateDecl;
+            return true;
+        }
+        return false;
+    }
+
+    const RedeclarableTemplateDecl *InParentTemplateSearcher::find(const clang::Stmt *stmt) {
+        f_templateDecl = nullptr;
+        visitStmt(stmt);
+        return f_templateDecl;
+    }
+
 }

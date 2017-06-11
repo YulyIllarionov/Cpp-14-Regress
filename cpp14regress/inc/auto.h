@@ -28,7 +28,7 @@ namespace cpp14regress {
 
         virtual features::type type() { return features::type::auto_keyword; }
 
-        /*virtual bool VisitTypeLoc(clang::TypeLoc typeLoc);*/
+        //virtual bool VisitAutoTypeLoc(clang::AutoTypeLoc typeLoc);
 
         virtual bool VisitVarDecl(clang::VarDecl *varDecl);
 

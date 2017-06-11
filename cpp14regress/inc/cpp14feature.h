@@ -43,6 +43,9 @@ namespace cpp14regress {
 
         virtual features::type type() = 0;
 
+        virtual ~FeatureVisitor() { delete f_rewriter; }
+
+
         virtual bool VisitVarDecl(clang::VarDecl *) { return true; }
 
         virtual bool VisitLambdaExpr(clang::LambdaExpr *) { return true; }
@@ -97,7 +100,11 @@ namespace cpp14regress {
 
         virtual bool VisitPackExpansionTypeLoc(clang::PackExpansionTypeLoc) { return true; }
 
-        virtual ~FeatureVisitor() { delete f_rewriter; }
+        //virtual bool VisitCallExpr(clang::CallExpr *) { return true; }
+
+        virtual bool VisitDeclRefExpr(clang::DeclRefExpr *) { return true; }
+
+        virtual bool VisitEnumTypeLoc(clang::EnumTypeLoc) { return true; }
     };
 }
 

@@ -25,20 +25,47 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
+    bool ForwardDeclaredEnumReplacer::VisitEnumDecl(clang::EnumDecl *enumDecl) {
+        if (!fromUserFile(enumDecl, f_sourceManager))
+            return true;
+        if (auto *enumDef = enumDecl->getDefinition()) {
+            if (enumDef != enumDecl) {
+                SourceRange removeRange = enumDecl->getSourceRange();
+                removeRange.setEnd(findTokenEndAfterLoc(removeRange.getEnd(),
+                                                        tok::TokenKind::semi, f_astContext));
+                if (removeRange.isInvalid()) {
+                    f_rewriter->InsertTextBefore(enumDecl->getLocStart(), Comment::line(
+                            replacement::info(type(), replacement::result::found)) + "\n");
+                    return true;
+                }
+                if (find(f_replaced.begin(), f_replaced.end(), enumDef) == f_replaced.end()) {
+                    f_replaced.push_back(enumDef);
+                    SourceRange insertRange = enumDef->getSourceRange();
+                    insertRange.setEnd(findTokenEndAfterLoc(insertRange.getEnd(),
+                                                            tok::TokenKind::semi, f_astContext));
+                    if (removeRange.isInvalid()) {
+                        f_rewriter->InsertTextBefore(enumDef->getLocStart(), Comment::line(
+                                replacement::info(type(), replacement::result::found)) + "\n");
+                        return true;
+                    }
+                    f_rewriter->ReplaceText(removeRange, insertRange);
+                    f_rewriter->InsertTextBefore(removeRange.getBegin(), Comment::line(
+                            replacement::info(type(), replacement::result::replaced)) + "\n");
+                    f_rewriter->InsertTextBefore(enumDef->getLocStart(), Comment::block::begin());
+                    f_rewriter->InsertTextAfterToken(enumDef->getLocEnd(), Comment::block::end());
+                } else {
+                    f_rewriter->InsertTextBefore(removeRange.getBegin(), Comment::block::begin());
+                    f_rewriter->InsertTextAfterToken(removeRange.getEnd(), Comment::block::end());
+                }
+            }
+        }
+        return true;
+    }
+
     bool ImprovedEnumReplacer::VisitEnumDecl(clang::EnumDecl *enumDecl) {
         if (!fromUserFile(enumDecl, f_sourceManager))
             return true;
-        if (find(f_separatelyDefs.begin(), f_separatelyDefs.end(), enumDecl) != f_separatelyDefs.end())
-            return true;
-
         if (auto *enumDef = enumDecl->getDefinition()) {
-            bool forbidRemoveType = false;
-            if (enumDef != enumDecl) {
-                f_separatelyDefs.push_back(enumDef);
-                f_rewriter->InsertTextBefore(enumDecl->getLocStart(), Comment::line(
-                        replacement::info(type(), replacement::result::found)) + "\n");
-                forbidRemoveType = true;
-            }
 
             SourceRange typeRange = enumDef->getIntegerTypeRange();
             SourceLocation nameEnd = Lexer::getLocForEndOfToken(enumDef->getLocation(), 0,
@@ -49,7 +76,7 @@ namespace cpp14regress {
             if (typeRange.isValid()) {
                 typeRange.setBegin(findTokenBeginAfterLoc(nameEnd, tok::TokenKind::colon,
                                                           1, f_astContext));
-                if (typeRange.isInvalid() || forbidRemoveType) {
+                if (typeRange.isInvalid()) {
                     f_rewriter->InsertTextAfterToken(typeRange.getEnd(), Comment::block(
                             replacement::info(type(), replacement::result::found)));
                 } else {
@@ -74,37 +101,38 @@ namespace cpp14regress {
         return true;
     }
 
-    bool ImprovedEnumReplacer::VisitTypeLoc(clang::TypeLoc typeLoc) {
+    bool ImprovedEnumReplacer::VisitEnumTypeLoc(clang::EnumTypeLoc typeLoc) {
         if (!fromUserFile(&typeLoc, f_sourceManager))
             return true;
-        if (auto t = typeLoc.getTypePtr()) {
-            if (auto *enumDecl = dyn_cast_or_null<EnumDecl>(t->getAsTagDecl())) {
-                if (!fromUserFile(enumDecl, f_sourceManager))
-                    return true;
-                //if (auto *enumDef = enumDecl->getDefinition())  //TODO is necessary?
-                if (enumDecl->isScopedUsingClassTag()) {
-                    replacement::result res = replacement::result::inserted;
-                    SourceLocation insertLoc = Lexer::getLocForEndOfToken(
-                            typeLoc.getLocStart(), 0, *f_sourceManager, *f_langOptions);
-                    Token token;
-                    do {
-                        if (Lexer::getRawToken(insertLoc, token, *f_sourceManager, *f_langOptions, true)) {
-                            res = replacement::result::found;
-                            break;
-                        }
-                        insertLoc = token.getEndLoc();
-                    } while (token.is(tok::TokenKind::comment));
-                    if (res == replacement::result::inserted) {
-                        if (token.isNot(tok::TokenKind::coloncolon)) {
-                            f_rewriter->InsertTextAfterToken(typeLoc.getLocEnd(),
-                                                             string("::" + nameForReplace()));
-                        } else {
-                            return true;
-                        }
+        cout << "Enum type loc: " << typeLoc.getLocStart().printToString(*f_sourceManager) << " -- "
+             << toString(typeLoc.getSourceRange(), f_astContext) << endl;
+
+        if (auto *enumDecl = typeLoc.getDecl()) {
+            if (!fromUserFile(enumDecl, f_sourceManager))
+                return true;
+            //if (auto *enumDef = enumDecl->getDefinition())  //TODO is necessary?
+            if (enumDecl->isScopedUsingClassTag()) {
+                replacement::result res = replacement::result::inserted;
+                SourceLocation insertLoc = Lexer::getLocForEndOfToken(
+                        typeLoc.getLocStart(), 0, *f_sourceManager, *f_langOptions);
+                Token token;
+                do {
+                    if (Lexer::getRawToken(insertLoc, token, *f_sourceManager, *f_langOptions, true)) {
+                        res = replacement::result::found;
+                        break;
                     }
-                    f_rewriter->InsertTextBefore(typeLoc.getLocStart(),
-                                                 Comment::block(replacement::info(type(), res)));
+                    insertLoc = token.getEndLoc();
+                } while (token.is(tok::TokenKind::comment));
+                if (res == replacement::result::inserted) {
+                    if (token.isNot(tok::TokenKind::coloncolon)) {
+                        f_rewriter->InsertTextAfterToken(typeLoc.getLocEnd(),
+                                                         string("::" + nameForReplace()));
+                    } else {
+                        return true;
+                    }
                 }
+                f_rewriter->InsertTextBefore(typeLoc.getLocStart(),
+                                             Comment::block(replacement::info(type(), res)));
             }
         }
         return true;

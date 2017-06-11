@@ -42,10 +42,15 @@ namespace cpp14regress {
 
         StringGenerator *sg;
         string forDecl;
-        if (auto rangeVarType = dyn_cast<ConstantArrayType>(rangeVar->getType().getTypePtr())) {
+        if (auto rangeVarType = dyn_cast<ArrayType>(rangeVar->getType().getTypePtr())) {
             sg = new VariableToArrayElement(itVar, rangeVar);
+            string arraySize("sizeof(" + rangeVar->getNameAsString() +
+                             ")/sizeof(*" + rangeVar->getNameAsString() + ")");
+            if (auto rangeVarConstType = dyn_cast<ConstantArrayType>(rangeVarType))
+                arraySize = rangeVarConstType->getSize().toString(10, false);
+
             forDecl = "for (unsigned " + itStr + " = 0; "
-                      + itStr + " < " + rangeVarType->getSize().toString(10, false) + "; "
+                      + itStr + " < " + arraySize +"; "
                       + itStr + "++)"; //int to size_t?
         } else {
             sg = new VariableToPointer(itVar);

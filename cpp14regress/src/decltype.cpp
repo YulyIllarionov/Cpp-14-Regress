@@ -36,11 +36,14 @@ namespace cpp14regress {
                 }
                 SourceLocation decltypeBegin = typeLoc.getLocStart();
                 SourceLocation decltypeEnd = typeLoc.getTypePtr()->getUnderlyingExpr()->getLocEnd();
-                decltypeEnd = findTokenEndAfterLoc(decltypeEnd, tok::TokenKind::r_paren, f_astContext);
+                decltypeEnd = findTokenBeginAfterLoc(decltypeEnd, tok::TokenKind::r_paren,
+                                                     1, f_astContext); //TODO fix
                 SourceRange decltypeRange(decltypeBegin, decltypeEnd);
                 if (decltypeRange.isValid()) {
+                    PrintingPolicy pp(*f_langOptions);
+                    //pp.SuppressUnwrittenScope = true;
                     f_rewriter->ReplaceText(decltypeRange,
-                                            deducedType.getAsString(PrintingPolicy(*f_langOptions)));
+                                            deducedType.getAsString(pp));
                     res = replacement::result::replaced;
                 }
             }

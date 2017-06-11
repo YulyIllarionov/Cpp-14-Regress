@@ -38,6 +38,8 @@ namespace cpp14regress {
     public:
         static std::string toString() { return SG::toString(f_count); }
 
+        static std::string toString(std::string seed) { return SG::toString(f_count, seed); }
+
         static void generate() { f_count++; }
 
         static void reset() { f_count = 0; }
@@ -138,6 +140,30 @@ namespace cpp14regress {
 
     clang::SourceLocation findTokenLoc(clang::SourceRange sr, const clang::ASTContext &context,
                                        clang::tok::TokenKind kind, unsigned size);
+
+    class InParentSearcher {
+    protected:
+        typedef clang::ast_type_traits::DynTypedNode AnyNode;
+        clang::ASTContext *f_astContext;
+        bool f_found;
+
+        void visit(const AnyNode &node);
+
+        void visitDecl(const clang::Decl *decl);
+
+        void visitStmt(const clang::Stmt *stmt);
+
+        void visitType(const clang::Type *type);
+
+        virtual bool checkDecl(const clang::Decl *decl) { return false; }
+
+        virtual bool checkStmt(const clang::Stmt *stmt) { return false; }
+
+        virtual bool checkType(const clang::Type *type) { return false; }
+
+    public:
+        InParentSearcher(clang::ASTContext *astContext) : f_astContext(astContext) {}
+    };
 }
 
 #endif /*CPP14REGRESS_UTILS_H*/

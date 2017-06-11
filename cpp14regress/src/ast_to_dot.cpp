@@ -26,8 +26,8 @@ namespace cpp14regress {
 
     using namespace std;
     using namespace clang;
-    void ast_graph::recursive_visit(ast_graph_node *agn_f) {
-        for (ast_graph_node *agn_c : agn_f->children()) {
+    void ast_graph::recursive_visit(const ast_graph_node *agn_f) {
+        for (const ast_graph_node *agn_c : agn_f->children()) {
             if (agn_c != nullptr) {
                 ast_graph_edge *age = new ast_graph_edge(agn_f, agn_c);
                 if(find(f_nodes.begin(), f_nodes.end(), agn_c) == f_nodes.end())
@@ -38,7 +38,7 @@ namespace cpp14regress {
         }
     }
 
-    ast_graph::ast_graph(Stmt *stmt_, ASTContext* context_)
+    ast_graph::ast_graph(const Stmt *stmt_, ASTContext* context_)
     {
         if (stmt_ == nullptr)
             return;
@@ -57,7 +57,7 @@ namespace cpp14regress {
         dot << endl;
         for (size_t i = 0; i < f_nodes.size(); i++)
         {
-            ast_graph_node *node = f_nodes[i];
+            const ast_graph_node *node = f_nodes[i];
             dot << "n" << to_string(i) << " [label = "
                 << node_inf_to_label(get_stmt_inf(node))
                 << ", shape = \"box\"" << " ]" << endl;
@@ -91,15 +91,15 @@ namespace cpp14regress {
         return s;
     }
 
-    node_inf ast_graph::get_stmt_inf(clang::Stmt* stmt)
+    node_inf ast_graph::get_stmt_inf(const clang::Stmt* stmt)
     {
         node_inf inf;
         inf.push_back(node_inf_record(stmt->getStmtClassName()));
-        if(DeclRefExpr* dre = dyn_cast<DeclRefExpr>(stmt)) {
+        if(const DeclRefExpr* dre = dyn_cast<DeclRefExpr>(stmt)) {
             inf.push_back(node_inf_record(dre->getDecl()->getType().getAsString()));
             inf.push_back(node_inf_record(dre->getDecl()->getQualifiedNameAsString()));
         }
-        else if (Expr* expr = dyn_cast<Expr>(stmt)) {
+        else if (const Expr* expr = dyn_cast<Expr>(stmt)) {
             inf.push_back(expr->getType().getAsString());
             inf.push_back(node_inf_record(string_to_label(toString<>(expr, f_context))));
         }

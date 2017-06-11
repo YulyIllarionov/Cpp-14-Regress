@@ -34,25 +34,37 @@ namespace cpp14regress {
         string::size_type pos = sl.find('\"');
         if ((pos != 0) && (pos != string::npos)) {
             if (sl[--pos] == 'R') {
-                string raw = string(literal->getBytes());
-                for (size_t i = 0; i < raw.size(); i++) {
-                    string s;
-                    if (escapeCharToString(raw[i], s)) {
-                        raw.replace(i, 1, s);
-                        //cout << "Ecape at " << i << " is " << s << endl;
-                        i++;
+                replacement::result res = replacement::result::found;
+                string raw = toString(literal, f_astContext);
+                if (getFromRaw(raw)) {
+                    for (size_t i = 0; i < raw.size(); i++) {
+                        string s;
+                        if (escapeCharToString(raw[i], s)) {
+                            raw.replace(i, 1, s);
+                            i++;
+                        }
                     }
+                    raw.insert(0, "\"");
+                    raw += "\"";
+                    if (pos != 0)
+                        raw = sl.substr(0, pos) + raw;
+                    f_rewriter->ReplaceText(literal->getSourceRange(), raw);
                 }
-                //cout << raw << endl;
-                raw.insert(0, "\"");
-                raw += "\"";
-                if (pos != 0)
-                    raw = sl.substr(0, pos) + raw;
-                f_rewriter->ReplaceText(literal->getSourceRange(), raw);
-                f_rewriter->InsertTextBefore(literal->getLocStart(), Comment::block(
-                        replacement::info(type(), replacement::result::replaced)));
+                f_rewriter->InsertTextBefore(literal->getLocStart(),
+                                             Comment::block(replacement::info(type(), res)));
             }
         }
+        return true;
+    }
+
+    bool RawStringReplacer::getFromRaw(std::string &raw) {
+        string::size_type RPos = raw.find('R');
+        string::size_type lParenPos = raw.find('(');
+        string::size_type rParenPos = raw.find_last_of(')');
+        if ((rParenPos == string::npos) || (lParenPos >= rParenPos) || (RPos >= lParenPos))
+            return false;
+        raw.erase(rParenPos, raw.size() - rParenPos);
+        raw.erase(RPos, ++lParenPos - RPos);
         return true;
     }
 

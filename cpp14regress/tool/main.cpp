@@ -13,16 +13,18 @@
 #include "clang/AST/EvaluatedExprVisitor.h"
 #include "clang/AST/ParentMap.h"
 #include "clang/Tooling/JSONCompilationDatabase.h"
+#include <clang/Sema/Ownership.h>
 
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <cstdarg>
-#include <clang/Sema/Ownership.h>
+#include <unistd.h>
 
 #include "base_types.h"
 #include "tool.h"
+
 
 using namespace std;
 using namespace clang;
@@ -76,9 +78,8 @@ int main(int argc, const char **argv) {
         if (features::isSupported(f)) {
             cout << features::toString(f) << endl
                  << console_hline('-') << endl;
-            auto faf = new Cpp14RegressFrontendActionFactory(f);
-            Tool.run(faf);
-            delete faf;
+            Cpp14RegressFrontendActionFactory faf(f);
+            Tool.run(&faf);
         }
     }
     return 0;

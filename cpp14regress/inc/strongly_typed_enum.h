@@ -25,7 +25,7 @@ namespace cpp14regress {
 
     class ImprovedEnumReplacer : public FeatureVisitor {
     private:
-        std::vector<clang::EnumDecl *> f_separatelyDefs;
+        std::vector<clang::EnumDecl *> f_visited;
 
         std::string nameForReplace() { return "enumeration"; }
 
@@ -37,7 +37,20 @@ namespace cpp14regress {
 
         virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl);
 
-        virtual bool VisitTypeLoc(clang::TypeLoc typeLoc);
+        virtual bool VisitEnumTypeLoc(clang::EnumTypeLoc typeLoc);
+    };
+
+    class ForwardDeclaredEnumReplacer : public FeatureVisitor {
+    private:
+        std::vector<clang::EnumDecl *> f_replaced;
+
+    public:
+
+        ForwardDeclaredEnumReplacer(clang::CompilerInstance *ci) : FeatureVisitor(ci) {}
+
+        virtual features::type type() { return features::type::forward_declared_enum; }
+
+        virtual bool VisitEnumDecl(clang::EnumDecl *enumDecl);
     };
 
 }
