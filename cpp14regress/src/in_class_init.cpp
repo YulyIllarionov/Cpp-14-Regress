@@ -35,17 +35,36 @@ namespace cpp14regress {
         const SourceManager &sm = *f_sourceManager;
         const LangOptions &lo = *f_langOptions;
 
+        replacement::result res = replacement::result::removed;
+        if (recordDecl->isAnonymousStructOrUnion()) {
+            res = replacement::result::found;
+        }
+
+        bool hasCtor = false;
+        for (auto ctor = recordDecl->ctor_begin(); ctor != recordDecl->ctor_end(); ctor++) {
+            if (ctor->isExplicit()) {
+                hasCtor = true;
+                break;
+            }
+        }
+        if (!hasCtor) {
+            res = replacement::result::found;
+        }
+
         bool initFound = false;
         for (auto field = recordDecl->field_begin(); field != recordDecl->field_end(); field++) {
             if (field->hasInClassInitializer()) { //TODO check const static fundamental
                 SourceLocation b = Lexer::getLocForEndOfToken(field->getLocation(), 0, sm, lo);
-                f_rewriter->InsertTextBefore(b, replacement::info(type(), replacement::result::removed));
-                f_rewriter->InsertTextBefore(b, Comment::block::begin());
-                f_rewriter->InsertTextAfterToken(field->getLocEnd(), Comment::block::end());
-                initFound = true;
+                if (res != replacement::result::found) {
+                    f_rewriter->InsertTextBefore(b, Comment::block::begin());
+                    f_rewriter->InsertTextAfterToken(field->getLocEnd(), Comment::block::end());
+                    initFound = true;
+                }
+                f_rewriter->InsertTextBefore(b, Comment::line(
+                        replacement::info(type(), res)) + "\n");
             }
         }
-        if (!initFound)
+        if ((!initFound) || (!hasCtor))
             return true;
 
         bool ctorFound = false;
@@ -74,8 +93,16 @@ namespace cpp14regress {
                                 toString((*init)->getSourceRange(), f_astContext)); //TODO fix toString
                     } else if ((*init)->isInClassMemberInitializer()) {
                         if (auto field = (*init)->getMember()) {
-                            string init(field->getNameAsString() + "(" + //TODO fix: only value
-                                        toString(field->getInClassInitializer(), f_astContext) + ")");
+                            SourceRange initRange = field->getInClassInitializer()->getSourceRange();
+                            initRange.setBegin(findTokenEndAfterLoc(
+                                    field->getLocation(), tok::TokenKind::equal, f_astContext, true));
+                            string initVal;
+                            if (initRange.isValid())
+                                initVal = toString(initRange, f_astContext);
+                            else
+                                initVal = Comment::block(
+                                        replacement::info(type(), replacement::result::error));
+                            string init(field->getNameAsString() + "(" + initVal + ")");
                             inits.push_back(init);
                             replace = true;
                         }
@@ -95,14 +122,23 @@ namespace cpp14regress {
                 }
             }
         }
-        cout << "Ctor found: " << ctorFound << endl;
+        cout << "Ctor name: " << recordDecl->getNameAsString() << endl;
         if (!ctorFound) {
             string initCtor = string("public:\n" + recordDecl->getNameAsString() + "() : ");
             vector<string> inits;
             for (auto field = recordDecl->field_begin(); field != recordDecl->field_end(); field++) {
                 if (auto init = field->getInClassInitializer()) {
+                    SourceRange initRange = init->getSourceRange();
+                    initRange.setBegin(findTokenEndAfterLoc(
+                            field->getLocation(), tok::TokenKind::equal, f_astContext, true));
+                    string initVal;
+                    if (initRange.isValid())
+                        initVal = toString(initRange, f_astContext);
+                    else
+                        initVal = Comment::block(
+                                replacement::info(type(), replacement::result::error));
                     inits.push_back(string(field->getNameAsString() +
-                                           "(" + toString(init, f_astContext) + ")"));
+                                           "(" + initVal + ")"));
                 }
             }
             for (auto it = inits.begin(); it != inits.end();) {

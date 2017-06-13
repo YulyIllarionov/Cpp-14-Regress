@@ -63,7 +63,8 @@ namespace cpp14regress {
                     } else if (constructorDecl->isCopyConstructor()) {
                         //cout << "Defaulted copy constructor: "
                         // << toString(constructorDecl, f_context) << endl << "---------"<< endl;
-                        defaultBody = " : ";
+                        if (!baseClass->field_empty())
+                            defaultBody = " : ";
                         for (auto it = baseClass->field_begin(); it != baseClass->field_end();) {
                             string fieldCopy = (*it)->getNameAsString() + "(" +
                                                paramName + "." + (*it)->getNameAsString() + ")";
@@ -75,7 +76,8 @@ namespace cpp14regress {
                     } else if (constructorDecl->isMoveConstructor()) {
                         //cout << "Defaulted move constructor: "
                         // << toString(constructorDecl, f_context) << endl << "---------" << endl;
-                        defaultBody = " : ";
+                        if (!baseClass->field_empty())
+                            defaultBody = " : ";
                         for (auto it = baseClass->field_begin(); it != baseClass->field_end();) {
                             string fieldCopy = (*it)->getNameAsString() + "(std::move(" +
                                                paramName + "." + (*it)->getNameAsString() + "))";
@@ -99,6 +101,7 @@ namespace cpp14regress {
                                                + "." + (*it)->getNameAsString() + ";\n";
                             defaultBody += fieldCopy;
                         }
+                        defaultBody += "return *this;\n";
                         defaultBody += "}";
                     } else if (methodDecl->isMoveAssignmentOperator()) {
                         //cout << "Defaulted move operator: "
@@ -109,6 +112,7 @@ namespace cpp14regress {
                                                + paramName + "." + (*it)->getNameAsString() + ");\n";
                             defaultBody += fieldCopy;
                         }
+                        defaultBody += "return *this;\n";
                         defaultBody += "}";
                     }
                 }

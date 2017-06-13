@@ -46,36 +46,37 @@ namespace cpp14regress {
     bool AutoReplacer::VisitVarDecl(VarDecl *varDecl) {
         if (!fromUserFile(varDecl, f_sourceManager))
             return true;
-
-        if (auto at = dyn_cast<AutoType>(varDecl->getType().getTypePtr())) {
-            QualType deducedType = at->getDeducedType();
-            cout << deducedType->getTypeClassName()
-                 << varDecl->getLocStart().printToString(*f_sourceManager) << endl;
+        QualType qt = varDecl->getType();
+        if (qt.isNull())
+            return true;
+        if (auto at = dyn_cast_or_null<AutoType>(qt.getTypePtr())) {
             replacement::result res = replacement::result::found;
             SourceRange typeRange = varDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange();
-            if (!deducedType.isNull()) {
-                //TODO method pointer and reference -- reference not found
-                //TODO field pointer and reference  -- reference not found
-                //TODO array reference
-                //TODO function reference
-                string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
-                if ((deducedType->isFunctionPointerType()) ||
-                    (deducedType->isMemberFunctionPointerType())) {
-                    string ident = (deducedType->isFunctionPointerType()) ? "(*)" : "::*";
-                    size_t identOffset = (deducedType->isFunctionPointerType()) ? 2 : 3;
+            if (at->isDeduced()) {
+                QualType deducedType = at->getDeducedType();
+                if (!deducedType.isNull()) {
+                    //TODO array reference
+                    //TODO function reference
+                    string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
+                    if ((deducedType->isFunctionPointerType()) ||
+                        (deducedType->isMemberFunctionPointerType())) {
+                        string ident = (deducedType->isFunctionPointerType()) ? "(*)" : "::*";
+                        size_t identOffset = (deducedType->isFunctionPointerType()) ? 2 : 3;
 
-                    size_t pos = typeName.find(ident); //TODO change
-                    if (pos != string::npos) {
-                        typeName.insert(pos + identOffset, varDecl->getNameAsString());
-                    } else {
-                        cerr << "auto tool error" << endl;
-                        return false;
+                        size_t pos = typeName.find(ident); //TODO change
+                        if (pos != string::npos) {
+                            typeName.insert(pos + identOffset, varDecl->getNameAsString());
+                        } else {
+                            cerr << "auto tool error" << endl;
+                            return false;
+                        }
+                        typeRange.setEnd(Lexer::getLocForEndOfToken(varDecl->getLocation(), 0,
+                                                                    *f_sourceManager, *f_langOptions));
                     }
-                    typeRange.setEnd(Lexer::getLocForEndOfToken(varDecl->getLocation(), 0,
-                                                                *f_sourceManager, *f_langOptions));
+                    f_rewriter->ReplaceText(typeRange, typeName);
+                    res = replacement::result::replaced;
                 }
-                f_rewriter->ReplaceText(typeRange, typeName);
-                res = replacement::result::replaced;
+
             }
             f_rewriter->InsertTextBefore(typeRange.getBegin(),
                                          Comment::block(replacement::info(type(), res)));
@@ -86,12 +87,18 @@ namespace cpp14regress {
     bool AutoReplacer::VisitFunctionDecl(clang::FunctionDecl *funDecl) {
         if (!fromUserFile(funDecl, f_sourceManager))
             return true;
-        if (auto at = dyn_cast<AutoType>(funDecl->getReturnType().getTypePtr())) {
-            QualType deducedType = at->getDeducedType();
+        QualType qt = funDecl->getReturnType();
+        if (qt.isNull())
+            return true;
+        if (auto at = dyn_cast_or_null<AutoType>(qt.getTypePtr())) {
             replacement::result res = replacement::result::found;
-            if (!deducedType.isNull()) {
-                f_rewriter->ReplaceText(funDecl->getReturnTypeSourceRange(), deducedType.getAsString());
-                res = replacement::result::replaced;
+            if (at->isDeduced()) {
+                QualType deducedType = at->getDeducedType();
+                if (!deducedType.isNull()) {
+                    f_rewriter->ReplaceText(funDecl->getReturnTypeSourceRange(),
+                                            deducedType.getAsString(PrintingPolicy(*f_langOptions)));
+                    res = replacement::result::replaced;
+                }
             }
             f_rewriter->InsertTextBefore(funDecl->getReturnTypeSourceRange().getBegin(),
                                          Comment::block(replacement::info(type(), res)));

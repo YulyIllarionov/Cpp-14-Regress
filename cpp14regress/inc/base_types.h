@@ -54,8 +54,6 @@ namespace cpp14regress {
             range_based_for,
             delete_keyword,
             default_keyword,
-            member_init,
-            constuctor_delegation,
             user_defined_literals,
             forward_declared_enum,
             uniform_initialization,
@@ -63,6 +61,8 @@ namespace cpp14regress {
             lambda,
             auto_keyword,
             decltype_keyword,
+            member_init,
+            constuctor_delegation,
 
             constexpr_keyword, //found only
             //extern_template,

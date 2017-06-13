@@ -117,6 +117,7 @@ namespace cpp14regress {
             header << templateStr << endl;
 
         }
+        cout << "Capture: " << toString(lambda->getIntroducerRange(), f_astContext) << " " << endl;
 
         //Lambda Class
         header << "class " << LambdaClassNameGenerator::toString() << " {" << endl;

@@ -81,7 +81,7 @@ namespace cpp14regress {
 //NOT SUPPORTED //case attributes : supported  = false; break;
                 //case auto_keyword : supported  = false; break;
                 //case binary_literals : supported  = false; break;
-                case constexpr_keyword : supported  = false; break;
+                //case constexpr_keyword : supported  = false; break;
                 //case constuctor_delegation : supported  = false; break;
                 //case decltype_keyword : supported  = false; break;
                 //case default_keyword : supported  = false; break;
