@@ -326,4 +326,46 @@ namespace cpp14regress {
             }
         }
     }
+
+    bool typeCanBeReplaced(QualType qt, string &reason) {
+        if (qt.isNull()) {
+            reason = " is not deduced";
+            return false;
+        }
+        while (qt->isReferenceType() || qt->isPointerType())
+            qt = qt->getPointeeType();
+        if (auto elaboratedType = dyn_cast<ElaboratedType>(qt))
+            qt = elaboratedType->getNamedType();
+        if (qt->isDependentType()) {
+            reason = " is dependent type";
+            return false;
+        }
+        if (auto recordDecl = qt->getAsCXXRecordDecl())
+            if (recordDecl->isLambda()) {
+                reason = " is lambda";
+                return false;
+            }
+        if (auto tagDecl = qt->getAsTagDecl())
+            if (tagDecl->getNameAsString().empty()) {
+                reason = " is anonymous";
+                return false;
+            }
+        if (isa<DecltypeType>(qt)) {
+            reason = " is still decltype";
+            return false;
+        }
+        return true;
+    }
+
+    bool typeCanBeSimplyReplaced(QualType qt, string &reason) {
+        if (!typeCanBeReplaced(qt, reason))
+            return false;
+        while (qt->isReferenceType() || qt->isPointerType())
+            qt = qt->getPointeeType();
+        if (qt->isFunctionType()) {
+            reason = " is function pointer";
+            return false;
+        }
+        return true;
+    }
 }

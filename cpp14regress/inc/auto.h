@@ -19,6 +19,8 @@
 #include "cpp14feature.h"
 #include "utils.h"
 
+#include<set>
+
 namespace cpp14regress {
 
     class AutoReplacer : public FeatureVisitor { //TODO fix
@@ -34,8 +36,12 @@ namespace cpp14regress {
 
         virtual bool VisitFunctionDecl(clang::FunctionDecl *funDecl);
 
+        virtual bool VisitDeclStmt(clang::DeclStmt *declStmt);
+
+    private:
+        std::set<clang::Decl *> f_multipleDecl;
+        bool f_firstInMultiple = true;
     };
-    
 }
 
 #endif /*CPP14REGRESS_AUTO_H*/

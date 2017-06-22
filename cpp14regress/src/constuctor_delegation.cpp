@@ -78,7 +78,7 @@ namespace cpp14regress {
                     replacement::result res = replacement::result::found;
                     auto targetCtor = definition->getTargetConstructor();
 
-                    if (targetCtor->isExplicit()) {
+                    if (targetCtor->isUserProvided()) {
                         SourceRange delegRange;
                         delegRange.setBegin(findTokenBeginAfterLoc(definition->getLocation(),
                                                                    tok::TokenKind::colon, 1, f_astContext));
@@ -90,8 +90,9 @@ namespace cpp14regress {
                         targetCtor->hasBody(fd1);
                         const CXXConstructorDecl *targetCtorDef = dyn_cast_or_null<CXXConstructorDecl>(fd1);
                         if (targetCtorDef) {
-                            cout << "Target ctor: " << toString(targetCtorDef, f_astContext) << " -- "
-                                 << targetCtorDef->getLocStart().printToString(*f_sourceManager) << endl;
+                            //cout << "Target ctor: " << toString(targetCtorDef, f_astContext) << " -- "
+                            //     << targetCtorDef->getLocStart().printToString(*f_sourceManager) << endl;
+
                             /*vector<CXXCtorInitializer *> targetInits;
                             for_each(targetCtorDef->init_begin(), targetCtorDef->init_end(),
                                      [&targetInits](CXXCtorInitializer *init) {

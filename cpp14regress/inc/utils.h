@@ -164,6 +164,10 @@ namespace cpp14regress {
     public:
         InParentSearcher(clang::ASTContext *astContext) : f_astContext(astContext) {}
     };
+
+    bool typeCanBeReplaced(clang::QualType qt, std::string &reason);
+
+    bool typeCanBeSimplyReplaced(clang::QualType qt, std::string &reason);
 }
 
 #endif /*CPP14REGRESS_UTILS_H*/

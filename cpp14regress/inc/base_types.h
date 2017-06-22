@@ -55,14 +55,15 @@ namespace cpp14regress {
             delete_keyword,
             default_keyword,
             user_defined_literals,
-            forward_declared_enum,
             uniform_initialization,
+            forward_declared_enum,
             improved_enum,
             lambda,
             auto_keyword,
             decltype_keyword,
-            member_init,
-            constuctor_delegation,
+            member_init, //2
+            constuctor_delegation, //1
+            constructor_inheriting, //4
 
             constexpr_keyword, //found only
             //extern_template,

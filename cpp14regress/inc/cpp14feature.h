@@ -105,6 +105,8 @@ namespace cpp14regress {
         virtual bool VisitDeclRefExpr(clang::DeclRefExpr *) { return true; }
 
         virtual bool VisitEnumTypeLoc(clang::EnumTypeLoc) { return true; }
+
+        virtual bool VisitAutoTypeLoc(clang::AutoTypeLoc) { return true; }
     };
 }
 

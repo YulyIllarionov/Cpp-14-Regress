@@ -32,100 +32,97 @@ namespace cpp14regress {
         if (!fromUserFile(recordDecl, f_sourceManager))
             return true;
 
-        const SourceManager &sm = *f_sourceManager;
-        const LangOptions &lo = *f_langOptions;
+        vector<const CXXConstructorDecl *> definitions;
 
-        replacement::result res = replacement::result::removed;
-        if (recordDecl->isAnonymousStructOrUnion()) {
-            res = replacement::result::found;
-        }
-
-        bool hasCtor = false;
-        for (auto ctor = recordDecl->ctor_begin(); ctor != recordDecl->ctor_end(); ctor++) {
-            if (ctor->isExplicit()) {
-                hasCtor = true;
-                break;
+        for (const CXXConstructorDecl *declaration : recordDecl->ctors()) {
+            if (declaration->isUserProvided()) {
+                const FunctionDecl *fd = nullptr;
+                declaration->isDefined(fd);
+                if (auto definition = dyn_cast_or_null<CXXConstructorDecl>(fd))
+                    definitions.push_back(definition);
             }
         }
-        if (!hasCtor) {
-            res = replacement::result::found;
-        }
 
-        bool initFound = false;
-        for (auto field = recordDecl->field_begin(); field != recordDecl->field_end(); field++) {
-            if (field->hasInClassInitializer()) { //TODO check const static fundamental
-                SourceLocation b = Lexer::getLocForEndOfToken(field->getLocation(), 0, sm, lo);
-                if (res != replacement::result::found) {
-                    f_rewriter->InsertTextBefore(b, Comment::block::begin());
-                    f_rewriter->InsertTextAfterToken(field->getLocEnd(), Comment::block::end());
-                    initFound = true;
+        bool canRegress = !recordDecl->getNameAsString().empty();
+        canRegress &= !definitions.empty();
+        replacement::result res = (canRegress) ? replacement::result::removed :
+                                  replacement::result::found;
+
+        bool needRegress = false;
+        for (const FieldDecl *field : recordDecl->fields()) {
+            //cout << "Field of " << recordDecl->getNameAsString() << ": "
+            //     << toString(field, f_astContext) << " -- "
+            //     << field->hasInClassInitializer() << endl;
+            if (field->hasInClassInitializer()) {
+                SourceRange initRange = field->getInClassInitializer()->getSourceRange();
+                initRange.setBegin(findTokenBeginAfterLoc(
+                        field->getLocation(), tok::TokenKind::equal, 1, f_astContext));
+                if (canRegress) {
+                    f_rewriter->InsertTextBefore(initRange.getBegin(), Comment::block::begin());
+                    f_rewriter->InsertTextAfterToken(initRange.getEnd(), Comment::block::end());
                 }
-                f_rewriter->InsertTextBefore(b, Comment::line(
+                f_rewriter->InsertTextBefore(field->getLocStart(), Comment::line(
                         replacement::info(type(), res)) + "\n");
+                needRegress = true;
             }
         }
-        if ((!initFound) || (!hasCtor))
+        if (!canRegress || !needRegress)
             return true;
 
-        bool ctorFound = false;
-        for (auto declaration = recordDecl->ctor_begin();
-             declaration != recordDecl->ctor_end(); declaration++) {
-            if (!declaration->isExplicit())
-                continue;
-            const FunctionDecl *fd = nullptr;
-            declaration->hasBody(fd);
-            const CXXConstructorDecl *definition = dyn_cast_or_null<CXXConstructorDecl>(fd);
-            if (definition) {
-                ctorFound = true;
-                auto last = find_if(definition->init_rbegin(), definition->init_rend(),
-                                    [](CXXCtorInitializer *init) {
-                                        return (*init).isWritten();
-                                    });
-                SourceLocation initBegin = getParamRange(fd, f_astContext).getEnd();
-                initBegin = Lexer::getLocForEndOfToken(initBegin, 0, sm, lo);
-                SourceLocation initEnd = (last == definition->init_rend()) ? initBegin :
-                                         definition->getBody()->getLocStart().getLocWithOffset(-1);
-                bool replace = false;
-                vector<string> inits;
-                for (auto init = definition->init_begin(); init != definition->init_end(); init++) {
-                    if ((*init)->isWritten()) {
-                        inits.push_back(
-                                toString((*init)->getSourceRange(), f_astContext)); //TODO fix toString
-                    } else if ((*init)->isInClassMemberInitializer()) {
-                        if (auto field = (*init)->getMember()) {
-                            SourceRange initRange = field->getInClassInitializer()->getSourceRange();
-                            initRange.setBegin(findTokenEndAfterLoc(
-                                    field->getLocation(), tok::TokenKind::equal, f_astContext, true));
-                            string initVal;
-                            if (initRange.isValid())
-                                initVal = toString(initRange, f_astContext);
-                            else
-                                initVal = Comment::block(
-                                        replacement::info(type(), replacement::result::error));
-                            string init(field->getNameAsString() + "(" + initVal + ")");
-                            inits.push_back(init);
-                            replace = true;
-                        }
+        for (const CXXConstructorDecl *definition : definitions) {
+            //cout << "Definition: " << toString(definition, f_astContext) << " -- "
+            //     << definition->getLocStart().printToString(*f_sourceManager) << endl;
+
+            auto last = find_if(definition->init_rbegin(), definition->init_rend(),
+                                [](CXXCtorInitializer *init) {
+                                    return (*init).isWritten();
+                                });
+            SourceLocation initBegin = findTokenEndAfterLoc(definition->getLocation(),
+                                                            tok::TokenKind::r_paren, f_astContext);
+            SourceLocation initEnd = (last == definition->init_rend()) ? initBegin :
+                                     definition->getBody()->getLocStart().getLocWithOffset(-1);
+            bool replace = false;
+            vector<string> inits;
+            for (auto init = definition->init_begin(); init != definition->init_end(); init++) {
+                //cout << "Init of " << recordDecl->getNameAsString() << ": "
+                //     << toString((*init)->getSourceRange(), f_astContext) << endl;
+                if ((*init)->isWritten()) {
+                    inits.push_back(
+                            toString((*init)->getSourceRange(), f_astContext)); //TODO fix toString
+                } else if ((*init)->isInClassMemberInitializer()) {
+                    if (auto field = (*init)->getMember()) {
+                        //SourceRange initRange = field->getInClassInitializer()->getSourceRange();
+                        //initRange.setBegin(findTokenEndAfterLoc(
+                        //        field->getLocation(), tok::TokenKind::equal, f_astContext, true));
+                        SourceRange initRange = (*init)->getSourceRange();
+                        string initVal;
+                        if (initRange.isValid())
+                            initVal = toString(initRange, f_astContext);
+                        else
+                            initVal = Comment::block(
+                                    replacement::info(type(), replacement::result::error));
+                        string init(field->getNameAsString() + "(" + initVal + ")");
+                        inits.push_back(init);
+                        replace = true;
                     }
-                }
-                if (replace) {
-                    string initCode = " : ";
-                    for (auto init = inits.begin();;) {
-                        initCode += *init;
-                        if (++init != inits.end())
-                            initCode += ", ";
-                        else break;
-                    }
-                    f_rewriter->ReplaceText(SourceRange(initBegin, initEnd), initCode);
-                    f_rewriter->InsertTextBefore(definition->getLocStart(), Comment::line(
-                            replacement::info(type(), replacement::result::replaced)) + "\n");
                 }
             }
+            if (replace) {
+                string initCode = " : ";
+                for (auto init = inits.begin();;) {
+                    initCode += *init;
+                    if (++init != inits.end())
+                        initCode += ", ";
+                    else break;
+                }
+                f_rewriter->ReplaceText(SourceRange(initBegin, initEnd), initCode);
+                f_rewriter->InsertTextBefore(definition->getLocStart(), Comment::line(
+                        replacement::info(type(), replacement::result::replaced)) + "\n");
+            }
         }
-        cout << "Ctor name: " << recordDecl->getNameAsString() << endl;
-        if (!ctorFound) {
+        /*if (!ctorFound) {
             string initCtor = string("public:\n" + recordDecl->getNameAsString() + "() : ");
-            vector<string> inits;
+            vector <string> inits;
             for (auto field = recordDecl->field_begin(); field != recordDecl->field_end(); field++) {
                 if (auto init = field->getInClassInitializer()) {
                     SourceRange initRange = init->getSourceRange();
@@ -153,9 +150,7 @@ namespace cpp14regress {
             f_rewriter->InsertTextBefore(recordDecl->getRBraceLoc(), Comment::line(
                     replacement::begin(type(), replacement::result::inserted)) + "\n");
             return true;
-        }
-
-
+        }*/
         return true;
     }
 }

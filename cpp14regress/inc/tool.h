@@ -71,11 +71,15 @@ namespace cpp14regress {
         Cpp14RegressFrontendActionFactory(features::type feature) : f_feature(feature) {}
 
         clang::FrontendAction *create() {
-            return new Cpp14RegressFrontendAction(f_feature);
+            f_factory = new Cpp14RegressFrontendAction(f_feature);
+            return f_factory;
         }
+
+        //~Cpp14RegressFrontendActionFactory() { delete f_factory; }
 
     private:
         features::type f_feature;
+        Cpp14RegressFrontendAction *f_factory;
     };
 
 }

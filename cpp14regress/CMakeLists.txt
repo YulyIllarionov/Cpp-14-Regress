@@ -54,6 +54,7 @@ add_clang_library(Cpp14Regress
         ./src/constexpr.cpp
         ./src/noexcept.cpp
         ./src/variadic_template.cpp
+        ./src/constructor_inheriting.cpp
         #./src/file_preparator.cpp
 
         LINK_LIBS

@@ -34,6 +34,7 @@ namespace cpp14regress {
                 case auto_keyword : s = "auto type"; break;
                 case binary_literals : s = "binary literal"; break;
                 case constexpr_keyword : s = "constexpr"; break;
+                case constructor_inheriting : s = "constructor inheritance "; break;
                 case constuctor_delegation : s = "constructor delegation "; break;
                 case decltype_keyword : s = "decltype type"; break;
                 case default_keyword : s = "default method"; break;
@@ -81,8 +82,9 @@ namespace cpp14regress {
 //NOT SUPPORTED //case attributes : supported  = false; break;
                 //case auto_keyword : supported  = false; break;
                 //case binary_literals : supported  = false; break;
-                //case constexpr_keyword : supported  = false; break;
+                case constexpr_keyword : supported  = false; break;
                 //case constuctor_delegation : supported  = false; break;
+                //case constructor_inheriting : supported  = false; break;
                 //case decltype_keyword : supported  = false; break;
                 //case default_keyword : supported  = false; break;
                 //case delete_keyword : supported  = false; break;

@@ -26,60 +26,142 @@ namespace cpp14regress {
     /*bool AutoReplacer::VisitAutoTypeLoc(clang::AutoTypeLoc typeLoc) {
         if (!fromUserFile(&typeLoc, f_sourceManager))
             return true;
-        replacement::result res = replacement::result::found;
+        cout << "Auto visited" << endl;
         QualType deducedType = typeLoc.getTypePtr()->getDeducedType();
         if (!deducedType.isNull()) {
-            if ((deducedType->isFunctionPointerType()) ||
-                (deducedType->isMemberFunctionPointerType())) {
-                return true;
+            cout << "Auto deduced" << endl;
+            QualType pointeeType = deducedType;
+            if (deducedType->isReferenceType() || deducedType->isPointerType())
+                pointeeType = deducedType->getPointeeType();
+            if (auto elaboratedType = dyn_cast<ElaboratedType>(pointeeType))
+                pointeeType = elaboratedType->getNamedType();
+
+            //cout << "Type name: " << pointeeType->getTypeClassName() << " -- "
+            //     << typeLoc.getLocStart().printToString(*f_sourceManager) << endl;
+            replacement::result res = replacement::result::replaced;
+            string reason;
+            if (pointeeType->isFunctionType()) {
+                res = replacement::result::found;
+                reason = " is function pointer";
             }
-            string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
-            //f_rewriter->ReplaceText(typeLoc.getSourceRange(), typeName);
-            res = replacement::result::replaced;
-            cout << typeName << " -- " << typeLoc.getEndLoc().printToString(*f_sourceManager) << endl;
+            if (deducedType->isDependentType()) {
+                res = replacement::result::found;
+                reason = " is dependent type";
+            }
+            if (auto recordDecl = pointeeType->getAsCXXRecordDecl())
+                if (recordDecl->isLambda()) {
+                    res = replacement::result::found;
+                    reason = " is lambda";
+                }
+            if (auto tagDecl = pointeeType->getAsTagDecl())
+                if (tagDecl->getNameAsString().empty()) {
+                    res = replacement::result::found;
+                    reason = " is anonymous";
+                }
+            if (isa<DecltypeType>(deducedType)) {
+                res = replacement::result::found;
+                reason = " is still decltype";
+            }
+
+            if (res != replacement::result::found) {
+                if (typeLoc.getSourceRange().isValid()) {
+                    PrintingPolicy pp(*f_langOptions);
+                    //pp.SuppressUnwrittenScope = true;
+                    f_rewriter->InsertTextAfterToken(typeLoc.getLocEnd(), Comment::block::end());
+                    f_rewriter->InsertTextAfterToken(typeLoc.getLocEnd(),
+                                                     deducedType.getAsString(pp));
+                } else {
+                    f_rewriter->InsertTextBefore(typeLoc.getLocStart(), Comment::block::end());
+                    res = replacement::result::found;
+                }
+            } else {
+                f_rewriter->InsertTextBefore(typeLoc.getLocStart(), Comment::block::end());
+            }
+            f_rewriter->InsertTextBefore(typeLoc.getLocStart(),
+                                         Comment::block::begin() + replacement::info(type(), res) + reason + " ");
         }
-        //f_rewriter->InsertTextBefore(typeLoc.getLocStart(),
-        //                             Comment::block(replacement::info(type(), res)));
         return true;
     }*/
 
     bool AutoReplacer::VisitVarDecl(VarDecl *varDecl) {
         if (!fromUserFile(varDecl, f_sourceManager))
             return true;
+        if (!f_firstInMultiple) {
+            f_multipleDecl.erase(varDecl);
+            //cout << "Pop from set: " << varDecl << endl;
+            if (f_multipleDecl.empty())
+                f_firstInMultiple = true;
+            return true;
+        }
+        if (f_multipleDecl.find(varDecl) != f_multipleDecl.end()) {
+            f_multipleDecl.erase(varDecl);
+            //cout << "First pop from set: " << varDecl << endl;
+            f_firstInMultiple = false;
+        }
+
+
+        /*cout << varDecl->getNameAsString() << " -- ";
+        const auto &parents = f_astContext->getParents(*varDecl);
+        for (auto parent : parents) {
+            if (auto stmt = parent.get<Stmt>()) {
+                cout << "Stmt: " << stmt->getStmtClassName();
+            } else if (auto decl = parent.get<Decl>()) {
+                cout << "Decl: " << decl->getDeclKindName();
+            }
+            cout << endl;
+        }*/
+
         QualType qt = varDecl->getType();
         if (qt.isNull())
             return true;
         if (auto at = dyn_cast_or_null<AutoType>(qt.getTypePtr())) {
             replacement::result res = replacement::result::found;
             SourceRange typeRange = varDecl->getTypeSourceInfo()->getTypeLoc().getSourceRange();
-            if (at->isDeduced()) {
-                QualType deducedType = at->getDeducedType();
-                if (!deducedType.isNull()) {
-                    //TODO array reference
-                    //TODO function reference
-                    string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
-                    if ((deducedType->isFunctionPointerType()) ||
-                        (deducedType->isMemberFunctionPointerType())) {
-                        string ident = (deducedType->isFunctionPointerType()) ? "(*)" : "::*";
-                        size_t identOffset = (deducedType->isFunctionPointerType()) ? 2 : 3;
+            QualType deducedType = at->getDeducedType();
+            string reason;
+            if (typeCanBeReplaced(deducedType, reason)) {
+                //cout << "Auto type: " << deducedType->getTypeClassName() << " -- "
+                //     << varDecl->getLocStart().printToString(*f_sourceManager) << endl;
+                //TODO array reference
+                //TODO function reference
+                string typeName = deducedType.getAsString(PrintingPolicy(*f_langOptions));
+                QualType pointerType = deducedType;
+                size_t ptrNumber = 0;
+                while (pointerType->isReferenceType() || pointerType->isPointerType()) {
+                    ptrNumber++;
+                    pointerType = pointerType->getPointeeType();
+                    //cout << string("Type " + to_string(ptrNumber)) << pointerType->getTypeClassName() << endl;
+                }
+                //cout << deducedType->getTypeClassName() << endl;
 
-                        size_t pos = typeName.find(ident); //TODO change
-                        if (pos != string::npos) {
-                            typeName.insert(pos + identOffset, varDecl->getNameAsString());
-                        } else {
-                            cerr << "auto tool error" << endl;
-                            return false;
-                        }
-                        typeRange.setEnd(Lexer::getLocForEndOfToken(varDecl->getLocation(), 0,
-                                                                    *f_sourceManager, *f_langOptions));
+                if (at->isDecltypeAuto()) {
+                    typeRange.setEnd(findTokenBeginAfterLoc(typeRange.getEnd(), tok::TokenKind::r_paren,
+                                                            1, f_astContext));
+                }
+                if ((pointerType->isFunctionPointerType()) ||
+                    (pointerType->isMemberFunctionPointerType())) {
+                    string ident = (pointerType->isFunctionPointerType()) ?
+                                   string("(*" + string(ptrNumber, '*') + ")") :
+                                   string("::*" + string(ptrNumber, '*')); //TODO check
+                    size_t identOffset = (pointerType->isFunctionPointerType())
+                                         ? ident.size() - 1 : ident.size();
+                    size_t pos = typeName.find(ident); //TODO change
+                    //cout << "Identifier: " << ident << " -- " << typeName.substr(0, pos + identOffset) << endl;
+                    if (pos != string::npos) {
+                        typeName.insert(pos + identOffset, varDecl->getNameAsString());
+                    } else {
+                        typeName = replacement::info(type(), replacement::result::error);
                     }
+                    typeRange.setEnd(Lexer::getLocForEndOfToken(varDecl->getLocation(), 0,
+                                                                *f_sourceManager, *f_langOptions));
+                }
+                if (typeRange.isValid()) {
                     f_rewriter->ReplaceText(typeRange, typeName);
                     res = replacement::result::replaced;
                 }
-
             }
             f_rewriter->InsertTextBefore(typeRange.getBegin(),
-                                         Comment::block(replacement::info(type(), res)));
+                                         Comment::block(replacement::info(type(), res) + reason));
         }
         return true;
     }
@@ -92,16 +174,33 @@ namespace cpp14regress {
             return true;
         if (auto at = dyn_cast_or_null<AutoType>(qt.getTypePtr())) {
             replacement::result res = replacement::result::found;
-            if (at->isDeduced()) {
-                QualType deducedType = at->getDeducedType();
-                if (!deducedType.isNull()) {
-                    f_rewriter->ReplaceText(funDecl->getReturnTypeSourceRange(),
+            string reason;
+            QualType deducedType = at->getDeducedType();
+            SourceRange typeRange = funDecl->getReturnTypeSourceRange();
+            if (typeCanBeSimplyReplaced(deducedType, reason)) {
+                if (at->isDecltypeAuto()) {
+                    typeRange.setEnd(findTokenBeginAfterLoc(typeRange.getEnd(), tok::TokenKind::r_paren,
+                                                            1, f_astContext));
+                }
+                if (typeRange.isValid()) {
+                    f_rewriter->ReplaceText(typeRange,
                                             deducedType.getAsString(PrintingPolicy(*f_langOptions)));
                     res = replacement::result::replaced;
                 }
             }
-            f_rewriter->InsertTextBefore(funDecl->getReturnTypeSourceRange().getBegin(),
-                                         Comment::block(replacement::info(type(), res)));
+            f_rewriter->InsertTextBefore(typeRange.getBegin(),
+                                         Comment::block(replacement::info(type(), res) + reason));
+        }
+
+        return true;
+    }
+
+    bool AutoReplacer::VisitDeclStmt(clang::DeclStmt *declStmt) {
+        for (auto decl : declStmt->decls()) {
+            if (isa<VarDecl>(decl)) {
+                //cout << "Push to set: " << decl << endl;
+                f_multipleDecl.insert(decl);
+            }
         }
         return true;
     }

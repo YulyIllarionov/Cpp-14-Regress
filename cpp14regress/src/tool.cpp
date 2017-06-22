@@ -49,6 +49,7 @@
 #include "constexpr.h"
 #include "noexcept.h"
 #include "variadic_template.h"
+#include "constructor_inheriting.h"
 
 namespace cpp14regress {
 
@@ -69,6 +70,7 @@ namespace cpp14regress {
             case features::binary_literals : f_visitor = new BinaryLiteralReplacer(ci); break;
             case features::constexpr_keyword : f_visitor = new ConstexprSearcher(ci); break;
             case features::constuctor_delegation : f_visitor = new ConstructorDelegationReplacer(ci); break;
+            case features::constructor_inheriting : f_visitor = new ConstructorInheritingReplacer(ci); break;
             case features::decltype_keyword : f_visitor = new DecltypeReplacer(ci); break;
             case features::default_keyword : f_visitor = new DefaultReplacer(ci); break;
             case features::delete_keyword : f_visitor = new DeleteReplacer(ci); break;

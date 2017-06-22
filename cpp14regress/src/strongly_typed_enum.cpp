@@ -104,8 +104,8 @@ namespace cpp14regress {
     bool ImprovedEnumReplacer::VisitEnumTypeLoc(clang::EnumTypeLoc typeLoc) {
         if (!fromUserFile(&typeLoc, f_sourceManager))
             return true;
-        cout << "Enum type loc: " << typeLoc.getLocStart().printToString(*f_sourceManager) << " -- "
-             << toString(typeLoc.getSourceRange(), f_astContext) << endl;
+        //cout << "Enum type loc: " << typeLoc.getLocStart().printToString(*f_sourceManager) << " -- "
+        //     << toString(typeLoc.getSourceRange(), f_astContext) << endl;
 
         if (auto *enumDecl = typeLoc.getDecl()) {
             if (!fromUserFile(enumDecl, f_sourceManager))

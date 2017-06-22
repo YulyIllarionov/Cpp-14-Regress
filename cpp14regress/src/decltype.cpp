@@ -28,12 +28,11 @@ namespace cpp14regress {
             return true;
         QualType deducedType = typeLoc.getTypePtr()->getUnderlyingType();
         if (!deducedType.isNull()) {
-            replacement::result res = replacement::result::found;
-            if (!deducedType->isDependentType()) {
-                if ((deducedType->isFunctionPointerType()) ||
-                    (deducedType->isMemberFunctionPointerType())) {
-                    return true;
-                }
+
+            string reason;
+            replacement::result res = (typeCanBeSimplyReplaced(deducedType, reason)) ?
+                                      replacement::result::replaced : replacement::result::found;
+            if (res != replacement::result::found) {
                 SourceLocation decltypeBegin = typeLoc.getLocStart();
                 SourceLocation decltypeEnd = typeLoc.getTypePtr()->getUnderlyingExpr()->getLocEnd();
                 decltypeEnd = findTokenBeginAfterLoc(decltypeEnd, tok::TokenKind::r_paren,
@@ -42,13 +41,18 @@ namespace cpp14regress {
                 if (decltypeRange.isValid()) {
                     PrintingPolicy pp(*f_langOptions);
                     //pp.SuppressUnwrittenScope = true;
-                    f_rewriter->ReplaceText(decltypeRange,
-                                            deducedType.getAsString(pp));
-                    res = replacement::result::replaced;
+                    f_rewriter->InsertTextAfterToken(decltypeRange.getEnd(), Comment::block::end());
+                    f_rewriter->InsertTextAfterToken(decltypeRange.getEnd(),
+                                                     deducedType.getAsString(pp));
+                } else {
+                    f_rewriter->InsertTextBefore(typeLoc.getLocStart(), Comment::block::end());
+                    res = replacement::result::found;
                 }
+            } else {
+                f_rewriter->InsertTextBefore(typeLoc.getLocStart(), Comment::block::end());
             }
             f_rewriter->InsertTextBefore(typeLoc.getLocStart(),
-                                         Comment::block(replacement::info(type(), res)));
+                                         Comment::block::begin() + replacement::info(type(), res) + reason + " ");
         }
         return true;
     }
