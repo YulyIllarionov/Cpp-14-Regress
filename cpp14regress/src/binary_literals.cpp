@@ -25,7 +25,7 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    bool BinaryLiteralReplacer::VisitIntegerLiteral(clang::IntegerLiteral *intLiteral) {
+    bool BinaryLiteralReplacer::VisitIntegerLiteral(clang::IntegerLiteral *intLiteral) { //TODO error with operator""
         if (!fromUserFile(intLiteral, f_sourceManager))
             return true;
         /*const char *litBegin = f_sourceManager->getCharacterData(intLiteral->getLocStart());

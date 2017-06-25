@@ -22,7 +22,8 @@ namespace cpp14regress {
     using namespace clang;
     using namespace llvm;
 
-    std::string features::toString(features::type t) {
+    std::string
+    features::toString(features::type t) {
         std::string s;
         // @formatter:off
             switch (t) {
@@ -71,24 +72,25 @@ namespace cpp14regress {
         return s;
     }
 
-    bool features::isSupported(features::type t) {
+    bool features::isSupported(
+            features::type t) {
         bool supported = true;
         // @formatter:off
             switch (t) {
                 case alias_template : supported  = false; break;
-                //case alias_type : supported  = false; break;
+                case alias_type : supported  = false; break;
                 case alignas_specifier : supported  = false; break;
                 case alignof_operator : supported  = false; break;
 //NOT SUPPORTED //case attributes : supported  = false; break;
                 //case auto_keyword : supported  = false; break;
                 //case binary_literals : supported  = false; break;
                 case constexpr_keyword : supported  = false; break;
-                //case constuctor_delegation : supported  = false; break;
+                case constuctor_delegation : supported  = false; break;
                 //case constructor_inheriting : supported  = false; break;
                 //case decltype_keyword : supported  = false; break;
                 //case default_keyword : supported  = false; break;
                 //case delete_keyword : supported  = false; break;
-                //case digit_separators : supported  = false; break;
+                case digit_separators : supported  = false; break;
                 //case explicit_specifier : supported  = false; break;
 //NOT SUPPORTED //case extern_template : supported  = false; break;
                 //case final_specifier : supported  = false; break;
@@ -122,28 +124,43 @@ namespace cpp14regress {
     }
 
     namespace replacement {
-        string info(features::type f, result r) {
-            return string(seed + " " + features::toString(f) + " " + resultStrings[(int) r]);
+        string
+        info(features::type f, result r) {
+            return string(seed + " " +
+                          features::toString(
+                                  f) +
+                          " " +
+                          resultStrings[(int) r]);
         }
 
-        string begin(features::type f, result r) { return info(f, r) + " begin"; }
+        string begin(features::type f,
+                     result r) {
+            return info(f, r) + " begin";
+        }
 
-        string end(features::type f, result r) { return info(f, r) + " end"; }
+        string end(features::type f,
+                   result r) {
+            return info(f, r) + " end";
+        }
     }
 
-    string Comment::line(const string &text) {
+    string
+    Comment::line(const string &text) {
         string commented(text);
         commented.insert(0, "//");
-        for (string::size_type i = 0; i < commented.size(); i++) {
+        for (string::size_type i = 0;
+             i < commented.size(); i++) {
             if (commented[i] == '\n') {
-                commented.insert(++i, "//");
+                commented.insert(++i,
+                                 "//");
                 i++;
             }
         }
         return commented;
     }
 
-    string Comment::block(const string &text) {
+    string
+    Comment::block(const string &text) {
         return string("/*" + text + "*/");
     }
 
